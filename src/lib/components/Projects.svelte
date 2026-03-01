@@ -36,7 +36,8 @@
 		{
 			icon: '🤖',
 			title: 'Guardian',
-			description: 'AI assistant for Law Enforcement.',
+			description:
+				"🏆 Won <strong>NeoData Hackatania 2.0</strong> — Catania, November 2024.<br>Multimodal AI chatbot for Law Enforcement: processes text queries and <strong>license-plate images</strong> to retrieve sensitive real-time data.<br><strong>Key capabilities:</strong><ul><li>Instant access to criminal records and conviction history</li><li>Vehicle data from plate images via LLM vision</li><li>Graph-based navigation with <strong>GraphRAG</strong> on Neo4j (schools, employers, associates)</li><li>Pseudo <strong>risk coefficient</strong> computed from personal and associates' crime severity</li></ul>Agentic tool orchestration via <strong>LangChain + LangGraph</strong>. Developed with Salvatore Iurato.",
 			techTags: ['Neo4j', 'LangGraph', 'LLM'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Guardian',
 			isHackathonWinner: true,
@@ -51,7 +52,7 @@
 			icon: '📸',
 			title: 'Image Enhancement',
 			description:
-				'Deep Learning models for image restoration and enhancement with multiple degradation types.',
+				'Systematic comparison of CNN image restoration architectures on the <strong>DIV2K dataset</strong> (800 train / 100 val at 2K resolution).<br><strong>Architectures implemented:</strong><ul><li><strong>UNet</strong> — encoder-decoder with skip connections (~7.8M params)</li><li><strong>Residual UNet</strong> — predicts noise residual for faster convergence</li><li><strong>Attention UNet</strong> — selective focus via attention gates (~13.7M params)</li><li><strong>DnCNN</strong> — feed-forward CNN with batch norm for blind denoising</li><li><strong>Denoising Autoencoder</strong> — bottleneck encoder-decoder trained to reconstruct clean images</li><li><strong>Pix2Pix GAN</strong> — conditional adversarial network for image-to-image translation</li></ul><strong>Degradations:</strong> Gaussian noise (σ=100), quantization dithering (2–8 bit), salt &amp; pepper.<br>Training: AMP mixed precision · L1+SSIM+VGG16 perceptual loss · cosine warmup scheduler · early stopping · sliding-window full-resolution inference.<br>Metrics: <strong>PSNR</strong> and <strong>SSIM</strong>. 4-person team project.',
 			techTags: ['PyTorch', 'UNet', 'GAN', 'Computer Vision'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Image-Enhancement',
 			image: '/assets/projects/imageEnhancement.webp'
@@ -59,7 +60,8 @@
 		{
 			icon: '🖼️',
 			title: 'Steganography WebApp',
-			description: 'Hide data inside images with this web application.',
+			description:
+				'Full-stack web app to hide and recover data (text, images, binary files) inside carrier images — backed by a formal <strong>LaTeX scientific report</strong>.<br><strong>Three algorithms:</strong><ul><li><strong>LSB</strong> — least significant bit modification; up to 3 bpp; PSNR &gt;50 dB; fast but fragile to JPEG compression</li><li><strong>DWT</strong> — wavelet frequency-domain embedding; JPEG-robust; PSNR 35–45 dB</li><li><strong>PVD</strong> — pixel-value differencing; adaptive capacity; PSNR 45–55 dB; SSIM &gt;0.95</li></ul>Features: intelligent <strong>parameter auto-backup</strong> for recovery, RGB/RGBA/Grayscale auto-conversion, live <strong>PSNR &amp; SSIM</strong> quality feedback, and a clean modular architecture with CI (Black, isort, ruff).',
 			techTags: ['Steganography', 'Streamlit'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Steganography-WebApp',
 			externalLink: {
@@ -73,7 +75,7 @@
 			icon: '🚚',
 			title: 'Warehouse Swarm Intelligence System',
 			description:
-				'Multi-agent system for warehouse optimization using swarm intelligence algorithms.',
+				'Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor. Deployed on Render + Vercel.',
 			techTags: ['Python', 'Swarm Intelligence', 'Multi-Agent', 'Optimization'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System',
 			externalLink: {
@@ -86,7 +88,8 @@
 		{
 			icon: '🧠',
 			title: 'Neural Sudoku',
-			description: 'Deep Learning model that solves Sudoku puzzles.',
+			description:
+				'End-to-end neural approach to Sudoku solving in two phases.<br><strong>Phase 1 — Data generation:</strong> a classic <strong>backtracking solver</strong> based on constraint propagation generates large labeled puzzle datasets (given → solution pairs).<br><strong>Phase 2 — Neural solver:</strong> a <strong>PyTorch network</strong> is trained purely on examples to predict the complete 9×9 solution from a partial grid, learning Sudoku rules implicitly.<br>Ongoing work: architecture refinement, NumPy-based grid manipulation, and a systematic evaluation framework measuring digit-level and full-puzzle accuracy.',
 			techTags: ['PyTorch', 'Deep Learning', 'Sudoku'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Neural-Sudoku',
 			image: '/assets/projects/sudoku.webp'
@@ -94,7 +97,8 @@
 		{
 			icon: '🎮',
 			title: 'The Legend of Turi',
-			description: 'Zelda-like game with Sicilian twist.',
+			description:
+				'A <strong>top-down action-adventure</strong> game inspired by The Legend of Zelda — with a distinctly Sicilian soul, built entirely in <strong>Unity</strong> (C#).<br><strong>Features:</strong><ul><li>Hand-crafted tile maps and multi-room exploration</li><li>Enemy AI with patrol and chase behaviours</li><li>Combat system with weapons, hitboxes and health management</li><li>Dialogue system and interactive NPCs</li><li>Original story following the hero Turi across the Sicilian countryside</li></ul>Packaged as a standalone Windows executable — downloadable directly from the GitHub release.',
 			techTags: ['C#', 'Unity'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/The-Legend-of-Turi',
 			externalLink: {
@@ -107,7 +111,8 @@
 		{
 			icon: '🔍',
 			title: 'Kagi ML Dev Challenge',
-			description: 'AI-powered Hacker News article analyzer and search system.',
+			description:
+				'Entry for the <strong>Kagi ML Dev Challenge</strong>: build an API that re-ranks Hacker News articles by user interest and expands search queries with ML.<br><strong>Technical journey (9 phases):</strong><ul><li>FAISS on 1,200 stories → poor quality</li><li>Scaled to a <strong>4M-post HuggingFace dataset</strong>, filtered to 300K HTTPS stories</li><li>CPU FAISS (2s) → GPU FAISS (1s, lower quality) → <strong>Weaviate Cloud</strong> (0.2–0.7s)</li><li><strong>GPT-4o-mini</strong> query expansion with FewShot LangChain prompts: bio → multiple subqueries</li><li>Custom <strong>HuggingFace Inference API</strong> embedder to fit Render 512MB RAM limit</li><li>Streaming both LLM tokens and DB results to cut perceived latency</li></ul>Deployed: Streamlit Cloud · Render API.',
 			techTags: ['LangChain', 'Weaviate', 'HuggingFace'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Kagi-ML-dev-challenge',
 			externalLink: {
@@ -120,7 +125,8 @@
 		{
 			icon: '📊',
 			title: 'Sales Store Forecasting',
-			description: 'Time series forecasting for sales data.',
+			description:
+				'Kaggle competition: <strong>Store Sales — Time Series Forecasting</strong>.<br>Goal: predict daily sales for <strong>54 stores × 33 product families</strong> in Ecuador using 4+ years of historical transaction data from Corporación Favorita.<br><strong>Approach:</strong><ul><li>EDA: seasonal decomposition, holiday &amp; oil-price impact analysis</li><li>Feature engineering: lag features, rolling averages, cyclical date encodings</li><li>Models: ensemble of classical ML regressors</li><li>Evaluation metric: <strong>RMSLE</strong> (Root Mean Squared Log Error)</li></ul>',
 			techTags: ['Python', 'Machine Learning'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Sales-Store-Time-Series-Forecasting',
 			image: '/assets/projects/sales.webp'
@@ -128,7 +134,8 @@
 		{
 			icon: '👤',
 			title: 'Celebrity ResNet18',
-			description: 'Face Recognition with CNN.',
+			description:
+				'<strong>Data Mining</strong> university project: celebrity face recognition via deep transfer learning.<br><strong>Pipeline:</strong><ul><li>Dataset: curated labeled celebrity face images, stratified train/val/test split</li><li>Model: <strong>ResNet18</strong> pretrained on ImageNet — classifier head replaced and fine-tuned</li><li>Augmentation: random crop, horizontal flip, colour jitter, normalisation</li><li>Training: <strong>SGD with momentum</strong>, step LR decay, cross-entropy loss</li></ul>Demonstrates how transfer learning dramatically reduces data requirements for visual classification — strong top-1 accuracy with a compact dataset.',
 			techTags: ['PyTorch', 'ResNet', 'Face Recognition'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Celebrity-ResNet18',
 			image: '/assets/projects/celebrity.webp'
@@ -136,7 +143,8 @@
 		{
 			icon: '🤖',
 			title: 'OmniBot V2',
-			description: 'Updated chatbot with Smart RAG Chain.',
+			description:
+				'Evolution of OmniBot — rebuilt around a <strong>LangGraph graph-based RAG</strong> architecture called <strong>GraphOfThoughts</strong>.<br><strong>What changed vs V1:</strong><ul><li>Knowledge graph built and navigated at query time for richer contextual retrieval</li><li><strong>Text-to-Speech</strong> output: the bot now vocalises its answers in real time</li><li><strong>Multi-process pipeline</strong>: LLM text generation and TTS audio rendering run concurrently for lower latency</li><li>Fully customisable: retrieval strategy, response style and TTS voice all configurable</li></ul>Bring your own data (no dataset included). Built in collaboration with Drake9098.',
 			techTags: ['RAG', 'LangChain', 'LangGraph'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/OmniBot-V2',
 			image: '/assets/projects/omnibot.webp'
@@ -144,7 +152,8 @@
 		{
 			icon: '🧪',
 			title: 'Little Language Model',
-			description: "Transformer trained on Dante's works.",
+			description:
+				'From-scratch <strong>GPT-style Transformer</strong> implemented in PyTorch and trained on <strong>Dante Alighieri\'s Divina Commedia</strong> — the resulting model is called <strong>DanteGPT</strong>.<br><strong>Architecture:</strong> 6 layers · 8 attention heads · 512 embedding dim · character-level tokeniser · positional encoding · layer normalisation.<br><strong>Training:</strong> AdamW optimiser · temperature-controlled sampling · 10% corpus held out for validation.<br>Given an opening verse — e.g. <em>"Nel mezzo del cammin di nostra vita"</em> — the model continuously generates Italian text mimicking Dante\'s terza rima style.<br>Implementation follows <em>"Attention is All You Need"</em> (Vaswani et al., 2017).',
 			techTags: ['PyTorch', 'Transformers', 'LLM'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/Little_Language_Model',
 			image: '/assets/projects/dante.webp'
@@ -152,7 +161,8 @@
 		{
 			icon: '🔒',
 			title: 'VulnerabilityBot',
-			description: 'Cybersecurity tool with LLM.',
+			description:
+				'Local client/server system for AI-assisted <strong>cybersecurity Q&amp;A</strong> — built with Drake9098.<br><strong>Three-layer architecture:</strong><ul><li>🖥️ <strong>Streamlit frontend</strong> — submit queries via text input or file upload; browse answers in the DB view</li><li>⚙️ <strong>Quart + Uvicorn async backend</strong> — receives queries, fans them out to the AI, persists results in SQLite</li><li>🤖 <strong>LangChain LLM agent</strong> — searches the vulnerability database and formats structured answers</li></ul>The number of concurrent AI queries is configurable via <code>config.yaml</code> (default: 3).<br>Useful for rapidly triaging CVE datasets and exploring vulnerability landscapes.',
 			techTags: ['Cybersecurity', 'LLM'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/VulnerabilityBot',
 			image: '/assets/projects/vulnerability.webp'
@@ -160,7 +170,8 @@
 		{
 			icon: '📚',
 			title: 'EPUB Translator',
-			description: 'Translate EPUB files with LLMs.',
+			description:
+				'CLI tool that translates entire <strong>EPUB</strong> e-books using LLMs, preserving every structural detail of the original.<br><strong>How it works:</strong><ul><li>Parses the EPUB spine and extracts per-chapter HTML content</li><li>Sends chapters to the LLM in batches, keeping all HTML tags, styles and formatting intact</li><li>Uses context overlap between chunks to maintain narrative coherence across batch boundaries</li><li>Reassembles translated chapters into a valid EPUB with original metadata, cover and TOC</li></ul>Handles books of any length gracefully. Useful for translating novels, technical manuals or academic papers without losing layout or structure.',
 			techTags: ['EPUB', 'LLM', 'Translation'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/EPUB-Translator',
 			image: '/assets/projects/epub.webp'
@@ -168,7 +179,8 @@
 		{
 			icon: '🧹',
 			title: 'SpazzApp',
-			description: 'Web app to manage cleaning tasks between roommates.',
+			description:
+				'Multi-page <strong>Streamlit</strong> web app for automatic monthly cleaning schedule generation between roommates (v2.0, fully rewritten with OOP architecture).<br><strong>Scheduling algorithm scores each candidate assignment:</strong><ul><li>+400 pts — room never cleaned by this person (rotation priority)</li><li>+600 pts — person has the lowest current workload (load balancing)</li><li>+30/+10 pts — weekday vs weekend preference</li><li>Dynamic absence redistribution — recalculates weekly targets automatically</li></ul><strong>Features:</strong> first-week room exclusions · max 3 assignments/day cap · exportable <strong>PNG calendar</strong> · per-person and per-room distribution statistics.',
 			techTags: ['Heuristics', 'Streamlit'],
 			githubUrl: 'https://github.com/GiuseppeBellamacina/SpazzApp-streamlit',
 			externalLink: {
@@ -410,86 +422,87 @@
 <section id="projects" class="projects" bind:this={sectionEl}>
 	<div class="container">
 		<h2 class="section-title">🚀 Personal Projects</h2>
-		<p class="proj-hint">
-			Hover to highlight &nbsp;·&nbsp; drag to scroll &nbsp;·&nbsp; click to expand
-		</p>
 	</div>
 
 	<!-- ─── Row 0 ────────────────────────────────────────────────────────────── -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="strip-wrap"
-		class:dragging-active={dragging === 0}
-		on:mousedown={(e) => startDrag(e, 0)}
-	>
-		<div class="strip" bind:this={stripEls[0]}>
-			{#each [...row0, ...row0] as project}
-				<article
-					class="pcard"
-					class:is-hovered={hoveredProject === project && !dragMoved}
-					class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-					style={project.image && isVisible
-						? `--bg:url('${project.image}')`
-						: `--card-grad:${getCardBg(project)}`}
-					on:mouseenter={() => onCardEnter(project)}
-					on:mouseleave={onCardLeave}
-					aria-label={project.title}
-				>
-					<div class="pcard-bg"></div>
-					<div class="pcard-overlay"></div>
-					{#if project.isHackathonWinner}
-						<span class="pcard-badge">🏆 Winner</span>
-					{/if}
-					<div class="pcard-body">
-						<span class="pcard-icon">{project.icon}</span>
-						<h3 class="pcard-title">{project.title}</h3>
-						<div class="pcard-tags">
-							{#each project.techTags.slice(0, 3) as t}
-								<span class="pcard-tag">{t}</span>
-							{/each}
+	<div class="strip-outer">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="strip-wrap"
+			class:dragging-active={dragging === 0}
+			on:mousedown={(e) => startDrag(e, 0)}
+		>
+			<div class="strip" bind:this={stripEls[0]}>
+				{#each [...row0, ...row0] as project}
+					<article
+						class="pcard"
+						class:is-hovered={hoveredProject === project && !dragMoved}
+						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
+						style={project.image && isVisible
+							? `--bg:url('${project.image}')`
+							: `--card-grad:${getCardBg(project)}`}
+						on:mouseenter={() => onCardEnter(project)}
+						on:mouseleave={onCardLeave}
+						aria-label={project.title}
+					>
+						<div class="pcard-bg"></div>
+						<div class="pcard-overlay"></div>
+						{#if project.isHackathonWinner}
+							<span class="pcard-badge">🏆 Winner</span>
+						{/if}
+						<div class="pcard-body">
+							<span class="pcard-icon">{project.icon}</span>
+							<h3 class="pcard-title">{project.title}</h3>
+							<div class="pcard-tags">
+								{#each project.techTags.slice(0, 3) as t}
+									<span class="pcard-tag">{t}</span>
+								{/each}
+							</div>
 						</div>
-					</div>
-				</article>
-			{/each}
+					</article>
+				{/each}
+			</div>
 		</div>
 	</div>
 
 	<!-- ─── Row 1 ────────────────────────────────────────────────────────────── -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="strip-wrap"
-		class:dragging-active={dragging === 1}
-		on:mousedown={(e) => startDrag(e, 1)}
-	>
-		<div class="strip" bind:this={stripEls[1]}>
-			{#each [...row1, ...row1] as project}
-				<article
-					class="pcard"
-					class:is-hovered={hoveredProject === project && !dragMoved}
-					class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-					style={project.image && isVisible
-						? `--bg:url('${project.image}')`
-						: `--card-grad:${getCardBg(project)}`}
-					on:mouseenter={() => onCardEnter(project)}
-					on:mouseleave={onCardLeave}
-					aria-label={project.title}
-				>
-					<div class="pcard-bg"></div>
-					<div class="pcard-overlay"></div>
-					{#if project.isHackathonWinner}
-						<span class="pcard-badge">🏆 Winner</span>
-					{/if}
-					<div class="pcard-body">
-						<span class="pcard-icon">{project.icon}</span>
-						<h3 class="pcard-title">{project.title}</h3>
-						<div class="pcard-tags">
-							{#each project.techTags.slice(0, 3) as t}
-								<span class="pcard-tag">{t}</span>
-							{/each}
+	<div class="strip-outer">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="strip-wrap"
+			class:dragging-active={dragging === 1}
+			on:mousedown={(e) => startDrag(e, 1)}
+		>
+			<div class="strip" bind:this={stripEls[1]}>
+				{#each [...row1, ...row1] as project}
+					<article
+						class="pcard"
+						class:is-hovered={hoveredProject === project && !dragMoved}
+						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
+						style={project.image && isVisible
+							? `--bg:url('${project.image}')`
+							: `--card-grad:${getCardBg(project)}`}
+						on:mouseenter={() => onCardEnter(project)}
+						on:mouseleave={onCardLeave}
+						aria-label={project.title}
+					>
+						<div class="pcard-bg"></div>
+						<div class="pcard-overlay"></div>
+						{#if project.isHackathonWinner}
+							<span class="pcard-badge">🏆 Winner</span>
+						{/if}
+						<div class="pcard-body">
+							<span class="pcard-icon">{project.icon}</span>
+							<h3 class="pcard-title">{project.title}</h3>
+							<div class="pcard-tags">
+								{#each project.techTags.slice(0, 3) as t}
+									<span class="pcard-tag">{t}</span>
+								{/each}
+							</div>
 						</div>
-					</div>
-				</article>
-			{/each}
+					</article>
+				{/each}
+			</div>
 		</div>
 	</div>
 
@@ -524,7 +537,8 @@
 
 			<!-- body: fades in once expanded -->
 			<div class="exp-body">
-				<p class="exp-desc">{expandedProject.description}</p>
+				<!-- svelte-ignore security_anchor_target_blank -->
+				<p class="exp-desc">{@html expandedProject.description}</p>
 				<div class="exp-tags">
 					{#each expandedProject.techTags as t}
 						<span class="exp-tag">{t}</span>
@@ -588,17 +602,11 @@
 	}
 
 	/* ── Strip wrapper ───────────────────────────────────────────────────────── */
-	.strip-wrap {
+	/* Outer container: clips horizontal overflow on ALL browsers including old
+	   iOS Safari, and provides the edge-fade mask. */
+	.strip-outer {
 		width: 100%;
-		/* overflow-x:clip hides the horizontal infinite scroll without creating a
-		   scroll container, and does NOT force overflow-y to auto — so lifted
-		   cards on hover are no longer clipped vertically. */
-		overflow-x: clip;
-		overflow-y: visible;
-		padding: 18px 0; /* extra vertical room for the hover lift + shadow */
-		margin-bottom: 0;
-		cursor: grab;
-		user-select: none;
+		overflow: hidden;
 		mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
 		-webkit-mask-image: linear-gradient(
 			to right,
@@ -607,6 +615,15 @@
 			black 94%,
 			transparent 100%
 		);
+	}
+	/* Inner wrap: overflow visible so the hover‑lift translateY is NOT clipped. */
+	.strip-wrap {
+		width: 100%;
+		overflow: visible;
+		padding: 18px 0; /* extra vertical room for the hover lift + shadow */
+		margin-bottom: 0;
+		cursor: grab;
+		user-select: none;
 	}
 	.strip-wrap.dragging-active {
 		cursor: grabbing;
@@ -885,6 +902,40 @@
 		color: var(--text-muted);
 		line-height: 1.6;
 		margin: 0;
+	}
+	.exp-desc :global(strong) {
+		color: #fff;
+		font-weight: 700;
+	}
+	.exp-desc :global(a) {
+		color: var(--primary-color);
+		text-decoration: underline;
+	}
+	.exp-desc :global(ul),
+	.exp-desc :global(ol) {
+		margin: 0.4em 0;
+		padding-left: 1.4em;
+	}
+	.exp-desc :global(li) {
+		margin-bottom: 0.2em;
+	}
+	.exp-desc :global(br) {
+		display: block;
+		content: '';
+		margin-top: 0.3em;
+	}
+	.exp-desc :global(code) {
+		font-family: 'Courier New', monospace;
+		font-size: 0.72rem;
+		background: rgba(255, 255, 255, 0.07);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 4px;
+		padding: 1px 5px;
+		color: #e2e8f0;
+	}
+	.exp-desc :global(em) {
+		color: #c0cfe0;
+		font-style: italic;
 	}
 	.exp-tags {
 		display: flex;
