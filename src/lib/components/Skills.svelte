@@ -262,14 +262,10 @@
 		if (!skillsSection) return;
 
 		setInterval(() => {
-			const numberOfStars = Math.floor(Math.random() * 3) + 1;
-
-			for (let i = 0; i < numberOfStars; i++) {
-				if (Math.random() > 0.3) {
-					setTimeout(() => {
-						const star = document.createElement('div');
-						star.className = 'shooting-star';
-						star.style.cssText = `
+			if (Math.random() > 0.4) {
+				const star = document.createElement('div');
+				star.className = 'shooting-star';
+				star.style.cssText = `
 							position: absolute;
 							top: ${Math.random() * 60}%;
 							left: ${Math.random() * 100}%;
@@ -282,17 +278,15 @@
 							pointer-events: none;
 							z-index: 1;
 						`;
-						skillsSection.appendChild(star);
+				skillsSection.appendChild(star);
 
-						setTimeout(() => {
-							if (star.parentNode) {
-								star.parentNode.removeChild(star);
-							}
-						}, 2500);
-					}, i * 200);
-				}
+				setTimeout(() => {
+					if (star.parentNode) {
+						star.parentNode.removeChild(star);
+					}
+				}, 2500);
 			}
-		}, 600);
+		}, 1800);
 	}
 
 	// Constellations
@@ -392,37 +386,20 @@
 		});
 	}
 
-	// Parallax hover effect with random animation
+	// Subtle parallax on hover (CSS handles the scale, JS adds micro-shift)
 	function addParallaxEffect() {
 		const icons = document.querySelectorAll('.tech-icon') as NodeListOf<HTMLElement>;
 
 		icons.forEach((icon) => {
-			// Add random animation delay and duration for async floating
-			const randomDelay = Math.random() * 5;
-			const randomDuration = 3 + Math.random() * 2;
-			icon.style.animationDelay = `${randomDelay}s`;
-			icon.style.animationDuration = `${randomDuration}s`;
-
-			let isHovering = false;
-
-			icon.addEventListener('mouseenter', () => {
-				isHovering = true;
-			});
-
 			icon.addEventListener('mouseleave', () => {
-				isHovering = false;
 				icon.style.transform = '';
 			});
 
 			icon.addEventListener('mousemove', (e) => {
-				if (isHovering) {
-					const rect = icon.getBoundingClientRect();
-					const x = e.clientX - rect.left - rect.width / 2;
-					const y = e.clientY - rect.top - rect.height / 2;
-					const moveX = (x / rect.width) * 3;
-					const moveY = (y / rect.height) * 3;
-					icon.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
-				}
+				const rect = icon.getBoundingClientRect();
+				const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+				const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+				icon.style.transform = `scale(1.18) translateY(-3px) translate(${x * 4}px, ${y * 4}px)`;
 			});
 		});
 	}

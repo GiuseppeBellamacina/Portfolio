@@ -38,6 +38,11 @@ body {
 	position: relative;
 	scroll-snap-type: y proximity;
 	scroll-behavior: smooth;
+	font-feature-settings:
+		'kern' 1,
+		'liga' 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 /* Lava Lamp Effect */
@@ -54,7 +59,7 @@ body::before {
 		radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
 		radial-gradient(circle at 40% 40%, rgba(255, 255, 0, 0.1) 0%, transparent 50%);
 	animation: lavaLamp 20s ease-in-out infinite;
-	filter: blur(60px);
+	filter: blur(40px);
 }
 
 @keyframes lavaLamp {
@@ -837,13 +842,15 @@ body::before {
 }
 
 .section-title {
-	font-size: 3rem;
+	font-size: 2.8rem;
 	text-align: center;
 	margin-bottom: 3rem;
 	background: var(--gradient-3);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
+	letter-spacing: -0.02em;
+	font-weight: 700;
 	opacity: 0;
 	transform: translateY(30px);
 	animation: fadeInUp 0.8s ease-out forwards;
@@ -893,12 +900,16 @@ body::before {
 	top: 0;
 	left: 0;
 	right: 0;
-	height: 4px;
-	background: var(--gradient-psychedelic);
+	height: 3px;
+	background: linear-gradient(
+		90deg,
+		var(--primary-color),
+		var(--secondary-color),
+		var(--primary-color)
+	);
 	transform: scaleX(0);
-	transition: transform 0.4s;
-	animation: gradientSlide 3s linear infinite;
-	background-size: 200% 200%;
+	transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+	border-radius: 15px 15px 0 0;
 	pointer-events: none;
 }
 
@@ -912,7 +923,7 @@ body::before {
 	inset: 0;
 	border-radius: 15px;
 	padding: 2px;
-	background: var(--gradient-psychedelic);
+	background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 	-webkit-mask:
 		linear-gradient(#fff 0 0) content-box,
 		linear-gradient(#fff 0 0);
@@ -922,9 +933,7 @@ body::before {
 	-webkit-mask-composite: xor;
 	mask-composite: exclude;
 	opacity: 0;
-	transition: opacity 0.4s;
-	animation: borderRotate 4s linear infinite;
-	background-size: 200% 200%;
+	transition: opacity 0.35s ease;
 	pointer-events: none;
 }
 
@@ -1396,12 +1405,17 @@ body::before {
 	top: 0;
 	left: 0;
 	right: 0;
-	height: 4px;
-	background: var(--gradient-psychedelic);
+	height: 3px;
+	background: linear-gradient(
+		90deg,
+		var(--primary-color),
+		var(--secondary-color),
+		var(--primary-color)
+	);
+	background-size: 200% 100%;
 	transform: scaleX(0);
-	transition: transform 0.4s;
-	animation: gradientSlide 3s linear infinite;
-	background-size: 200% 200%;
+	transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+	border-radius: 15px 15px 0 0;
 	pointer-events: none;
 }
 
@@ -1424,7 +1438,7 @@ body::before {
 	inset: 0;
 	border-radius: 15px;
 	padding: 2px;
-	background: var(--gradient-psychedelic);
+	background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 	-webkit-mask:
 		linear-gradient(#fff 0 0) content-box,
 		linear-gradient(#fff 0 0);
@@ -1434,9 +1448,7 @@ body::before {
 	-webkit-mask-composite: xor;
 	mask-composite: exclude;
 	opacity: 0;
-	transition: opacity 0.4s;
-	animation: borderRotate 4s linear infinite;
-	background-size: 200% 200%;
+	transition: opacity 0.35s ease;
 	pointer-events: none;
 }
 
@@ -1445,11 +1457,10 @@ body::before {
 }
 
 .project-card:hover {
-	transform: translateY(-8px); /* Reduced from -10px to prevent glitch */
+	transform: translateY(-6px);
 	box-shadow:
-		0 15px 40px rgba(0, 217, 255, 0.4),
-		0 0 60px rgba(255, 0, 255, 0.3),
-		inset 0 0 30px rgba(0, 255, 255, 0.1);
+		0 12px 32px rgba(0, 217, 255, 0.3),
+		0 0 20px rgba(255, 0, 255, 0.12);
 	border-color: var(--primary-color);
 }
 
@@ -1744,13 +1755,12 @@ body::before {
 }
 
 .skills-category h3 {
-	font-size: 1.5rem;
+	font-size: 1.4rem;
 	margin-bottom: 2rem;
 	color: var(--primary-color);
-	text-shadow:
-		0 0 20px var(--primary-color),
-		0 0 40px var(--neon-pink);
-	animation: titlePulse 2s ease-in-out infinite;
+	text-shadow: 0 0 16px rgba(0, 217, 255, 0.4);
+	letter-spacing: 0.01em;
+	font-weight: 600;
 }
 
 @keyframes titlePulse {
@@ -1795,10 +1805,12 @@ body::before {
 	background: var(--bg-card);
 	border-radius: 15px;
 	border: 2px solid rgba(0, 255, 255, 0.2);
-	transition: all 0.2s ease-out;
+	transition:
+		transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
 	cursor: pointer;
 	overflow: visible;
-	animation: gentleFloat 4s ease-in-out infinite;
 	opacity: 0;
 	transform: translateY(20px) scale(0.8);
 	padding: 0.4rem 0.6rem 0.5rem 0.6rem;
@@ -1832,27 +1844,17 @@ body::before {
 	100% {
 		transform: translate(0, 0);
 	}
-	25% {
-		transform: translate(0.5px, -1px);
-	}
-	50% {
-		transform: translate(-0.5px, 1px);
-	}
-	75% {
-		transform: translate(1px, 0.5px);
-	}
 }
 
 .tech-icon::before {
 	content: '';
 	position: absolute;
-	inset: -4px;
-	background: var(--gradient-psychedelic);
+	inset: -2px;
+	background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 	border-radius: 17px;
 	opacity: 0;
-	transition: opacity 0.3s ease-in-out;
+	transition: opacity 0.25s ease;
 	z-index: -1;
-	animation: borderRotate 4s linear infinite;
 }
 
 @keyframes borderRotate {
@@ -1877,37 +1879,18 @@ body::before {
 }
 
 .tech-icon:hover {
-	transform: translateY(-5px) scale(1.05);
+	transform: scale(1.18) translateY(-3px);
 	border-color: var(--primary-color);
 	box-shadow:
-		0 8px 25px rgba(0, 217, 255, 0.3),
-		0 0 8px rgba(0, 217, 255, 0.4),
-		0 0 15px rgba(0, 217, 255, 0.2);
+		0 10px 28px rgba(0, 217, 255, 0.35),
+		0 0 10px rgba(0, 217, 255, 0.15);
 }
 
 .tech-icon:hover img {
 	filter: drop-shadow(0 4px 8px rgba(0, 217, 255, 0.4)) brightness(1.1);
 }
 
-/* Stagger animation for icons */
-.tech-icon:nth-child(1) {
-	animation-delay: 0s;
-}
-.tech-icon:nth-child(2) {
-	animation-delay: 0.1s;
-}
-.tech-icon:nth-child(3) {
-	animation-delay: 0.2s;
-}
-.tech-icon:nth-child(4) {
-	animation-delay: 0.3s;
-}
-.tech-icon:nth-child(5) {
-	animation-delay: 0.4s;
-}
-.tech-icon:nth-child(6) {
-	animation-delay: 0.5s;
-}
+/* No stagger delay needed — gentleFloat removed */
 
 .skills-tags {
 	display: flex;
