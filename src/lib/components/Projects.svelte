@@ -58,6 +58,20 @@
 			image: '/assets/projects/imageEnhancement.webp'
 		},
 		{
+			icon: '🚚',
+			title: 'Warehouse Swarm Intelligence System',
+			description:
+				'Designing a multi-agent system for optimizing warehouse operations.<br>Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor. Deployed on Render + Vercel.',
+			techTags: ['Python', 'Swarm Intelligence', 'Multi-Agent', 'Optimization'],
+			githubUrl: 'https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System',
+			externalLink: {
+				url: 'https://warehouse-swarm-intelligence-system.vercel.app',
+				type: 'demo',
+				icon: 'fas fa-external-link-alt'
+			},
+			image: '/assets/projects/warehouse.webp'
+		},
+		{
 			icon: '🖼️',
 			title: 'Steganography WebApp',
 			description:
@@ -70,20 +84,6 @@
 				icon: 'fas fa-external-link-alt'
 			},
 			image: '/assets/projects/stegapp.webp'
-		},
-		{
-			icon: '🚚',
-			title: 'Warehouse Swarm Intelligence System',
-			description:
-				'Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor. Deployed on Render + Vercel.',
-			techTags: ['Python', 'Swarm Intelligence', 'Multi-Agent', 'Optimization'],
-			githubUrl: 'https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System',
-			externalLink: {
-				url: 'https://warehouse-swarm-intelligence-system.vercel.app',
-				type: 'demo',
-				icon: 'fas fa-external-link-alt'
-			},
-			image: '/assets/projects/warehouse.webp'
 		},
 		{
 			icon: '🧠',

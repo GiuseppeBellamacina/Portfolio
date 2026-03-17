@@ -68,7 +68,9 @@
 			emoji: '🤖',
 			icons: [
 				{ name: 'PyTorch', icon: 'pytorch-original.svg', url: 'https://pytorch.org/' },
+				{ name: 'PyTorch Lightning', icon: 'lightning.png', url: 'https://lightning.ai/' },
 				{ name: 'TensorFlow', icon: 'tensorflow.png', url: 'https://www.tensorflow.org/' },
+				{ name: 'Weights & Biases', icon: 'wandb.png', url: 'https://wandb.ai/' },
 				{ name: 'Keras', icon: 'keras-original.svg', url: 'https://keras.io/' },
 				{
 					name: 'Scikit-learn',
@@ -101,6 +103,11 @@
 					url: 'https://huggingface.co/'
 				},
 				{ name: 'Kaggle', icon: 'kaggle-original-wordmark.svg', url: 'https://www.kaggle.com/' },
+				{
+					name: 'Google Colab',
+					icon: 'google-colab-icon.webp',
+					url: 'https://colab.research.google.com/'
+				},
 				{ name: 'Ollama', icon: 'white_bg_ollamalogo.png', url: 'https://ollama.com/' },
 				{ name: 'Meta', icon: 'meta-6871457_1280.webp', url: 'https://ai.meta.com/' },
 				{ name: 'OpenAI', icon: 'white_bg_openai-2.png', url: 'https://openai.com/' },
@@ -221,11 +228,6 @@
 					name: 'Jupyter',
 					icon: 'jupyter-original-wordmark-removebg-preview.png',
 					url: 'https://jupyter.org/'
-				},
-				{
-					name: 'Google Colab',
-					icon: 'google-colab-icon.webp',
-					url: 'https://colab.research.google.com/'
 				},
 				{ name: 'Unity', icon: 'white_bg_unity-original.png', url: 'https://unity.com/' },
 				{

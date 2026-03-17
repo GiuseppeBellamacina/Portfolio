@@ -460,6 +460,15 @@
 							- Exploring advanced techniques for image quality improvement
 						</li>
 						<li>
+							<strong
+								><a
+									href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System"
+									target="_blank">Warehouse Swarm Intelligence System</a
+								></strong
+							>
+							- Designing a multi-agent system for optimizing warehouse operations
+						</li>
+						<li>
 							<strong>Trip Planner</strong>
 							- Trip Planner PWA (Progressive Web App)
 						</li>
