@@ -57,22 +57,6 @@
 
 	onMount(() => {
 		setTimeout(typeEffect, 1000);
-
-		let scrollLocked = false;
-		function onWheel(e: WheelEvent) {
-			if (scrollLocked || e.deltaY <= 0) return;
-			// Only trigger when the page is scrolled near the top (Hero visible)
-			if (window.scrollY > window.innerHeight * 0.3) return;
-			scrollLocked = true;
-			e.preventDefault();
-			document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			setTimeout(() => {
-				scrollLocked = false;
-			}, 900);
-		}
-		const heroEl = document.getElementById('home');
-		heroEl?.addEventListener('wheel', onWheel, { passive: false });
-		return () => heroEl?.removeEventListener('wheel', onWheel);
 	});
 </script>
 

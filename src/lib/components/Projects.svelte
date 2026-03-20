@@ -269,7 +269,7 @@
 	const row1: ProjectWithIdx[] = enriched.filter((_, i) => i % 2 === 1);
 
 	// ── Drag-scroll state ──────────────────────────────────────────────────────
-	const CARD_W = 300;
+	const CARD_W = 280;
 	const GAP = 20;
 	const STEP = CARD_W + GAP; // pixels per card slot
 
@@ -298,8 +298,9 @@
 	function loop() {
 		const paused = !!hoveredProject || !!expandedProject;
 		for (let i = 0; i < 2; i++) {
-			if (dragging === i) {
-				vel[i] *= 0.85; // friction while dragging
+			if (dragging !== -1) {
+				// While any row is being dragged, both rows freeze auto-scroll
+				if (dragging === i) vel[i] *= 0.85;
 			} else if (!paused) {
 				// Auto-scroll, paused on hover or expand
 				vel[i] = vel[i] * 0.93 + AUTO[i] * 0.07;
@@ -309,6 +310,10 @@
 			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
 			if (pos[i] >= 0) pos[i] -= halfW[i];
 			if (stripEls[i]) stripEls[i]!.style.transform = `translateX(${pos[i]}px)`;
+		}
+		// Clear hover when strips are visibly moving (dragging or inertia)
+		if (hoveredProject && (dragging !== -1 || Math.abs(vel[0]) > 0.8 || Math.abs(vel[1]) > 0.8)) {
+			hoveredProject = null;
 		}
 		rafId = requestAnimationFrame(loop);
 	}
@@ -331,18 +336,30 @@
 		}
 		dragLastX = e.clientX;
 		dragVel = dx;
+		// Move dragged row + counter-rotate the other row
+		const other = dragging === 0 ? 1 : 0;
 		pos[dragging] += dx;
-		if (pos[dragging] <= -halfW[dragging]) pos[dragging] += halfW[dragging];
-		if (pos[dragging] >= 0) pos[dragging] -= halfW[dragging];
+		pos[other] -= dx;
+		for (const i of [dragging, other]) {
+			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
+			if (pos[i] >= 0) pos[i] -= halfW[i];
+		}
 	}
 	function endDrag() {
 		if (dragging === -1) return;
 		const i = dragging;
+		const other = i === 0 ? 1 : 0;
 		if (!dragMoved) {
 			// It was a click — open the card that was pressed
-			if (dragTargetEl && hoveredProject) openCard(hoveredProject);
+			if (dragTargetEl) {
+				// Find the project from the target element's data
+				const title = dragTargetEl.getAttribute('aria-label');
+				const p = enriched.find((e) => e.title === title);
+				if (p) openCard(p);
+			}
 		} else {
 			vel[i] = dragVel;
+			vel[other] = -dragVel; // counter-rotate inertia
 		}
 		dragVel = 0;
 		dragging = -1;
@@ -610,7 +627,8 @@
 	   iOS Safari, and provides the edge-fade mask. */
 	.strip-outer {
 		width: 100%;
-		overflow: hidden;
+		overflow: visible;
+		padding: 0 0;
 		mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
 		-webkit-mask-image: linear-gradient(
 			to right,
@@ -620,11 +638,11 @@
 			transparent 100%
 		);
 	}
-	/* Inner wrap: overflow visible so the hover‑lift translateY is NOT clipped. */
+	/* Inner wrap: overflow visible so the hover scale is NOT clipped. */
 	.strip-wrap {
 		width: 100%;
 		overflow: visible;
-		padding: 18px 0; /* extra vertical room for the hover lift + shadow */
+		padding: 24px 0;
 		margin-bottom: 0;
 		cursor: grab;
 		user-select: none;
@@ -637,15 +655,15 @@
 		display: flex;
 		gap: 20px;
 		width: max-content;
-		padding: 4px 0 16px;
+		padding: 24px 0 12px;
 		will-change: transform;
 	}
 
 	/* ── Project card ─────────────────────────────────────────────────────────── */
 	.pcard {
 		position: relative;
-		width: 300px;
-		height: 380px;
+		width: 280px;
+		height: 300px;
 		border-radius: 16px;
 		overflow: hidden;
 		flex-shrink: 0;
@@ -661,11 +679,11 @@
 	}
 	/* Hover: lift and glow, stays in the strip */
 	.pcard.is-hovered {
-		transform: translateY(-10px) scale(1.05);
+		transform: translateY(-14px) scale(1.12);
 		border-color: rgba(0, 217, 255, 0.65);
 		box-shadow:
-			0 20px 60px rgba(0, 0, 0, 0.75),
-			0 0 40px rgba(0, 217, 255, 0.22),
+			0 24px 70px rgba(0, 0, 0, 0.75),
+			0 0 50px rgba(0, 217, 255, 0.22),
 			0 0 0 1px rgba(0, 217, 255, 0.3);
 		z-index: 10;
 	}
@@ -1009,8 +1027,8 @@
 	/* ── Mobile ───────────────────────────────────────────────────────────────── */
 	@media (max-width: 640px) {
 		.pcard {
-			width: 230px;
-			height: 290px;
+			width: 220px;
+			height: 250px;
 		}
 	}
 </style>

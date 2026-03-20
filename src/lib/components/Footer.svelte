@@ -1,4 +1,4 @@
-<footer class="footer">
+<footer id="footer" class="footer">
 	<div class="container">
 		<p>
 			&copy; 2025 Giuseppe Bellamacina. Built with ❤️ and lots of
