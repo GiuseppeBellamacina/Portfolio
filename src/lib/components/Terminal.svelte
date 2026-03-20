@@ -46,6 +46,28 @@
 
 	let inputLocked = $state(false);
 
+	/* ── Tab-completable commands (non-secret) ── */
+	const completableCommands = [
+		'help',
+		'about',
+		'skills',
+		'contact',
+		'projects',
+		'ls',
+		'socials',
+		'whoami',
+		'date',
+		'echo',
+		'clear',
+		'neofetch',
+		'anime',
+		'music',
+		'musica',
+		'daftpunk',
+		'tameimpala',
+		'kavinsky'
+	];
+
 	/* ── Helpers for sequential output ── */
 	function delay(ms: number): Promise<void> {
 		return new Promise((r) => setTimeout(r, ms));
@@ -241,6 +263,11 @@
 				song.lyrics.map((t) => ({ type: 'output' as const, text: t })),
 				380
 			);
+			await pushLine({ type: 'output', text: '' });
+			await pushLine({
+				type: 'html',
+				text: '<span class="cmt">Tip: music -l to see all available songs</span>'
+			});
 			inputLocked = false;
 			inputEl?.focus();
 		})();
@@ -270,6 +297,8 @@
 					{ type: 'html', text: '<span class="cmd-name">echo</span> [text]   Repeat after me' },
 					{ type: 'html', text: '<span class="cmd-name">clear</span>         Clear terminal' },
 					{ type: 'html', text: '<span class="cmd-name">neofetch</span>      System info' },
+					{ type: 'html', text: '<span class="cmd-name">anime</span>         Random anime pick' },
+					{ type: 'html', text: '<span class="cmd-name">music</span> [-l]    Play a random song' },
 					{ type: 'output', text: '' },
 					{ type: 'output', text: '...and maybe some hidden ones 👀' }
 				];
@@ -479,6 +508,22 @@
 
 			case 'music':
 			case 'musica':
+				if (args[0] === '-l' || args[0] === '-ls') {
+					const lines: HistoryEntry[] = [{ type: 'output', text: '🎵 Available music:' }];
+					for (const [key, songs] of Object.entries(musicCatalog)) {
+						const unique = [...new Set(songs.map((s) => s.title))];
+						lines.push({
+							type: 'html',
+							text: `<span class="sk-cat">${key}</span>  ${unique.map((t) => `"${t}"`).join(', ')}`
+						});
+					}
+					lines.push({ type: 'output', text: '' });
+					lines.push({
+						type: 'output',
+						text: 'Tip: type an artist name directly to play their music.'
+					});
+					return lines;
+				}
 				playRandomSong();
 				return 'async';
 
@@ -502,7 +547,10 @@
 					{ type: 'output', text: '*stares intensely*' },
 					{ type: 'output', text: '"I drive." — The Driver' },
 					{ type: 'output', text: '' },
-					{ type: 'output', text: 'A real human being... and a real hero.' }
+					{
+						type: 'html',
+						text: '<span style="color:#ec469c;font-weight:bold;font-style:italic">A real human being... and a real hero.</span>'
+					}
 				];
 
 			case 'matrix':
@@ -620,7 +668,30 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'ArrowUp') {
+		if (e.key === 'Tab') {
+			e.preventDefault();
+			const val = inputValue.trimStart().toLowerCase();
+			if (!val) return;
+			const matches = completableCommands.filter((c) => c.startsWith(val));
+			if (matches.length === 1) {
+				inputValue = matches[0];
+			} else if (matches.length > 1) {
+				/* complete common prefix */
+				let prefix = matches[0];
+				for (const m of matches) {
+					while (!m.startsWith(prefix)) prefix = prefix.slice(0, -1);
+				}
+				if (prefix.length > val.length) {
+					inputValue = prefix;
+				} else {
+					/* show candidates */
+					history.push({ type: 'output', text: matches.join('  ') });
+					tick().then(() => {
+						if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+					});
+				}
+			}
+		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			if (historyIndex < commandHistory.length - 1) {
 				historyIndex++;
