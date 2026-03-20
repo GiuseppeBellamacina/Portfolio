@@ -36,8 +36,7 @@ body {
 	line-height: 1.6;
 	overflow-x: hidden;
 	position: relative;
-	scroll-snap-type: y proximity;
-	scroll-behavior: smooth;
+	overscroll-behavior-y: none;
 	font-feature-settings:
 		'kern' 1,
 		'liga' 1;
@@ -221,8 +220,6 @@ body::before {
 	position: relative;
 	background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
 	padding-top: 80px;
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 }
 
 .hero::before {
@@ -769,8 +766,6 @@ body::before {
 	min-height: 100vh;
 	padding: 100px 0;
 	background: var(--bg-dark);
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 	position: relative;
 	overflow: hidden;
 	display: flex;
@@ -992,8 +987,6 @@ body::before {
 .experience {
 	padding: 100px 0;
 	background: var(--bg-card);
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 	position: relative;
 	overflow: hidden;
 }
@@ -1241,12 +1234,15 @@ body::before {
 
 /* Projects Section */
 .projects {
-	padding: 100px 0;
+	padding: 60px 0;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-card) 100%);
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 	position: relative;
-	overflow: hidden;
+	overflow-x: clip;
+	overflow-y: visible;
 }
 
 /* Holographic Grid Background for Projects */
@@ -1368,8 +1364,6 @@ body::before {
 	background: linear-gradient(180deg, #1a1f3a 0%, #0a0e27 80%, #0a0e27 100%);
 	position: relative;
 	overflow: hidden;
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 	min-height: 100vh;
 }
 
@@ -1750,8 +1744,6 @@ body::before {
 		var(--bg-card) 100%
 	);
 	text-align: center;
-	scroll-snap-align: start;
-	scroll-snap-stop: normal;
 }
 
 .contact-text {
