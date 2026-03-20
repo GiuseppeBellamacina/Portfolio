@@ -1,10 +1,8 @@
 # Giuseppe Bellamacina - Portfolio
 
-[![Deploy to GitHub Pages](https://github.com/GiuseppeBellamacina/GiuseppeBellamacina.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/GiuseppeBellamacina/GiuseppeBellamacina.github.io/actions/workflows/deploy.yml)
-
 A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projects and skills with immersive visual effects.
 
-🌐 **Live Demo**: [giuseppebellamacina.github.io](https://giuseppebellamacina.github.io)
+🌐 **Live Demo**: [Portfolio](https://portfolio-giuseppe-bellamacina.vercel.app)
 
 ## ✨ Features
 
@@ -53,10 +51,10 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
 
 ```bash
 # Clone the repository
-git clone https://github.com/GiuseppeBellamacina/GiuseppeBellamacina.github.io.git
+git clone https://github.com/GiuseppeBellamacina/Portfolio.git
 
 # Navigate to project directory
-cd GiuseppeBellamacina.github.io
+cd Portfolio
 
 # Install dependencies
 bun install
