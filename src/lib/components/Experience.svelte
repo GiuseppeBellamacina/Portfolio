@@ -3,6 +3,83 @@
 
 	let experienceSection: HTMLElement;
 	let isVisible = false;
+	let visibleItems: boolean[] = [];
+	let canvasEl: HTMLCanvasElement;
+	let rafId = 0;
+
+	// ── Lightweight binary particle system (canvas) ────────────────────────
+	interface Particle {
+		x: number;
+		y: number;
+		ch: string;
+		color: string;
+		speed: number;
+		opacity: number;
+		fade: number;
+		size: number;
+	}
+
+	const MAX_PARTICLES = 25;
+	const COLORS = ['#00d9ff', '#ff00ff', '#00ff9d'];
+	let particles: Particle[] = [];
+
+	function spawnParticle(w: number, h: number): Particle {
+		return {
+			x: Math.random() * w,
+			y: Math.random() * h,
+			ch: Math.random() > 0.5 ? '1' : '0',
+			color: COLORS[Math.floor(Math.random() * COLORS.length)],
+			speed: 3 + Math.random() * 6,
+			opacity: 0,
+			fade: 0.001 + Math.random() * 0.002,
+			size: 11 + Math.random() * 6
+		};
+	}
+
+	function runCanvas() {
+		const ctx = canvasEl.getContext('2d');
+		if (!ctx) return;
+
+		function frame() {
+			const w = canvasEl.width;
+			const h = canvasEl.height;
+			ctx!.clearRect(0, 0, w, h);
+
+			// Spawn up to MAX
+			if (particles.length < MAX_PARTICLES && Math.random() < 0.12) {
+				particles.push(spawnParticle(w, h));
+			}
+
+			for (let i = particles.length - 1; i >= 0; i--) {
+				const p = particles[i];
+				p.y -= p.speed * 0.016; // ~60fps normalised
+				p.opacity += p.fade;
+				if (p.opacity > 0.55) p.fade = -Math.abs(p.fade); // start fading out
+				if (p.opacity <= 0) {
+					particles.splice(i, 1);
+					continue;
+				}
+
+				ctx!.globalAlpha = p.opacity;
+				ctx!.font = `bold ${p.size}px 'Courier New', monospace`;
+				ctx!.fillStyle = p.color;
+				ctx!.shadowColor = p.color;
+				ctx!.shadowBlur = 4;
+				ctx!.fillText(p.ch, p.x, p.y);
+			}
+			ctx!.globalAlpha = 1;
+			ctx!.shadowBlur = 0;
+
+			rafId = requestAnimationFrame(frame);
+		}
+		rafId = requestAnimationFrame(frame);
+	}
+
+	function sizeCanvas() {
+		if (!canvasEl || !experienceSection) return;
+		canvasEl.width = experienceSection.clientWidth;
+		canvasEl.height = experienceSection.clientHeight;
+	}
 
 	interface TimelineItem {
 		type: 'work' | 'education';
@@ -47,7 +124,8 @@
 			date: 'December 2024 - May 2025',
 			title: 'Artificial Intelligence Engineer & Data Scientist',
 			subtitle: 'Intellisync',
-			description: 'AI Research and Development with focus on multi-agent systems and predictive analytics',
+			description:
+				'AI Research and Development with focus on multi-agent systems and predictive analytics',
 			highlights: [
 				'Development and optimization of multi-agent architectures',
 				'Analysis and research of new application fields for innovative AI technologies',
@@ -94,49 +172,25 @@
 		}
 	];
 
-	function createBinaryParticles() {
-		if (!experienceSection) return;
-
-		setInterval(() => {
-			// 85% spawn rate
-			if (Math.random() > 0.15) {
-				const particle = document.createElement('div');
-				particle.textContent = Math.random() > 0.5 ? '0' : '1';
-				const colors = ['#00d9ff', '#ff00ff', '#00ff9d'];
-				const color = colors[Math.floor(Math.random() * colors.length)];
-				particle.style.cssText = `
-					position: absolute;
-					top: ${Math.random() * 100}%;
-					left: ${Math.random() * 100}%;
-					color: ${color};
-					font-size: ${10 + Math.random() * 8}px;
-					font-weight: bold;
-					opacity: 0;
-					pointer-events: none;
-					animation: binaryFloat ${4 + Math.random() * 3}s ease-out forwards;
-					z-index: 1;
-					font-family: 'Courier New', monospace;
-					text-shadow: 0 0 5px ${color};
-				`;
-				experienceSection.appendChild(particle);
-
-				setTimeout(() => {
-					if (particle.parentNode) {
-						particle.parentNode.removeChild(particle);
-					}
-				}, 7000);
-			}
-		}, 50);
-	}
+	visibleItems = timelineItems.map(() => false);
+	let itemDirs: ('up' | 'down')[] = timelineItems.map(() => 'down');
 
 	onMount(() => {
-		// IntersectionObserver for lazy loading
-		const observer = new IntersectionObserver(
+		sizeCanvas();
+		const onResize = () => sizeCanvas();
+		window.addEventListener('resize', onResize);
+
+		const sectionObs = new IntersectionObserver(
 			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting && !isVisible) {
+				entries.forEach((e) => {
+					if (e.isIntersecting && !isVisible) {
 						isVisible = true;
-						createBinaryParticles();
+						sizeCanvas();
+						runCanvas();
+					} else if (!e.isIntersecting && isVisible) {
+						cancelAnimationFrame(rafId);
+					} else if (e.isIntersecting && isVisible) {
+						runCanvas();
 					}
 				});
 			},
@@ -144,18 +198,51 @@
 		);
 
 		if (experienceSection) {
-			observer.observe(experienceSection);
+			sectionObs.observe(experienceSection);
+
+			// Staggered reveal for each timeline item
+			const items = experienceSection.querySelectorAll('.tl-item');
+			const itemObs = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						const idx = Number((entry.target as HTMLElement).dataset.idx);
+						if (isNaN(idx)) return;
+						// Determine direction: if boundingClientRect.top > 0, item is below viewport (scroll down)
+						const fromBelow = entry.boundingClientRect.top > 0;
+						if (entry.isIntersecting) {
+							itemDirs[idx] = fromBelow ? 'down' : 'up';
+						} else {
+							// Exiting: if top < 0 it left from the top (scrolled down past it)
+							itemDirs[idx] = fromBelow ? 'down' : 'up';
+						}
+						itemDirs = [...itemDirs];
+						visibleItems[idx] = entry.isIntersecting;
+						visibleItems = [...visibleItems];
+					});
+				},
+				{ threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+			);
+
+			items.forEach((item) => itemObs.observe(item));
+
+			return () => {
+				sectionObs.disconnect();
+				itemObs.disconnect();
+				cancelAnimationFrame(rafId);
+				window.removeEventListener('resize', onResize);
+			};
 		}
 
 		return () => {
-			if (experienceSection) {
-				observer.unobserve(experienceSection);
-			}
+			sectionObs.disconnect();
+			cancelAnimationFrame(rafId);
+			window.removeEventListener('resize', onResize);
 		};
 	});
 </script>
 
 <section id="experience" class="experience" bind:this={experienceSection}>
+	<canvas class="binary-canvas" bind:this={canvasEl}></canvas>
 	<div class="container">
 		<h2 class="section-title">🎓 Experience & Education</h2>
 
@@ -165,27 +252,387 @@
 			</a>
 		</div>
 
-		<div class="timeline">
+		<div class="tl">
+			<div class="tl-line"></div>
 			{#each timelineItems as item, index}
-				<div class="timeline-item {item.type}">
-					<div class="timeline-icon">
-						<i class={item.icon}></i>
+				<div
+					class="tl-item {item.type}"
+					class:tl-visible={visibleItems[index]}
+					class:tl-from-up={itemDirs[index] === 'up'}
+					data-idx={index}
+				>
+					<div class="tl-node">
+						<div class="tl-ring"></div>
+						<div class="tl-icon">
+							<i class={item.icon}></i>
+						</div>
 					</div>
-					<div class="timeline-content">
-						<div class="timeline-date">{item.date}</div>
-						<h3>{item.title}</h3>
-						<h4>{item.subtitle}</h4>
-						<p>{item.description}</p>
+					<div class="tl-card">
+						<div class="tl-card-glow"></div>
+						<span class="tl-date">{item.date}</span>
+						<h3 class="tl-title">{item.title}</h3>
+						<h4 class="tl-subtitle">{item.subtitle}</h4>
+						<p class="tl-desc">{item.description}</p>
 						{#if item.highlights.length > 0}
-							<ul class="timeline-highlights">
+							<ul class="tl-highlights">
 								{#each item.highlights as highlight}
 									<li>{highlight}</li>
 								{/each}
 							</ul>
 						{/if}
+						<span class="tl-type-badge">
+							{#if item.type === 'work'}
+								<i class="fas fa-briefcase"></i> Work
+							{:else}
+								<i class="fas fa-book"></i> Education
+							{/if}
+						</span>
 					</div>
 				</div>
 			{/each}
 		</div>
 	</div>
 </section>
+
+<style>
+	/* ── Binary rain canvas ──────────────────────────────────────────────── */
+	.binary-canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: 0;
+		opacity: 0.6;
+	}
+
+	/* ── Timeline container ──────────────────────────────────────────────── */
+	.tl {
+		max-width: 950px;
+		margin: 0 auto;
+		position: relative;
+		padding: 2rem 0 1rem;
+	}
+
+	/* Animated gradient centre line */
+	.tl-line {
+		position: absolute;
+		left: 50%;
+		top: 0;
+		bottom: 0;
+		width: 3px;
+		translate: -50% 0;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(0, 217, 255, 0.6) 10%,
+			rgba(255, 0, 255, 0.6) 50%,
+			rgba(0, 255, 157, 0.6) 90%,
+			transparent 100%
+		);
+		border-radius: 2px;
+		filter: drop-shadow(0 0 6px rgba(0, 217, 255, 0.4));
+	}
+
+	/* ── Timeline item (row) ─────────────────────────────────────────────── */
+	.tl-item {
+		display: grid;
+		grid-template-columns: 1fr 72px 1fr;
+		gap: 1.5rem;
+		margin-bottom: 3rem;
+		position: relative;
+		opacity: 0;
+		transition:
+			opacity 0.6s ease,
+			translate 0.6s ease;
+	}
+	.tl-item.tl-visible {
+		opacity: 1;
+		translate: 0 0 !important;
+	}
+	/* Default: entering from below (scroll down) */
+	.tl-item.work {
+		translate: -50px 40px;
+	}
+	.tl-item.education {
+		translate: 50px 40px;
+	}
+	/* Entering/exiting from above (scroll up) */
+	.tl-item.work.tl-from-up {
+		translate: -50px -40px;
+	}
+	.tl-item.education.tl-from-up {
+		translate: 50px -40px;
+	}
+
+	/* Work cards sit left */
+	.tl-item.work .tl-card {
+		grid-column: 1 / 2;
+		grid-row: 1;
+		text-align: right;
+	}
+	.tl-item.work .tl-node {
+		grid-column: 2 / 3;
+		grid-row: 1;
+	}
+	/* Education cards sit right */
+	.tl-item.education .tl-card {
+		grid-column: 3 / 4;
+		grid-row: 1;
+		text-align: left;
+	}
+	.tl-item.education .tl-node {
+		grid-column: 2 / 3;
+		grid-row: 1;
+	}
+
+	/* ── Central node (icon + ring) ──────────────────────────────────────── */
+	.tl-node {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: center;
+		position: relative;
+		z-index: 3;
+	}
+	.tl-icon {
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.25rem;
+		color: #fff;
+		position: relative;
+		z-index: 2;
+	}
+	.tl-item.work .tl-icon {
+		background: linear-gradient(135deg, #0d7377, #14ffec);
+		box-shadow: 0 0 22px rgba(0, 217, 255, 0.55);
+	}
+	.tl-item.education .tl-icon {
+		background: linear-gradient(135deg, #6b0f6b, #ff00ff);
+		box-shadow: 0 0 22px rgba(255, 0, 255, 0.55);
+	}
+
+	/* Rotating ring */
+	.tl-ring {
+		position: absolute;
+		width: 68px;
+		height: 68px;
+		border-radius: 50%;
+		border: 2px dashed transparent;
+		animation: ringRotate 12s linear infinite;
+	}
+	.tl-item.work .tl-ring {
+		border-color: rgba(0, 217, 255, 0.35);
+	}
+	.tl-item.education .tl-ring {
+		border-color: rgba(255, 0, 255, 0.35);
+	}
+	@keyframes ringRotate {
+		to {
+			rotate: 360deg;
+		}
+	}
+
+	/* ── Card ────────────────────────────────────────────────────────────── */
+	.tl-card {
+		position: relative;
+		padding: 1.6rem 1.8rem;
+		border-radius: 16px;
+		background: rgba(15, 18, 40, 0.75);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		transition:
+			transform 0.35s ease,
+			border-color 0.35s ease,
+			box-shadow 0.35s ease;
+		overflow: hidden;
+	}
+	.tl-item.work .tl-card {
+		border-color: rgba(0, 217, 255, 0.15);
+	}
+	.tl-item.education .tl-card {
+		border-color: rgba(255, 0, 255, 0.15);
+	}
+	.tl-card:hover {
+		transform: translateY(-6px);
+	}
+	.tl-item.work .tl-card:hover {
+		border-color: rgba(0, 217, 255, 0.55);
+		box-shadow:
+			0 8px 40px rgba(0, 217, 255, 0.18),
+			0 0 60px rgba(0, 217, 255, 0.08);
+	}
+	.tl-item.education .tl-card:hover {
+		border-color: rgba(255, 0, 255, 0.55);
+		box-shadow:
+			0 8px 40px rgba(255, 0, 255, 0.18),
+			0 0 60px rgba(255, 0, 255, 0.08);
+	}
+
+	/* Colour glow overlay inside card */
+	.tl-card-glow {
+		position: absolute;
+		top: -50%;
+		right: -50%;
+		width: 120%;
+		height: 120%;
+		border-radius: 50%;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.4s ease;
+	}
+	.tl-item.work .tl-card-glow {
+		background: radial-gradient(circle, rgba(0, 217, 255, 0.08) 0%, transparent 70%);
+	}
+	.tl-item.education .tl-card-glow {
+		background: radial-gradient(circle, rgba(255, 0, 255, 0.08) 0%, transparent 70%);
+	}
+	.tl-card:hover .tl-card-glow {
+		opacity: 1;
+	}
+
+	/* ── Card inner elements ─────────────────────────────────────────────── */
+	.tl-date {
+		display: inline-block;
+		padding: 0.25rem 0.75rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 1.2px;
+		border-radius: 6px;
+		margin-bottom: 0.75rem;
+	}
+	.tl-item.work .tl-date {
+		background: rgba(0, 217, 255, 0.1);
+		color: #14ffec;
+		border: 1px solid rgba(0, 217, 255, 0.25);
+	}
+	.tl-item.education .tl-date {
+		background: rgba(255, 0, 255, 0.1);
+		color: #ff66ff;
+		border: 1px solid rgba(255, 0, 255, 0.25);
+	}
+
+	.tl-title {
+		font-size: 1.3rem;
+		font-weight: 700;
+		margin: 0 0 0.4rem;
+		color: var(--text-light);
+		line-height: 1.3;
+	}
+	.tl-subtitle {
+		font-size: 1rem;
+		font-weight: 500;
+		margin: 0 0 0.75rem;
+	}
+	.tl-item.work .tl-subtitle {
+		color: #14ffec;
+	}
+	.tl-item.education .tl-subtitle {
+		color: #ff66ff;
+	}
+	.tl-desc {
+		color: var(--text-muted);
+		line-height: 1.6;
+		font-size: 0.95rem;
+		margin: 0 0 0.75rem;
+	}
+
+	/* Highlights list */
+	.tl-highlights {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.tl-highlights li {
+		padding-left: 1.4rem;
+		position: relative;
+		margin-bottom: 0.4rem;
+		color: var(--text-light);
+		font-size: 0.9rem;
+		line-height: 1.5;
+	}
+	.tl-item.work .tl-highlights li::before {
+		content: '▸';
+		position: absolute;
+		left: 0;
+		color: #14ffec;
+		font-size: 1rem;
+	}
+	.tl-item.education .tl-highlights li::before {
+		content: '▸';
+		position: absolute;
+		left: 0;
+		color: #ff66ff;
+		font-size: 1rem;
+	}
+
+	/* Type badge */
+	.tl-type-badge {
+		display: inline-block;
+		margin-top: 1rem;
+		padding: 0.2rem 0.65rem;
+		font-size: 0.72rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.8px;
+		border-radius: 4px;
+		opacity: 0.7;
+	}
+	.tl-item.work .tl-type-badge {
+		background: rgba(0, 217, 255, 0.08);
+		color: #14ffec;
+	}
+	.tl-item.education .tl-type-badge {
+		background: rgba(255, 0, 255, 0.08);
+		color: #ff66ff;
+	}
+
+	/* ── Responsive ──────────────────────────────────────────────────────── */
+	@media (max-width: 768px) {
+		.tl-line {
+			left: 28px;
+		}
+		.tl-item {
+			grid-template-columns: 56px 1fr;
+			gap: 1rem;
+		}
+		.tl-item.work .tl-card,
+		.tl-item.education .tl-card {
+			grid-column: 2 / 3;
+			text-align: left;
+		}
+		.tl-item.work .tl-node,
+		.tl-item.education .tl-node {
+			grid-column: 1 / 2;
+		}
+		.tl-item.work,
+		.tl-item.education {
+			translate: 30px 40px;
+		}
+		.tl-item.work.tl-visible,
+		.tl-item.education.tl-visible {
+			translate: 0 0;
+		}
+		.tl-icon {
+			width: 44px;
+			height: 44px;
+			font-size: 1rem;
+		}
+		.tl-ring {
+			width: 58px;
+			height: 58px;
+		}
+		.tl-card {
+			padding: 1.2rem 1.4rem;
+		}
+		.tl-title {
+			font-size: 1.15rem;
+		}
+	}
+</style>
