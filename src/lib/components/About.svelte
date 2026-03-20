@@ -5,29 +5,9 @@
 	let aboutSection: HTMLElement;
 	let isVisible = false;
 	let isSmallScreen = false;
+	let revealed = $state<boolean[]>([]);
 
-	interface Neuron {
-		x: number;
-		y: number;
-		layer: number;
-		radius: number;
-		glow: number;
-	}
-
-	interface Connection {
-		from: Neuron;
-		to: Neuron;
-		weight: number;
-	}
-
-	interface Impulse {
-		from: Neuron;
-		to: Neuron;
-		progress: number;
-		speed: number;
-		trail: { x: number; y: number }[];
-	}
-
+	/* ── Canvas: simple particles (mobile) ── */
 	interface Particle {
 		x: number;
 		y: number;
@@ -129,6 +109,26 @@
 		return () => {
 			window.removeEventListener('resize', resizeCanvas);
 		};
+	}
+
+	interface Neuron {
+		x: number;
+		y: number;
+		layer: number;
+		radius: number;
+		glow: number;
+	}
+	interface Connection {
+		from: Neuron;
+		to: Neuron;
+		weight: number;
+	}
+	interface Impulse {
+		from: Neuron;
+		to: Neuron;
+		progress: number;
+		speed: number;
+		trail: { x: number; y: number }[];
 	}
 
 	function createNeuralNetwork() {
@@ -383,6 +383,23 @@
 		checkScreenSize();
 		window.addEventListener('resize', checkScreenSize);
 
+		// Staggered reveal for about blocks
+		const BLOCK_COUNT = 3; // title, bio card, terminal
+		revealed = Array(BLOCK_COUNT).fill(false);
+		const revealBlocks = aboutSection?.querySelectorAll('.about-block');
+		const revealObs = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const idx = Number((entry.target as HTMLElement).dataset.idx);
+						if (!isNaN(idx)) revealed[idx] = true;
+					}
+				});
+			},
+			{ threshold: 0.15 }
+		);
+		revealBlocks?.forEach((el) => revealObs.observe(el));
+
 		// IntersectionObserver per lazy loading
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -427,13 +444,17 @@
 <section id="about" class="about" bind:this={aboutSection}>
 	<canvas class="neural-canvas" bind:this={canvasElement}></canvas>
 	<div class="container">
-		<h2 class="section-title">💫 About Me</h2>
+		<!-- Title -->
+		<h2 class="section-title about-block" class:show={revealed[0]} data-idx="0">💫 About Me</h2>
+
 		<div class="about-content">
-			<div class="about-text">
+			<!-- Bio card (glassmorphism) -->
+			<div class="bio-card about-block" class:show={revealed[1]} data-idx="1">
 				<p>
 					Hi there! 👋 I'm Giuseppe, a Computer Science student at the University of Catania. I'm
-					passionate about Artificial Intelligence and Cybersecurity, always diving into new
-					challenges and exploring the unknown.
+					passionate about <strong>Artificial Intelligence</strong> and
+					<strong>Cybersecurity</strong>, always diving into new challenges and exploring the
+					unknown.
 				</p>
 				<p>
 					Most of the time, I just end up doing weird stuff because, well... <strong
@@ -447,34 +468,59 @@
 				<p>
 					Oh, and I have a thing for cars. I drive. <em>(Yes, I'm Ryan Gosling)</em>.
 				</p>
+			</div>
 
-				<div class="currently-working">
-					<h3>🚀 Currently Working On</h3>
-					<ul>
+			<!-- Terminal-style currently working on -->
+			<div class="terminal about-block" class:show={revealed[2]} data-idx="2">
+				<div class="terminal-bar">
+					<span class="terminal-dot red"></span>
+					<span class="terminal-dot yellow"></span>
+					<span class="terminal-dot green"></span>
+					<span class="terminal-title">~/currently-working-on</span>
+				</div>
+				<div class="terminal-body">
+					<div class="terminal-line">
+						<span class="prompt">$</span>
+						<span class="cmd">ls projects/</span>
+					</div>
+					<ul class="terminal-list">
 						<li>
-							<strong
-								><a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank"
-									>Image Enhancement</a
-								></strong
+							<span class="file">image-enhancement/</span>
+							<span class="comment"
+								># <a
+									href="https://github.com/GiuseppeBellamacina/Image-Enhancement"
+									target="_blank"
+									rel="noopener noreferrer">Advanced image quality improvement</a
+								></span
 							>
-							- Exploring advanced techniques for image quality improvement
 						</li>
 						<li>
-							<strong
-								><a
+							<span class="file">warehouse-swarm/</span>
+							<span class="comment"
+								># <a
 									href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System"
-									target="_blank">Warehouse Swarm Intelligence System</a
-								></strong
+									target="_blank"
+									rel="noopener noreferrer">Multi-agent warehouse optimization</a
+								></span
 							>
-							- Designing a multi-agent system for optimizing warehouse operations
 						</li>
 						<li>
-							<strong>Trip Planner</strong>
-							- Trip Planner PWA (Progressive Web App)
+							<span class="file">trip-planner/</span>
+							<span class="comment"># PWA for trip planning</span>
 						</li>
-						<li>An <strong>AI to conquer the world</strong> (I'm joking... maybe)</li>
-						<li><strong>Survive</strong></li>
+						<li>
+							<span class="file">world-domination-ai/</span>
+							<span class="comment"># I'm joking... maybe</span>
+						</li>
+						<li>
+							<span class="file">survive.sh</span>
+							<span class="comment"># chmod +x survive.sh && ./survive.sh</span>
+						</li>
 					</ul>
+					<div class="terminal-line">
+						<span class="prompt">$</span>
+						<span class="cursor-blink">_</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -493,5 +539,199 @@
 		max-height: 800px;
 		pointer-events: none;
 		z-index: 1;
+	}
+
+	/* ── Staggered reveal ── */
+	.about-block {
+		opacity: 0;
+		transform: translateY(40px);
+		transition:
+			opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	.about-block.show {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	/* Stagger delays */
+	.about-block[data-idx='1'] {
+		transition-delay: 0.1s;
+	}
+	.about-block[data-idx='2'] {
+		transition-delay: 0.25s;
+	}
+
+	/* ── Bio card (glassmorphism) ── */
+	.bio-card {
+		background: rgba(15, 18, 40, 0.4);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border: 1px solid rgba(0, 255, 255, 0.1);
+		border-radius: 16px;
+		padding: 2rem 2.2rem;
+		margin-bottom: 2rem;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	}
+	.bio-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 16px;
+		padding: 1.5px;
+		background: linear-gradient(
+			135deg,
+			rgba(0, 255, 255, 0.25),
+			transparent 40%,
+			transparent 60%,
+			rgba(255, 0, 255, 0.2)
+		);
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+	}
+	.bio-card p {
+		font-size: 1.1rem;
+		line-height: 1.8;
+		color: var(--text-light);
+		margin-bottom: 1rem;
+	}
+	.bio-card p:last-child {
+		margin-bottom: 0;
+	}
+
+	/* ── Terminal ── */
+	.terminal {
+		background: rgba(10, 12, 28, 0.45);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border: 1px solid rgba(0, 255, 255, 0.1);
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+		font-family: 'Courier New', 'Fira Code', monospace;
+	}
+	.terminal-bar {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 10px 14px;
+		background: rgba(30, 34, 60, 0.5);
+		border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+	}
+	.terminal-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+	}
+	.terminal-dot.red {
+		background: #ff5f57;
+	}
+	.terminal-dot.yellow {
+		background: #febc2e;
+	}
+	.terminal-dot.green {
+		background: #28c840;
+	}
+	.terminal-title {
+		margin-left: 8px;
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		letter-spacing: 0.5px;
+	}
+	.terminal-body {
+		padding: 1.2rem 1.4rem;
+	}
+	.terminal-line {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 0.5rem;
+	}
+	.prompt {
+		color: var(--neon-green);
+		font-weight: bold;
+	}
+	.cmd {
+		color: var(--primary-color);
+	}
+	.terminal-list {
+		list-style: none;
+		padding-left: 1.4rem;
+		margin-bottom: 0.8rem;
+	}
+	.terminal-list li {
+		margin-bottom: 0.5rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		font-size: 0.9rem;
+	}
+	.file {
+		color: #66d9ef;
+	}
+	.comment {
+		color: var(--text-muted);
+		opacity: 0.7;
+	}
+	.comment a {
+		color: var(--primary-color);
+		text-decoration: none;
+		border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
+		transition: border-color 0.2s;
+	}
+	.comment a:hover {
+		border-bottom-color: var(--primary-color);
+	}
+	.cursor-blink {
+		color: var(--neon-green);
+		animation: termBlink 1s step-end infinite;
+	}
+	@keyframes termBlink {
+		0%,
+		50% {
+			opacity: 1;
+		}
+		51%,
+		100% {
+			opacity: 0;
+		}
+	}
+
+	/* ── Responsive ── */
+	@media (max-width: 768px) {
+		.bio-card {
+			padding: 1.4rem 1.2rem;
+		}
+		.bio-card p {
+			font-size: 1rem;
+		}
+		.tag {
+			font-size: 0.78rem;
+			padding: 5px 12px;
+		}
+		.terminal-list li {
+			font-size: 0.8rem;
+		}
+	}
+	@media (max-width: 480px) {
+		.bio-card p {
+			font-size: 0.95rem;
+			line-height: 1.7;
+		}
+		.tags-row {
+			gap: 0.4rem;
+		}
+		.tag {
+			font-size: 0.72rem;
+			padding: 4px 10px;
+		}
 	}
 </style>
