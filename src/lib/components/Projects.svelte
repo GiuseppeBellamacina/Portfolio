@@ -438,14 +438,16 @@
 						class="pcard"
 						class:is-hovered={hoveredProject === project && !dragMoved}
 						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={project.image && isVisible
-							? `--bg:url('${project.image}')`
-							: `--card-grad:${getCardBg(project)}`}
+						style={!project.image ? `--card-grad:${getCardBg(project)}` : ''}
 						on:mouseenter={() => onCardEnter(project)}
 						on:mouseleave={onCardLeave}
 						aria-label={project.title}
 					>
-						<div class="pcard-bg"></div>
+						<div class="pcard-bg">
+							{#if project.image}
+								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+							{/if}
+						</div>
 						<div class="pcard-overlay"></div>
 						{#if project.isHackathonWinner}
 							<span class="pcard-badge">🏆 Winner</span>
@@ -479,14 +481,16 @@
 						class="pcard"
 						class:is-hovered={hoveredProject === project && !dragMoved}
 						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={project.image && isVisible
-							? `--bg:url('${project.image}')`
-							: `--card-grad:${getCardBg(project)}`}
+						style={!project.image ? `--card-grad:${getCardBg(project)}` : ''}
 						on:mouseenter={() => onCardEnter(project)}
 						on:mouseleave={onCardLeave}
 						aria-label={project.title}
 					>
-						<div class="pcard-bg"></div>
+						<div class="pcard-bg">
+							{#if project.image}
+								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+							{/if}
+						</div>
 						<div class="pcard-overlay"></div>
 						{#if project.isHackathonWinner}
 							<span class="pcard-badge">🏆 Winner</span>
@@ -674,11 +678,17 @@
 	.pcard-bg {
 		position: absolute;
 		inset: 0;
-		/* --bg is a url(), --card-grad is a gradient — both are valid background-image values */
-		background-image: var(--bg, var(--card-grad, none));
+		background-image: var(--card-grad, none);
 		background-size: cover;
 		background-position: center;
 		transition: transform 0.5s ease;
+	}
+	.pcard-bg img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+		display: block;
 	}
 	.pcard.is-hovered .pcard-bg {
 		transform: scale(1.03);

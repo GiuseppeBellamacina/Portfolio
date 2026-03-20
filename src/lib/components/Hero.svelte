@@ -57,6 +57,22 @@
 
 	onMount(() => {
 		setTimeout(typeEffect, 1000);
+
+		let scrollLocked = false;
+		function onWheel(e: WheelEvent) {
+			if (scrollLocked || e.deltaY <= 0) return;
+			// Only trigger when the page is scrolled near the top (Hero visible)
+			if (window.scrollY > window.innerHeight * 0.3) return;
+			scrollLocked = true;
+			e.preventDefault();
+			document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			setTimeout(() => {
+				scrollLocked = false;
+			}, 900);
+		}
+		const heroEl = document.getElementById('home');
+		heroEl?.addEventListener('wheel', onWheel, { passive: false });
+		return () => heroEl?.removeEventListener('wheel', onWheel);
 	});
 </script>
 
@@ -80,7 +96,9 @@
 				class="btn btn-primary"
 				onclick={(e) => {
 					e.preventDefault();
-					document.querySelector('#experience')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					document
+						.querySelector('#experience')
+						?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}}>View Experience</a
 			>
 			<a href="/assets/cv.pdf" download="Giuseppe_Bellamacina_CV.pdf" class="btn btn-secondary">
@@ -98,11 +116,7 @@
 			>
 				<i class="fab fa-linkedin"></i>
 			</a>
-			<a
-				href="https://www.instagram.com/giuseppe_bellamacina/"
-				target="_blank"
-				title="Instagram"
-			>
+			<a href="https://www.instagram.com/giuseppe_bellamacina/" target="_blank" title="Instagram">
 				<i class="fab fa-instagram"></i>
 			</a>
 			<a href="https://github.com/GiuseppeBellamacina" target="_blank" title="GitHub">
