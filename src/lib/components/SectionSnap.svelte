@@ -112,7 +112,9 @@
 			}
 
 			// Not parked yet: check if we're near the bottom boundary
-			if (window.scrollY >= maxScroll - 2) {
+			// Only park if we're within a narrow band of the boundary (approaching from above).
+			// If scrollY is way past maxScroll (entered from below), don't park.
+			if (window.scrollY >= maxScroll - 2 && window.scrollY <= maxScroll + 30) {
 				// We've reached the bottom → park, prevent further scroll, snap to exact edge
 				e.preventDefault();
 				parked = true;
@@ -153,7 +155,7 @@
 		if (!grp.tall) return;
 
 		const maxScroll = grp.bottom - window.innerHeight;
-		if (y > maxScroll) {
+		if (y > maxScroll && y <= maxScroll + 30) {
 			// Overshot the boundary (native inertia) → clamp
 			window.scrollTo(0, maxScroll);
 			parked = true;

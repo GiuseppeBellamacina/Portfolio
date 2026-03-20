@@ -642,7 +642,7 @@
 	.strip-wrap {
 		width: 100%;
 		overflow: visible;
-		padding: 24px 0;
+		padding: 12px 0;
 		margin-bottom: 0;
 		cursor: grab;
 		user-select: none;
@@ -655,7 +655,7 @@
 		display: flex;
 		gap: 20px;
 		width: max-content;
-		padding: 24px 0 12px;
+		padding: 20px 0 8px;
 		will-change: transform;
 	}
 

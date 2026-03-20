@@ -1234,8 +1234,9 @@ body::before {
 
 /* Projects Section */
 .projects {
-	padding: 60px 0;
+	padding: 80px 0 20px;
 	min-height: 100vh;
+	max-height: 100vh;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
