@@ -88,6 +88,7 @@
 		title: string;
 		artist: string;
 		lyrics: string[];
+		url?: string;
 	}
 
 	const musicCatalog: Record<string, Song[]> = {
@@ -95,6 +96,7 @@
 			{
 				title: 'Around the World',
 				artist: 'Daft Punk',
+				url: 'https://www.youtube.com/watch?v=K0HSD_i2DvA',
 				lyrics: [
 					'Around the world, around the world',
 					'Around the world, around the world',
@@ -106,6 +108,7 @@
 			{
 				title: 'Something About Us',
 				artist: 'Daft Punk',
+				url: 'https://youtu.be/sOS9aOIXPEk',
 				lyrics: [
 					'It might not be the right time',
 					'I might not be the right one',
@@ -116,6 +119,7 @@
 			{
 				title: 'Harder, Better, Faster, Stronger',
 				artist: 'Daft Punk',
+				url: 'https://youtu.be/gAjR4_CbPpQ',
 				lyrics: [
 					'Work it harder, make it better',
 					'Do it faster, makes us stronger',
@@ -128,6 +132,7 @@
 			{
 				title: 'Let It Happen',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/pFptt7Cargc',
 				lyrics: [
 					"It's always around me, all this noise",
 					'But not really as loud as the voice saying',
@@ -139,6 +144,7 @@
 			{
 				title: 'Let It Happen',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/pFptt7Cargc',
 				lyrics: [
 					"Baby, now I'm ready, moving on",
 					'Oh, but maybe I was ready all along',
@@ -150,6 +156,7 @@
 			{
 				title: 'Let It Happen',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/pFptt7Cargc',
 				lyrics: [
 					'I cannot vanish, you will not scare me',
 					'Try to get through it, try to push through it',
@@ -162,6 +169,7 @@
 			{
 				title: 'Dracula',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/xnP7qKxwzjg',
 				lyrics: [
 					'The morning light is turning blue, the feeling is bizarre',
 					"The night is almost over, I still don't know where you are",
@@ -172,6 +180,7 @@
 			{
 				title: 'The Less I Know the Better',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/2SUwOgmvzK4',
 				lyrics: [
 					"I was doin' fine without you",
 					"'Til I saw your face, now I can't erase",
@@ -186,6 +195,7 @@
 			{
 				title: 'Eventually',
 				artist: 'Tame Impala',
+				url: 'https://youtu.be/GHe8kKO8uds',
 				lyrics: [
 					"But I know that I'll be happier",
 					'And I know you will too',
@@ -198,6 +208,7 @@
 			{
 				title: 'Nightcall',
 				artist: 'Kavinsky',
+				url: 'https://youtu.be/MV_3Dpw-BRY',
 				lyrics: [
 					"There's something inside you",
 					"It's hard to explain",
@@ -218,9 +229,12 @@
 		}
 		inputLocked = true;
 		(async () => {
+			const titleHtml = song.url
+				? `<a href="${song.url}" target="_blank" rel="noopener noreferrer" class="song-title">${song.title}</a>`
+				: `<span class="song-title">${song.title}</span>`;
 			await pushLine({
 				type: 'html',
-				text: `🎵 Now playing: <span class="song-title">${song.title}</span> — <span class="song-artist">${song.artist}</span>`
+				text: `🎵 Now playing: ${titleHtml} — <span class="song-artist">${song.artist}</span>`
 			});
 			await delay(400);
 			await pushLines(
@@ -817,6 +831,12 @@
 	.rich :global(.song-title) {
 		color: var(--primary-color);
 		font-weight: bold;
+		text-decoration: none;
+		border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
+		transition: border-color 0.2s;
+	}
+	.rich :global(a.song-title:hover) {
+		border-bottom-color: var(--primary-color);
 	}
 	.rich :global(.song-artist) {
 		color: var(--neon-green);
