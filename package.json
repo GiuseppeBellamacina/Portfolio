@@ -14,8 +14,7 @@
 		"format:check": "prettier --check ."
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.0",
-		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@sveltejs/kit": "^2.49.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"prettier": "^3.7.4",
@@ -24,5 +23,9 @@
 		"svelte-check": "^4.3.4",
 		"typescript": "^5.9.3",
 		"vite": "^7.2.6"
+	},
+	"dependencies": {
+		"@vercel/analytics": "^2.0.1",
+		"@vercel/speed-insights": "^2.0.0"
 	}
 }

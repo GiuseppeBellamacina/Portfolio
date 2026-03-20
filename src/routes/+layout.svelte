@@ -1,6 +1,8 @@
 <script lang="ts">
 	import '../app.css';
 	import '../lib/performance.css';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
 	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
 	import NewYearEffect from '$lib/components/seasonal/NewYearEffect.svelte';
@@ -9,10 +11,12 @@
 	// import AutumnEffect from '$lib/components/seasonal/AutumnEffect.svelte';
 	// import SeasonalEffectsDebug from '$lib/components/seasonal/SeasonalEffectsDebug.svelte';
 
+	//injectAnalytics();
+	//injectSpeedInsights();
+
 	let { children } = $props();
 </script>
 
-<!-- Effetti stagionali automatici -->
 <SnowEffect />
 <NewYearEffect />
 <SummerEffect />
