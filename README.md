@@ -2,7 +2,7 @@
 
 A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projects and skills with immersive visual effects.
 
-🌐 **Live Demo**: [Portfolio](https://portfolio-giuseppe-bellamacina.vercel.app)
+🌐 **Live Demo**: [Portfolio](https://giuseppebellamacina.vercel.app)
 
 ## ✨ Features
 
