@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Terminal from './Terminal.svelte';
 
 	let canvasElement: HTMLCanvasElement;
 	let aboutSection: HTMLElement;
@@ -470,58 +471,9 @@
 				</p>
 			</div>
 
-			<!-- Terminal-style currently working on -->
-			<div class="terminal about-block" class:show={revealed[2]} data-idx="2">
-				<div class="terminal-bar">
-					<span class="terminal-dot red"></span>
-					<span class="terminal-dot yellow"></span>
-					<span class="terminal-dot green"></span>
-					<span class="terminal-title">~/currently-working-on</span>
-				</div>
-				<div class="terminal-body">
-					<div class="terminal-line">
-						<span class="prompt">$</span>
-						<span class="cmd">ls projects/</span>
-					</div>
-					<ul class="terminal-list">
-						<li>
-							<span class="file">image-enhancement/</span>
-							<span class="comment"
-								># <a
-									href="https://github.com/GiuseppeBellamacina/Image-Enhancement"
-									target="_blank"
-									rel="noopener noreferrer">Advanced image quality improvement</a
-								></span
-							>
-						</li>
-						<li>
-							<span class="file">warehouse-swarm/</span>
-							<span class="comment"
-								># <a
-									href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System"
-									target="_blank"
-									rel="noopener noreferrer">Multi-agent warehouse optimization</a
-								></span
-							>
-						</li>
-						<li>
-							<span class="file">trip-planner/</span>
-							<span class="comment"># PWA for trip planning</span>
-						</li>
-						<li>
-							<span class="file">world-domination-ai/</span>
-							<span class="comment"># I'm joking... maybe</span>
-						</li>
-						<li>
-							<span class="file">survive.sh</span>
-							<span class="comment"># chmod +x survive.sh && ./survive.sh</span>
-						</li>
-					</ul>
-					<div class="terminal-line">
-						<span class="prompt">$</span>
-						<span class="cursor-blink">_</span>
-					</div>
-				</div>
+			<!-- Interactive terminal -->
+			<div class="about-block" class:show={revealed[2]} data-idx="2">
+				<Terminal />
 			</div>
 		</div>
 	</div>
@@ -607,104 +559,6 @@
 		margin-bottom: 0;
 	}
 
-	/* ── Terminal ── */
-	.terminal {
-		background: rgba(10, 12, 28, 0.45);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border: 1px solid rgba(0, 255, 255, 0.1);
-		border-radius: 12px;
-		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-		font-family: 'Courier New', 'Fira Code', monospace;
-	}
-	.terminal-bar {
-		display: flex;
-		align-items: center;
-		gap: 7px;
-		padding: 10px 14px;
-		background: rgba(30, 34, 60, 0.5);
-		border-bottom: 1px solid rgba(0, 255, 255, 0.08);
-	}
-	.terminal-dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-	}
-	.terminal-dot.red {
-		background: #ff5f57;
-	}
-	.terminal-dot.yellow {
-		background: #febc2e;
-	}
-	.terminal-dot.green {
-		background: #28c840;
-	}
-	.terminal-title {
-		margin-left: 8px;
-		font-size: 0.75rem;
-		color: var(--text-muted);
-		letter-spacing: 0.5px;
-	}
-	.terminal-body {
-		padding: 1.2rem 1.4rem;
-	}
-	.terminal-line {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin-bottom: 0.5rem;
-	}
-	.prompt {
-		color: var(--neon-green);
-		font-weight: bold;
-	}
-	.cmd {
-		color: var(--primary-color);
-	}
-	.terminal-list {
-		list-style: none;
-		padding-left: 1.4rem;
-		margin-bottom: 0.8rem;
-	}
-	.terminal-list li {
-		margin-bottom: 0.5rem;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		font-size: 0.9rem;
-	}
-	.file {
-		color: #66d9ef;
-	}
-	.comment {
-		color: var(--text-muted);
-		opacity: 0.7;
-	}
-	.comment a {
-		color: var(--primary-color);
-		text-decoration: none;
-		border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
-		transition: border-color 0.2s;
-	}
-	.comment a:hover {
-		border-bottom-color: var(--primary-color);
-	}
-	.cursor-blink {
-		color: var(--neon-green);
-		animation: termBlink 1s step-end infinite;
-	}
-	@keyframes termBlink {
-		0%,
-		50% {
-			opacity: 1;
-		}
-		51%,
-		100% {
-			opacity: 0;
-		}
-	}
-
 	/* ── Responsive ── */
 	@media (max-width: 768px) {
 		.bio-card {
@@ -713,25 +567,11 @@
 		.bio-card p {
 			font-size: 1rem;
 		}
-		.tag {
-			font-size: 0.78rem;
-			padding: 5px 12px;
-		}
-		.terminal-list li {
-			font-size: 0.8rem;
-		}
 	}
 	@media (max-width: 480px) {
 		.bio-card p {
 			font-size: 0.95rem;
 			line-height: 1.7;
-		}
-		.tags-row {
-			gap: 0.4rem;
-		}
-		.tag {
-			font-size: 0.72rem;
-			padding: 4px 10px;
 		}
 	}
 </style>
