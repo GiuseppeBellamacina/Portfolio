@@ -10,8 +10,10 @@
 	import ScrollProgress from '$lib/components/ScrollProgress.svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
 	import CursorTrail from '$lib/components/CursorTrail.svelte';
+	import SectionSnap from '$lib/components/SectionSnap.svelte';
 </script>
 
+<SectionSnap />
 <ScrollProgress />
 <CursorTrail />
 <Navbar />
