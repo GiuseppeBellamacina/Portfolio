@@ -9,6 +9,7 @@
 	let snapping = false; // true while the snap animation is running
 	let inHero = true; // true when viewport is inside the Hero
 	let touchStartY = 0;
+	let snapCooldown = false; // brief cooldown after snap to avoid re-lock
 
 	function easeInOutCubic(t: number): number {
 		return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -29,11 +30,15 @@
 		function frame(ts: number) {
 			if (!t0) t0 = ts;
 			const p = Math.min((ts - t0) / duration, 1);
-			window.scrollTo(0, start + dist * easeInOutCubic(p));
+			window.scrollTo({ top: start + dist * easeInOutCubic(p), behavior: 'instant' });
 			if (p < 1) {
 				requestAnimationFrame(frame);
 			} else {
 				snapping = false;
+				snapCooldown = true;
+				setTimeout(() => {
+					snapCooldown = false;
+				}, 200);
 				cb?.();
 			}
 		}
@@ -61,7 +66,7 @@
 		if (!inHero) return;
 		e.preventDefault();
 		if (snapping) return;
-		snapToAbout();
+		if (e.deltaY > 0) snapToAbout();
 	}
 
 	// ── Touch ───────────────────────────────────────────────────────────────
@@ -75,16 +80,15 @@
 		if (snapping) return;
 		if (e.touches.length !== 1) return;
 		const dy = touchStartY - e.touches[0].clientY;
-		if (Math.abs(dy) > 10) snapToAbout();
+		if (dy > 10) snapToAbout();
 	}
 
 	// ── Detect return to Hero (e.g. user scrolls or clicks nav back up) ────
 	function onScroll() {
-		if (snapping) return;
-		if (!inHero && checkHero()) {
+		if (snapping || snapCooldown) return;
+		// Only re-engage Hero lock when user has fully scrolled to the top
+		if (!inHero && window.scrollY === 0) {
 			inHero = true;
-			// Lock position at top of Hero when re-entering
-			window.scrollTo(0, 0);
 		}
 	}
 
