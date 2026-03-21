@@ -98,9 +98,6 @@ bun run format:check
 ## 📂 Project Structure
 
 ```text
-├── 📁 .github
-│   └── 📁 workflows
-│       └── ⚙️ deploy.yml
 ├── 📁 src
 │   ├── 📁 lib
 │   │   ├── 📁 assets
@@ -124,14 +121,16 @@ bun run format:check
 │   │   │   ├── 📄 Navbar.svelte
 │   │   │   ├── 📄 Projects.svelte
 │   │   │   ├── 📄 ScrollProgress.svelte
-│   │   │   └── 📄 Skills.svelte
+│   │   │   ├── 📄 SectionSnap.svelte
+│   │   │   ├── 📄 Skills.svelte
+│   │   │   └── 📄 Terminal.svelte
 │   │   ├── 📁 stores
 │   │   │   └── 📄 seasonStore.ts
 │   │   ├── 📄 index.ts
 │   │   └── 🎨 performance.css
 │   ├── 📁 routes
+│   │   ├── 📄 +error.svelte
 │   │   ├── 📄 +layout.svelte
-│   │   ├── 📄 +layout.ts
 │   │   └── 📄 +page.svelte
 │   ├── 🎨 app.css
 │   ├── 📄 app.d.ts
@@ -143,8 +142,20 @@ bun run format:check
 │   │   ├── 📁 projects
 │   │   │   ├── 🖼️ ...
 │   │   ├── 📕 cv.pdf
-│   │   └── 🖼️ profile.png
-│   └── 📄 robots.txt
+│   │   ├── 📄 profile.avif
+│   │   ├── 🖼️ profile.png
+│   │   └── 🖼️ profile.webp
+│   ├── ⚙️ .nojekyll
+│   ├── 🖼️ android-chrome-192x192.png
+│   ├── 🖼️ android-chrome-512x512.png
+│   ├── 🖼️ apple-touch-icon.png
+│   ├── 🖼️ favicon-16x16.png
+│   ├── 🖼️ favicon-32x32.png
+│   ├── 📄 favicon.ico
+│   ├── 🌐 googledf0a28917ac8e779.html
+│   ├── 📄 robots.txt
+│   ├── 📄 site.webmanifest
+│   └── ⚙️ sitemap.xml
 ├── ⚙️ .gitignore
 ├── ⚙️ .npmrc
 ├── ⚙️ .prettierignore
@@ -154,6 +165,7 @@ bun run format:check
 ├── ⚙️ package.json
 ├── 📄 svelte.config.js
 ├── ⚙️ tsconfig.json
+├── ⚙️ vercel.json
 └── 📄 vite.config.ts
 ```
 
