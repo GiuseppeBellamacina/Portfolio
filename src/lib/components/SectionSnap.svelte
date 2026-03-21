@@ -15,6 +15,8 @@
 	let accDelta = 0;
 	let parked = false;
 	let resetTimer: ReturnType<typeof setTimeout>;
+	let cachedGroups: Group[] = [];
+	let groupsCacheDirty = true;
 
 	interface Group {
 		top: number;
@@ -23,7 +25,8 @@
 	}
 
 	function getGroups(): Group[] {
-		return GROUPS.map((ids) => {
+		if (!groupsCacheDirty && cachedGroups.length > 0) return cachedGroups;
+		cachedGroups = GROUPS.map((ids) => {
 			const els = ids
 				.map((id) => document.getElementById(id))
 				.filter((el): el is HTMLElement => el !== null);
@@ -33,6 +36,12 @@
 			const height = bottom - top;
 			return { top, bottom, tall: height > window.innerHeight * 1.15 };
 		}).filter((g): g is Group => g !== null);
+		groupsCacheDirty = false;
+		return cachedGroups;
+	}
+
+	function invalidateGroupsCache() {
+		groupsCacheDirty = true;
 	}
 
 	function getCurrentGroupIndex(groups: Group[]): number {
@@ -164,11 +173,15 @@
 	}
 
 	onMount(() => {
+		// Build cache once after layout settles
+		requestAnimationFrame(() => getGroups());
 		window.addEventListener('wheel', onWheel, { passive: false });
 		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', invalidateGroupsCache);
 		return () => {
 			window.removeEventListener('wheel', onWheel);
 			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('resize', invalidateGroupsCache);
 			clearTimeout(resetTimer);
 		};
 	});

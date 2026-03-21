@@ -12,12 +12,45 @@
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<!-- Preconnect BEFORE using the CDN -->
+		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+		<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+		<!-- Font Awesome: async load to avoid render-blocking -->
 		<link
-			rel="stylesheet"
+			rel="preload"
+			as="style"
 			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			onload="
+				this.onload = null;
+				this.rel = 'stylesheet';
+			"
 		/>
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-		<link rel="preload" href="/assets/profile.png" as="image" fetchpriority="high" />
+		<noscript>
+			<link
+				rel="stylesheet"
+				href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			/>
+		</noscript>
+		<!-- Force font-display: swap on FA fonts -->
+		<style>
+			@font-face {
+				font-family: 'Font Awesome 6 Free';
+				font-display: swap;
+			}
+			@font-face {
+				font-family: 'Font Awesome 6 Brands';
+				font-display: swap;
+			}
+		</style>
+		<!-- Preload optimized hero image -->
+		<link
+			rel="preload"
+			href="/assets/profile.avif"
+			as="image"
+			type="image/avif"
+			fetchpriority="high"
+		/>
+		<link rel="preload" href="/assets/profile.webp" as="image" type="image/webp" />
 		<link rel="manifest" href="/site.webmanifest" />
 		<meta property="og:title" content="Giuseppe Bellamacina - Portfolio" />
 		<meta property="og:site_name" content="Giuseppe Bellamacina" />

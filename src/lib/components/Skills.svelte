@@ -259,54 +259,48 @@
 		}
 	];
 
-	// Shooting stars
-	function createShootingStars() {
+	// Shooting stars & Constellations — rendered on a single canvas (saves ~150+ DOM nodes)
+	let effectsCanvas: HTMLCanvasElement | null = null;
+
+	function createCanvasEffects() {
 		if (!skillsSection) return;
 
-		setInterval(() => {
-			if (Math.random() > 0.4) {
-				const star = document.createElement('div');
-				star.className = 'shooting-star';
-				star.style.cssText = `
-							position: absolute;
-							top: ${Math.random() * 60}%;
-							left: ${Math.random() * 100}%;
-							width: 2px;
-							height: 2px;
-							background: white;
-							border-radius: 50%;
-							box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
-							animation: shootingStar ${0.8 + Math.random() * 1.5}s linear forwards;
-							pointer-events: none;
-							z-index: 1;
-						`;
-				skillsSection.appendChild(star);
-
-				setTimeout(() => {
-					if (star.parentNode) {
-						star.parentNode.removeChild(star);
-					}
-				}, 2500);
-			}
-		}, 1800);
-	}
-
-	// Constellations
-	function createConstellations() {
-		if (!skillsSection) return;
-
-		const constellationContainer = document.createElement('div');
-		constellationContainer.className = 'constellation-container';
-		constellationContainer.style.cssText = `
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			pointer-events: none;
-			z-index: 1;
+		const canvas = document.createElement('canvas');
+		canvas.style.cssText = `
+			position: absolute; inset: 0; width: 100%; height: 100%;
+			pointer-events: none; z-index: 1;
 		`;
-		skillsSection.appendChild(constellationContainer);
+		skillsSection.appendChild(canvas);
+		effectsCanvas = canvas;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		let W = (canvas.width = skillsSection.offsetWidth);
+		let H = (canvas.height = skillsSection.offsetHeight);
+
+		const resizeObs = new ResizeObserver(() => {
+			W = canvas.width = skillsSection.offsetWidth;
+			H = canvas.height = skillsSection.offsetHeight;
+		});
+		resizeObs.observe(skillsSection);
+
+		// — Constellations (static positions, twinkle via time) —
+		interface ConstellationStar {
+			x: number;
+			y: number;
+			r: number;
+			phase: number;
+		}
+		interface ConstellationLine {
+			x1: number;
+			y1: number;
+			x2: number;
+			y2: number;
+			phase: number;
+		}
+		const cStars: ConstellationStar[] = [];
+		const cLines: ConstellationLine[] = [];
 
 		const constellations = [
 			{ stars: 5, x: 15, y: 15 },
@@ -326,66 +320,126 @@
 			{ stars: 3, x: 95, y: 85 }
 		];
 
-		constellations.forEach((constellation) => {
-			const constGroup = document.createElement('div');
-			constGroup.style.cssText = `
-				position: absolute;
-				left: ${constellation.x}%;
-				top: ${constellation.y}%;
-			`;
+		for (const c of constellations) {
+			const pts: { x: number; y: number }[] = [];
+			for (let i = 0; i < c.stars; i++) {
+				const sx = (c.x / 100) * W + Math.random() * 100;
+				const sy = (c.y / 100) * H + Math.random() * 100;
+				pts.push({ x: sx, y: sy });
+				cStars.push({
+					x: sx,
+					y: sy,
+					r: 1 + Math.random() * 1.5,
+					phase: Math.random() * Math.PI * 2
+				});
+			}
+			for (let i = 0; i < pts.length - 1; i++) {
+				cLines.push({
+					x1: pts[i].x,
+					y1: pts[i].y,
+					x2: pts[i + 1].x,
+					y2: pts[i + 1].y,
+					phase: Math.random() * Math.PI * 2
+				});
+			}
+		}
 
-			const starPositions: { x: number; y: number }[] = [];
+		// — Shooting stars —
+		interface ShootingStar {
+			x: number;
+			y: number;
+			vx: number;
+			vy: number;
+			life: number;
+			maxLife: number;
+		}
+		const shootingStars: ShootingStar[] = [];
+		let spawnTimer = 0;
 
-			for (let i = 0; i < constellation.stars; i++) {
-				const starX = Math.random() * 100;
-				const starY = Math.random() * 100;
-				starPositions.push({ x: starX, y: starY });
+		function tick(t: number) {
+			ctx!.clearRect(0, 0, W, H);
 
-				const star = document.createElement('div');
-				star.className = 'constellation-star';
-				star.style.cssText = `
-					position: absolute;
-					left: ${starX}px;
-					top: ${starY}px;
-					width: ${2 + Math.random() * 2}px;
-					height: ${2 + Math.random() * 2}px;
-					background: rgba(255, 255, 255, 0.9);
-					border-radius: 50%;
-					box-shadow: 0 0 8px 2px rgba(100, 200, 255, 0.6);
-					animation: constellationTwinkle 3s ease-in-out infinite;
-					animation-delay: ${Math.random() * 2}s;
-				`;
-				constGroup.appendChild(star);
+			// Draw constellations
+			for (const s of cStars) {
+				const alpha = 0.6 + 0.4 * Math.sin(t * 0.002 + s.phase);
+				ctx!.fillStyle = `rgba(255,255,255,${alpha})`;
+				ctx!.shadowBlur = 8;
+				ctx!.shadowColor = 'rgba(100,200,255,0.6)';
+				ctx!.beginPath();
+				ctx!.arc(s.x, s.y, s.r * (0.85 + 0.15 * Math.sin(t * 0.002 + s.phase)), 0, Math.PI * 2);
+				ctx!.fill();
+			}
+			ctx!.shadowBlur = 0;
+
+			for (const l of cLines) {
+				const alpha = 0.3 + 0.3 * Math.sin(t * 0.002 + l.phase);
+				ctx!.strokeStyle = `rgba(100,200,255,${alpha})`;
+				ctx!.lineWidth = 1;
+				ctx!.beginPath();
+				ctx!.moveTo(l.x1, l.y1);
+				ctx!.lineTo(l.x2, l.y2);
+				ctx!.stroke();
 			}
 
-			// Lines connecting stars
-			for (let i = 0; i < starPositions.length - 1; i++) {
-				const from = starPositions[i];
-				const to = starPositions[i + 1];
-				const dx = to.x - from.x;
-				const dy = to.y - from.y;
-				const length = Math.sqrt(dx * dx + dy * dy);
-				const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-				const line = document.createElement('div');
-				line.className = 'constellation-line';
-				line.style.cssText = `
-					position: absolute;
-					left: ${from.x}px;
-					top: ${from.y}px;
-					width: ${length}px;
-					height: 1px;
-					background: linear-gradient(90deg, rgba(100, 200, 255, 0.3), rgba(100, 200, 255, 0.5), rgba(100, 200, 255, 0.3));
-					transform: rotate(${angle}deg);
-					transform-origin: left center;
-					animation: constellationLinePulse 3s ease-in-out infinite;
-					animation-delay: ${Math.random() * 2}s;
-				`;
-				constGroup.appendChild(line);
+			// Spawn shooting stars
+			spawnTimer += 16;
+			if (spawnTimer > 1800 && Math.random() > 0.4) {
+				spawnTimer = 0;
+				const speed = 3 + Math.random() * 4;
+				shootingStars.push({
+					x: Math.random() * W,
+					y: Math.random() * H * 0.6,
+					vx: speed,
+					vy: speed,
+					life: 0,
+					maxLife: 40 + Math.random() * 40
+				});
 			}
 
-			constellationContainer.appendChild(constGroup);
-		});
+			// Draw shooting stars
+			for (let i = shootingStars.length - 1; i >= 0; i--) {
+				const s = shootingStars[i];
+				s.x += s.vx;
+				s.y += s.vy;
+				s.life++;
+				const alpha = 1 - s.life / s.maxLife;
+				if (alpha <= 0) {
+					shootingStars.splice(i, 1);
+					continue;
+				}
+
+				const tailLen = 30;
+				const grad = ctx!.createLinearGradient(
+					s.x,
+					s.y,
+					s.x - (s.vx * tailLen) / s.vx,
+					s.y - (s.vy * tailLen) / s.vy
+				);
+				grad.addColorStop(0, `rgba(255,255,255,${alpha * 0.8})`);
+				grad.addColorStop(1, 'rgba(255,255,255,0)');
+				ctx!.strokeStyle = grad;
+				ctx!.lineWidth = 2;
+				ctx!.beginPath();
+				ctx!.moveTo(s.x, s.y);
+				ctx!.lineTo(s.x - s.vx * 6, s.y - s.vy * 6);
+				ctx!.stroke();
+
+				ctx!.fillStyle = `rgba(255,255,255,${alpha})`;
+				ctx!.beginPath();
+				ctx!.arc(s.x, s.y, 1.5, 0, Math.PI * 2);
+				ctx!.fill();
+			}
+
+			raf = requestAnimationFrame(tick);
+		}
+
+		let raf = requestAnimationFrame(tick);
+
+		return () => {
+			cancelAnimationFrame(raf);
+			resizeObs.disconnect();
+			canvas.remove();
+		};
 	}
 
 	// Subtle parallax on hover (CSS handles the scale, JS adds micro-shift)
@@ -446,13 +500,13 @@
 	}
 
 	onMount(() => {
+		let cleanupCanvas: (() => void) | undefined;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting && !isVisible) {
 						isVisible = true;
-						createShootingStars();
-						createConstellations();
+						cleanupCanvas = createCanvasEffects();
 						setTimeout(() => {
 							addParallaxEffect();
 							setupSkillsAnimations();
@@ -471,6 +525,7 @@
 			if (skillsSection) {
 				observer.unobserve(skillsSection);
 			}
+			cleanupCanvas?.();
 		};
 	});
 </script>
@@ -498,52 +553,4 @@
 </section>
 
 <style>
-	:global(.shooting-star::after) {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 80px;
-		height: 1px;
-		background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), transparent);
-		transform: translateX(-80px) translateY(0px) rotate(45deg);
-	}
-
-	:global {
-		@keyframes shootingStar {
-			0% {
-				transform: translate(0, 0) scale(1);
-				opacity: 1;
-			}
-			70% {
-				opacity: 1;
-			}
-			100% {
-				transform: translate(300px, 300px) scale(0);
-				opacity: 0;
-			}
-		}
-
-		@keyframes constellationTwinkle {
-			0%,
-			100% {
-				opacity: 0.6;
-				transform: scale(1);
-			}
-			50% {
-				opacity: 1;
-				transform: scale(1.3);
-			}
-		}
-
-		@keyframes constellationLinePulse {
-			0%,
-			100% {
-				opacity: 0.3;
-			}
-			50% {
-				opacity: 0.6;
-			}
-		}
-	}
 </style>

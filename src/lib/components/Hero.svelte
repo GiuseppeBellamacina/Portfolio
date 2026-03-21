@@ -80,6 +80,7 @@
 		const nodes: Node[] = [];
 		const COUNT = 50;
 		const CONNECT_DIST = 160;
+		const CONNECT_DIST_SQ = CONNECT_DIST * CONNECT_DIST;
 		let mouse = { x: -9999, y: -9999 };
 		let raf: number;
 
@@ -105,13 +106,14 @@
 		function draw() {
 			ctx!.clearRect(0, 0, W, H);
 
-			// Connections
+			// Connections — use squared distance to avoid sqrt
 			for (let i = 0; i < nodes.length; i++) {
 				for (let j = i + 1; j < nodes.length; j++) {
 					const dx = nodes[j].x - nodes[i].x;
 					const dy = nodes[j].y - nodes[i].y;
-					const dist = Math.sqrt(dx * dx + dy * dy);
-					if (dist < CONNECT_DIST) {
+					const distSq = dx * dx + dy * dy;
+					if (distSq < CONNECT_DIST_SQ) {
+						const dist = Math.sqrt(distSq);
 						const alpha = (1 - dist / CONNECT_DIST) * 0.25;
 						ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) / 2}, 80%, 60%, ${alpha})`;
 						ctx!.lineWidth = 0.6;
@@ -183,33 +185,53 @@
 		draw();
 
 		function onMouseMove(e: MouseEvent) {
-			const rect = heroCanvas.getBoundingClientRect();
-			mouse.x = e.clientX - rect.left;
-			mouse.y = e.clientY - rect.top;
+			// Cache rect — recalculated on resize
+			mouse.x = e.clientX - cachedRect.left;
+			mouse.y = e.clientY - cachedRect.top;
 		}
 		function onMouseLeave() {
 			mouse.x = -9999;
 			mouse.y = -9999;
 		}
 
+		let cachedRect = heroCanvas.getBoundingClientRect();
+		function updateRect() {
+			cachedRect = heroCanvas.getBoundingClientRect();
+		}
+
 		heroSection.addEventListener('mousemove', onMouseMove);
 		heroSection.addEventListener('mouseleave', onMouseLeave);
 		window.addEventListener('resize', resize);
+		window.addEventListener('resize', updateRect);
 
 		return () => {
 			cancelAnimationFrame(raf);
 			heroSection.removeEventListener('mousemove', onMouseMove);
 			heroSection.removeEventListener('mouseleave', onMouseLeave);
 			window.removeEventListener('resize', resize);
+			window.removeEventListener('resize', updateRect);
 		};
 	}
 
 	onMount(() => {
 		setTimeout(typeEffect, 1000);
-		const cleanup = initCanvas();
+		let cleanup: (() => void) | undefined;
+		// Defer heavy canvas init off the critical path
+		const idle =
+			'requestIdleCallback' in window
+				? requestIdleCallback(() => {
+						cleanup = initCanvas();
+					})
+				: setTimeout(() => {
+						cleanup = initCanvas();
+					}, 50);
 		// Staggered entrance
 		requestAnimationFrame(() => (mounted = true));
-		return cleanup;
+		return () => {
+			if ('cancelIdleCallback' in window) cancelIdleCallback(idle as number);
+			else clearTimeout(idle as number);
+			cleanup?.();
+		};
 	});
 </script>
 
@@ -223,10 +245,12 @@
 				<div class="holo-ring-inner"></div>
 			</div>
 			<img
-				src="/assets/profile.png"
+				src="/assets/profile.webp"
 				alt="Giuseppe Bellamacina"
 				class="profile-image"
 				fetchpriority="high"
+				width="192"
+				height="192"
 			/>
 		</div>
 
@@ -389,15 +413,16 @@
 		background: var(--primary-color);
 		border-radius: 2px;
 		animation: scrollBounce 2s ease-in-out infinite;
+		will-change: transform, opacity;
 	}
 	@keyframes scrollBounce {
 		0%,
 		100% {
-			top: 6px;
+			transform: translateX(-50%) translateY(0);
 			opacity: 1;
 		}
 		50% {
-			top: 18px;
+			transform: translateX(-50%) translateY(12px);
 			opacity: 0.3;
 		}
 	}

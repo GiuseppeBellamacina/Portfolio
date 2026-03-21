@@ -26,7 +26,9 @@
 		closeMenu();
 	}
 
-	// Matrix rain effect
+	// Matrix rain effect — capped to MAX_RAIN to keep DOM small
+	const MAX_RAIN = 12;
+	let rainCount = 0;
 	let isNavbarVisible = true;
 	function createMatrixRain() {
 		if (!navbarElement) return;
@@ -35,9 +37,8 @@
 			'01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 
 		setInterval(() => {
-			// Pausa se navbar non visibile
 			if (!isNavbarVisible) return;
-			// 70% spawn rate
+			if (rainCount >= MAX_RAIN) return;
 			if (Math.random() > 0.3) {
 				const rain = document.createElement('span');
 				rain.textContent = characters[Math.floor(Math.random() * characters.length)];
@@ -50,10 +51,14 @@
 				rain.style.pointerEvents = 'none';
 				rain.style.animation = `matrixFall ${Math.random() * 1 + 1.5}s linear forwards`;
 				navbarElement.appendChild(rain);
+				rainCount++;
 
-				setTimeout(() => rain.remove(), 2500);
+				setTimeout(() => {
+					rain.remove();
+					rainCount--;
+				}, 2500);
 			}
-		}, 50);
+		}, 80);
 	}
 
 	onMount(() => {
@@ -93,6 +98,8 @@
 			onkeydown={(e) => e.key === 'Enter' && toggleMenu()}
 			role="button"
 			tabindex="0"
+			aria-label={isMenuActive ? 'Chiudi menu' : 'Apri menu'}
+			aria-expanded={isMenuActive}
 		>
 			<span></span>
 			<span></span>
