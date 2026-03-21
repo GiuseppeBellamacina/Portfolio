@@ -327,6 +327,16 @@
 		dragMoved = false;
 		dragTargetEl = (e.target as HTMLElement).closest('.pcard') as HTMLElement | null;
 	}
+	function startDragTouch(e: TouchEvent, row: number) {
+		if (e.touches.length !== 1) return;
+		const t = e.touches[0];
+		dragging = row;
+		dragStartX = t.clientX;
+		dragLastX = t.clientX;
+		dragVel = 0;
+		dragMoved = false;
+		dragTargetEl = (e.target as HTMLElement).closest('.pcard') as HTMLElement | null;
+	}
 	function onMouseMove(e: MouseEvent) {
 		if (dragging === -1) return;
 		const dx = e.clientX - dragLastX;
@@ -337,6 +347,25 @@
 		dragLastX = e.clientX;
 		dragVel = dx;
 		// Move dragged row + counter-rotate the other row
+		const other = dragging === 0 ? 1 : 0;
+		pos[dragging] += dx;
+		pos[other] -= dx;
+		for (const i of [dragging, other]) {
+			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
+			if (pos[i] >= 0) pos[i] -= halfW[i];
+		}
+	}
+	function onTouchMove(e: TouchEvent) {
+		if (dragging === -1 || e.touches.length !== 1) return;
+		const t = e.touches[0];
+		const dx = t.clientX - dragLastX;
+		if (!dragMoved) {
+			if (Math.abs(t.clientX - dragStartX) < 6) return;
+			dragMoved = true;
+		}
+		e.preventDefault();
+		dragLastX = t.clientX;
+		dragVel = dx;
 		const other = dragging === 0 ? 1 : 0;
 		pos[dragging] += dx;
 		pos[other] -= dx;
@@ -414,6 +443,8 @@
 		rafId = requestAnimationFrame(loop);
 		window.addEventListener('mousemove', onMouseMove);
 		window.addEventListener('mouseup', endDrag);
+		window.addEventListener('touchmove', onTouchMove, { passive: false });
+		window.addEventListener('touchend', endDrag);
 		window.addEventListener('keydown', onKeyDown);
 		const io = new IntersectionObserver(
 			(entries) =>
@@ -430,6 +461,8 @@
 			cancelAnimationFrame(rafId);
 			window.removeEventListener('mousemove', onMouseMove);
 			window.removeEventListener('mouseup', endDrag);
+			window.removeEventListener('touchmove', onTouchMove);
+			window.removeEventListener('touchend', endDrag);
 			window.removeEventListener('keydown', onKeyDown);
 			io.disconnect();
 		};
@@ -448,6 +481,7 @@
 			class="strip-wrap"
 			class:dragging-active={dragging === 0}
 			on:mousedown={(e) => startDrag(e, 0)}
+			on:touchstart={(e) => startDragTouch(e, 0)}
 		>
 			<div class="strip" bind:this={stripEls[0]}>
 				{#each [...row0, ...row0] as project}
@@ -491,6 +525,7 @@
 			class="strip-wrap"
 			class:dragging-active={dragging === 1}
 			on:mousedown={(e) => startDrag(e, 1)}
+			on:touchstart={(e) => startDragTouch(e, 1)}
 		>
 			<div class="strip" bind:this={stripEls[1]}>
 				{#each [...row1, ...row1] as project}

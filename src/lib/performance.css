@@ -10,10 +10,7 @@
 	contain: layout style;
 }
 
-/* Hint al browser per animazioni smooth */
-.tech-icon,
-.project-card,
-.timeline-item,
+/* Hint al browser per animazioni smooth — solo per elementi attivamente animati */
 .profile-image {
 	will-change: transform;
 }
@@ -21,7 +18,7 @@
 .profile-image:hover,
 .tech-icon:hover,
 .project-card:hover {
-	will-change: transform, box-shadow;
+	will-change: transform;
 }
 
 /* Ottimizza canvas neural network */
@@ -55,7 +52,7 @@
 
 /* Ottimizza scroll */
 html {
-	scroll-behavior: auto;
+	scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {

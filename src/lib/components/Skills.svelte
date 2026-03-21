@@ -260,7 +260,9 @@
 	];
 
 	// Shooting stars & Constellations — rendered on a single canvas (saves ~150+ DOM nodes)
+	// Canvas pauses when section is off-screen to save CPU
 	let effectsCanvas: HTMLCanvasElement | null = null;
+	let canvasRunning = false;
 
 	function createCanvasEffects() {
 		if (!skillsSection) return;
@@ -285,7 +287,7 @@
 		});
 		resizeObs.observe(skillsSection);
 
-		// — Constellations (static positions, twinkle via time) —
+		// — Constellations (reduced count for performance) —
 		interface ConstellationStar {
 			x: number;
 			y: number;
@@ -303,21 +305,14 @@
 		const cLines: ConstellationLine[] = [];
 
 		const constellations = [
-			{ stars: 5, x: 15, y: 15 },
-			{ stars: 4, x: 35, y: 20 },
-			{ stars: 6, x: 55, y: 18 },
-			{ stars: 5, x: 75, y: 22 },
-			{ stars: 4, x: 90, y: 25 },
-			{ stars: 5, x: 10, y: 45 },
-			{ stars: 6, x: 30, y: 50 },
+			{ stars: 4, x: 15, y: 15 },
+			{ stars: 3, x: 45, y: 20 },
+			{ stars: 4, x: 75, y: 18 },
+			{ stars: 3, x: 10, y: 50 },
 			{ stars: 4, x: 50, y: 48 },
-			{ stars: 5, x: 70, y: 52 },
-			{ stars: 6, x: 88, y: 55 },
-			{ stars: 4, x: 20, y: 75 },
-			{ stars: 5, x: 42, y: 78 },
-			{ stars: 6, x: 62, y: 72 },
-			{ stars: 4, x: 80, y: 80 },
-			{ stars: 3, x: 95, y: 85 }
+			{ stars: 3, x: 88, y: 55 },
+			{ stars: 4, x: 30, y: 78 },
+			{ stars: 3, x: 70, y: 75 }
 		];
 
 		for (const c of constellations) {
@@ -355,16 +350,19 @@
 		}
 		const shootingStars: ShootingStar[] = [];
 		let spawnTimer = 0;
+		let raf = 0;
 
 		function tick(t: number) {
+			if (!canvasRunning) return;
+
 			ctx!.clearRect(0, 0, W, H);
 
-			// Draw constellations
+			// Draw constellations — batch fill calls
+			ctx!.shadowBlur = 8;
+			ctx!.shadowColor = 'rgba(100,200,255,0.6)';
 			for (const s of cStars) {
 				const alpha = 0.6 + 0.4 * Math.sin(t * 0.002 + s.phase);
 				ctx!.fillStyle = `rgba(255,255,255,${alpha})`;
-				ctx!.shadowBlur = 8;
-				ctx!.shadowColor = 'rgba(100,200,255,0.6)';
 				ctx!.beginPath();
 				ctx!.arc(s.x, s.y, s.r * (0.85 + 0.15 * Math.sin(t * 0.002 + s.phase)), 0, Math.PI * 2);
 				ctx!.fill();
@@ -381,9 +379,9 @@
 				ctx!.stroke();
 			}
 
-			// Spawn shooting stars
+			// Spawn shooting stars (less frequently)
 			spawnTimer += 16;
-			if (spawnTimer > 1800 && Math.random() > 0.4) {
+			if (spawnTimer > 2500 && Math.random() > 0.5) {
 				spawnTimer = 0;
 				const speed = 3 + Math.random() * 4;
 				shootingStars.push({
@@ -408,16 +406,7 @@
 					continue;
 				}
 
-				const tailLen = 30;
-				const grad = ctx!.createLinearGradient(
-					s.x,
-					s.y,
-					s.x - (s.vx * tailLen) / s.vx,
-					s.y - (s.vy * tailLen) / s.vy
-				);
-				grad.addColorStop(0, `rgba(255,255,255,${alpha * 0.8})`);
-				grad.addColorStop(1, 'rgba(255,255,255,0)');
-				ctx!.strokeStyle = grad;
+				ctx!.strokeStyle = `rgba(255,255,255,${alpha * 0.8})`;
 				ctx!.lineWidth = 2;
 				ctx!.beginPath();
 				ctx!.moveTo(s.x, s.y);
@@ -433,11 +422,30 @@
 			raf = requestAnimationFrame(tick);
 		}
 
-		let raf = requestAnimationFrame(tick);
+		// Visibility observer — pause/resume canvas when off-screen
+		const visObs = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting && !canvasRunning) {
+						canvasRunning = true;
+						raf = requestAnimationFrame(tick);
+					} else if (!entry.isIntersecting && canvasRunning) {
+						canvasRunning = false;
+						cancelAnimationFrame(raf);
+					}
+				}
+			},
+			{ threshold: 0 }
+		);
+		visObs.observe(skillsSection);
+		canvasRunning = true;
+		raf = requestAnimationFrame(tick);
 
 		return () => {
+			canvasRunning = false;
 			cancelAnimationFrame(raf);
 			resizeObs.disconnect();
+			visObs.disconnect();
 			canvas.remove();
 		};
 	}
