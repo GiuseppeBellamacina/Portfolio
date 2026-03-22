@@ -824,7 +824,7 @@
 	/* ── Body ── */
 	.terminal-body {
 		padding: 1rem 1.2rem;
-		max-height: 340px;
+		height: 300px;
 		overflow-y: auto;
 		scrollbar-width: thin;
 		scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
@@ -948,7 +948,7 @@
 			font-size: 0.78rem;
 		}
 		.terminal-body {
-			max-height: 280px;
+			height: 280px;
 		}
 	}
 	@media (max-width: 480px) {
