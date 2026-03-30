@@ -62,6 +62,10 @@
 		}
 
 		function draw() {
+			if (document.hidden) {
+				raf = requestAnimationFrame(draw);
+				return;
+			}
 			ctx!.clearRect(0, 0, W, H);
 
 			for (const f of fireflies) {

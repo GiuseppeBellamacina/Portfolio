@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { currentSeason } from '$lib/stores/seasonStore';
 
 	let typingText = $state('');
 	let mounted = $state(false);
@@ -8,7 +10,7 @@
 	let spotlightX = $state(50);
 	let spotlightY = $state(50);
 
-	const texts = [
+	const baseTexts = [
 		'AI/ML Engineer',
 		'Data Scientist',
 		'Ethical Hacker',
@@ -20,6 +22,26 @@
 		'Literally Ryan Gosling',
 		'Cyberpunk Dreamer'
 	];
+
+	const seasonalGreetings: Record<string, string[]> = {
+		snow: ['Merry Christmas!'],
+		newyear: ['Happy New Year!']
+	};
+
+	function getTexts(): string[] {
+		const season = get(currentSeason);
+		const greetings = seasonalGreetings[season];
+		if (!greetings) return baseTexts;
+		// Insert greetings spread throughout the rotation
+		const texts = [...baseTexts];
+		for (let i = 0; i < greetings.length; i++) {
+			const pos = Math.floor((texts.length / (greetings.length + 1)) * (i + 1));
+			texts.splice(pos, 0, greetings[i]);
+		}
+		return texts;
+	}
+
+	let texts = baseTexts;
 
 	let textIndex = 0;
 	let charIndex = 0;
@@ -246,6 +268,12 @@
 	}
 
 	onMount(() => {
+		// Pick up seasonal greetings if active
+		texts = getTexts();
+		// Re-check when season changes (e.g. debug panel)
+		const unsubscribe = currentSeason.subscribe(() => {
+			texts = getTexts();
+		});
 		setTimeout(typeEffect, 1000);
 		let cleanup: (() => void) | undefined;
 		// Defer heavy canvas init off the critical path
@@ -260,6 +288,7 @@
 		// Staggered entrance
 		requestAnimationFrame(() => (mounted = true));
 		return () => {
+			unsubscribe();
 			if ('cancelIdleCallback' in window) cancelIdleCallback(idle as number);
 			else clearTimeout(idle as number);
 			cleanup?.();
@@ -369,8 +398,8 @@
 		pointer-events: none;
 		background: radial-gradient(
 			600px circle at var(--spot-x) var(--spot-y),
-			rgba(129, 140, 248, 0.06) 0%,
-			rgba(167, 139, 250, 0.03) 30%,
+			rgba(var(--primary-rgb), 0.06) 0%,
+			rgba(var(--secondary-rgb), 0.03) 30%,
 			transparent 70%
 		);
 		transition: background 0.15s ease;
@@ -394,17 +423,17 @@
 		border-radius: 50%;
 		background: conic-gradient(
 			from 0deg,
-			#818cf8,
-			#a78bfa,
-			#c084fc,
-			#e879f9,
-			#60a5fa,
-			#34d399,
-			#818cf8
+			var(--primary-color),
+			var(--secondary-color),
+			var(--accent-color),
+			var(--neon-pink),
+			var(--neon-blue),
+			var(--neon-green),
+			var(--primary-color)
 		);
 		padding: 2px;
 		animation: holoSpin 4s linear infinite;
-		filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.4));
+		filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.4));
 	}
 	.holo-ring::after {
 		content: '';
@@ -417,7 +446,7 @@
 		position: absolute;
 		inset: 8px;
 		border-radius: 50%;
-		border: 1px dashed rgba(129, 140, 248, 0.12);
+		border: 1px dashed rgba(var(--primary-rgb), 0.12);
 		animation: holoSpinInner 10s linear infinite reverse;
 		z-index: 1;
 	}
@@ -484,7 +513,7 @@
 	.scroll-mouse {
 		width: 22px;
 		height: 34px;
-		border: 1.5px solid rgba(129, 140, 248, 0.4);
+		border: 1.5px solid rgba(var(--primary-rgb), 0.4);
 		border-radius: 12px;
 		position: relative;
 	}

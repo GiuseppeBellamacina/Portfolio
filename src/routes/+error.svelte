@@ -284,8 +284,8 @@
 		position: relative;
 		color: var(--text-light);
 		text-shadow:
-			0 0 10px rgba(129, 140, 248, 0.4),
-			0 0 30px rgba(129, 140, 248, 0.2);
+			0 0 10px rgba(var(--primary-rgb), 0.4),
+			0 0 30px rgba(var(--primary-rgb), 0.2);
 		animation: neonPulse 3s ease-in-out infinite;
 	}
 
@@ -319,13 +319,13 @@
 		0%,
 		100% {
 			text-shadow:
-				0 0 10px rgba(129, 140, 248, 0.4),
-				0 0 30px rgba(129, 140, 248, 0.2);
+				0 0 10px rgba(var(--primary-rgb), 0.4),
+				0 0 30px rgba(var(--primary-rgb), 0.2);
 		}
 		50% {
 			text-shadow:
-				0 0 15px rgba(129, 140, 248, 0.5),
-				0 0 40px rgba(129, 140, 248, 0.3);
+				0 0 15px rgba(var(--primary-rgb), 0.5),
+				0 0 40px rgba(var(--primary-rgb), 0.3);
 		}
 	}
 	@keyframes glitchTop {
@@ -367,8 +367,8 @@
 
 	/* ── Terminal box ── */
 	.terminal-box {
-		background: rgba(11, 13, 23, 0.85);
-		border: 1px solid rgba(129, 140, 248, 0.12);
+		background: rgba(var(--bg-dark-rgb), 0.85);
+		border: 1px solid rgba(var(--primary-rgb), 0.12);
 		border-radius: 12px;
 		overflow: hidden;
 		margin-bottom: 2.5rem;
@@ -382,8 +382,8 @@
 		align-items: center;
 		gap: 6px;
 		padding: 10px 14px;
-		background: rgba(21, 24, 41, 0.9);
-		border-bottom: 1px solid rgba(129, 140, 248, 0.08);
+		background: rgba(var(--bg-card-rgb), 0.9);
+		border-bottom: 1px solid rgba(var(--primary-rgb), 0.08);
 	}
 	.terminal-dot {
 		width: 10px;

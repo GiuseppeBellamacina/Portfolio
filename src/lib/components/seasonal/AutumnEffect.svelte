@@ -86,8 +86,8 @@
 
 			// Continua a creare nuove foglie
 			const interval = setInterval(() => {
+				if (document.hidden) return;
 				if (Math.random() > 0.8) {
-					// 20% di probabilità ogni 600ms
 					createLeaf();
 				}
 			}, 600);

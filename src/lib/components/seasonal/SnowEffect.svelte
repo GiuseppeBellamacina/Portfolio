@@ -73,8 +73,8 @@
 
 			// Continua a creare nuovi fiocchi (anche la frequenza è proporzionale)
 			const interval = setInterval(() => {
+				if (document.hidden) return;
 				if (Math.random() > 0.78) {
-					// 22% di probabilità ogni 500ms
 					createSnowflake();
 				}
 			}, 500);

@@ -76,11 +76,7 @@
 	});
 </script>
 
-<nav
-	class="navbar"
-	bind:this={navbarElement}
-	style:background={scrollY > 100 ? 'rgba(11, 13, 23, 0.98)' : 'rgba(11, 13, 23, 0.92)'}
->
+<nav class="navbar" class:navbar-solid={scrollY > 100} bind:this={navbarElement}>
 	<div class="container" style="position: relative;">
 		<div class="nav-brand">Giuseppe Bellamacina</div>
 		<ul class="nav-menu desktop-menu">

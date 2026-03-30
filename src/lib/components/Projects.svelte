@@ -760,11 +760,11 @@
 	.pcard.is-hovered {
 		transform: perspective(800px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg))
 			translateY(-14px) scale(1.06);
-		border-color: rgba(129, 140, 248, 0.6);
+		border-color: rgba(var(--primary-rgb), 0.6);
 		box-shadow:
 			0 24px 70px rgba(0, 0, 0, 0.75),
-			0 0 50px rgba(129, 140, 248, 0.2),
-			0 0 0 1px rgba(129, 140, 248, 0.3);
+			0 0 50px rgba(var(--primary-rgb), 0.2),
+			0 0 0 1px rgba(var(--primary-rgb), 0.3);
 		z-index: 10;
 	}
 	/* Dim siblings while one is hovered */
@@ -880,8 +880,8 @@
 	.pcard-tag {
 		font-size: 0.56rem;
 		color: var(--primary-color);
-		background: rgba(129, 140, 248, 0.1);
-		border: 1px solid rgba(129, 140, 248, 0.25);
+		background: rgba(var(--primary-rgb), 0.1);
+		border: 1px solid rgba(var(--primary-rgb), 0.25);
 		padding: 2px 7px;
 		border-radius: 20px;
 		line-height: 1.7;
@@ -911,12 +911,12 @@
 		height: min(680px, calc(100vh - 40px));
 		border-radius: 20px;
 		overflow: hidden;
-		background: rgba(8, 11, 30, 0.97);
-		border: 1px solid rgba(129, 140, 248, 0.3);
+		background: rgba(var(--bg-dark-rgb), 0.97);
+		border: 1px solid rgba(var(--primary-rgb), 0.3);
 		box-shadow:
-			0 0 0 1px rgba(129, 140, 248, 0.12),
+			0 0 0 1px rgba(var(--primary-rgb), 0.12),
 			0 60px 140px rgba(0, 0, 0, 0.92),
-			0 0 80px rgba(129, 140, 248, 0.08);
+			0 0 80px rgba(var(--primary-rgb), 0.08);
 		z-index: 9999;
 		backdrop-filter: blur(18px);
 		pointer-events: none;
@@ -1016,7 +1016,7 @@
 		margin: 0;
 		letter-spacing: -0.02em;
 		text-shadow:
-			0 0 20px rgba(129, 140, 248, 0.4),
+			0 0 20px rgba(var(--primary-rgb), 0.4),
 			0 2px 8px rgba(0, 0, 0, 0.9);
 	}
 
@@ -1087,8 +1087,8 @@
 	.exp-tag {
 		font-size: 0.6rem;
 		color: var(--primary-color);
-		background: rgba(129, 140, 248, 0.08);
-		border: 1px solid rgba(129, 140, 248, 0.25);
+		background: rgba(var(--primary-rgb), 0.08);
+		border: 1px solid rgba(var(--primary-rgb), 0.25);
 		padding: 2px 8px;
 		border-radius: 20px;
 		line-height: 1.75;

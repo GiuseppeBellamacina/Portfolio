@@ -4,6 +4,7 @@
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
+	import { currentSeason } from '$lib/stores/seasonStore';
 	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
 	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
 	import NewYearEffect from '$lib/components/seasonal/NewYearEffect.svelte';
@@ -16,6 +17,23 @@
 	injectSpeedInsights();
 
 	let { children } = $props();
+
+	// Apply seasonal CSS class on <body>
+	$effect(() => {
+		const season = $currentSeason;
+		const classes = [
+			'season-snow',
+			'season-newyear',
+			'season-summer',
+			'season-halloween',
+			'season-spring',
+			'season-autumn'
+		];
+		classes.forEach((c) => document.body.classList.remove(c));
+		if (season !== 'default') {
+			document.body.classList.add(`season-${season}`);
+		}
+	});
 </script>
 
 <SnowEffect />

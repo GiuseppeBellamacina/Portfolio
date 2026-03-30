@@ -52,7 +52,7 @@
 		transform: translateY(20px) scale(0.8);
 		transition: all 0.3s ease;
 		z-index: 1000;
-		box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
+		box-shadow: 0 4px 15px rgba(var(--indigo-rgb), 0.12);
 	}
 
 	.back-to-top.visible {
@@ -62,10 +62,10 @@
 	}
 
 	.back-to-top:hover {
-		background: rgba(99, 102, 241, 0.15);
+		background: rgba(var(--indigo-rgb), 0.15);
 		color: #fff;
 		transform: translateY(-3px) scale(1.08);
-		box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+		box-shadow: 0 8px 24px rgba(var(--indigo-rgb), 0.2);
 	}
 
 	.back-to-top:active {

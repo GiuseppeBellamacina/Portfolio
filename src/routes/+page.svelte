@@ -11,10 +11,10 @@
 	import BackToTop from '$lib/components/BackToTop.svelte';
 	import CursorTrail from '$lib/components/CursorTrail.svelte';
 	import SectionSnap from '$lib/components/SectionSnap.svelte';
-	import SeasonalEffectsDebug from '$lib/components/seasonal/SeasonalEffectsDebug.svelte';
+	// import SeasonalEffectsDebug from '$lib/components/seasonal/SeasonalEffectsDebug.svelte';
 </script>
 
-<SeasonalEffectsDebug />
+<!-- <SeasonalEffectsDebug /> -->
 <SectionSnap />
 <ScrollProgress />
 <CursorTrail />

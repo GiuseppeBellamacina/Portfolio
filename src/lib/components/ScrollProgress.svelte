@@ -29,7 +29,7 @@
 		top: 0;
 		left: 0;
 		height: 3px;
-		background: linear-gradient(90deg, var(--primary-color), var(--neon-pink), #00ff88);
+		background: linear-gradient(90deg, var(--primary-color), var(--neon-pink), var(--neon-green));
 		z-index: 10000;
 		transition: width 0.1s ease-out;
 		box-shadow: 0 0 10px var(--primary-color);

@@ -783,10 +783,10 @@
 
 <style>
 	.terminal {
-		background: rgba(11, 13, 23, 0.5);
+		background: rgba(var(--bg-dark-rgb), 0.5);
 		backdrop-filter: blur(10px);
 		-webkit-backdrop-filter: blur(10px);
-		border: 1px solid rgba(129, 140, 248, 0.08);
+		border: 1px solid rgba(var(--primary-rgb), 0.08);
 		border-radius: 12px;
 		overflow: hidden;
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -800,8 +800,8 @@
 		align-items: center;
 		gap: 7px;
 		padding: 10px 14px;
-		background: rgba(21, 24, 41, 0.5);
-		border-bottom: 1px solid rgba(129, 140, 248, 0.06);
+		background: rgba(var(--bg-card-rgb), 0.5);
+		border-bottom: 1px solid rgba(var(--primary-rgb), 0.06);
 		cursor: default;
 	}
 	.dot {
@@ -831,7 +831,7 @@
 		height: 300px;
 		overflow-y: auto;
 		scrollbar-width: thin;
-		scrollbar-color: rgba(129, 140, 248, 0.15) transparent;
+		scrollbar-color: rgba(var(--primary-rgb), 0.15) transparent;
 	}
 	.terminal-body::-webkit-scrollbar {
 		width: 5px;
@@ -840,7 +840,7 @@
 		background: transparent;
 	}
 	.terminal-body::-webkit-scrollbar-thumb {
-		background: rgba(129, 140, 248, 0.15);
+		background: rgba(var(--primary-rgb), 0.15);
 		border-radius: 3px;
 	}
 
@@ -882,7 +882,7 @@
 	.rich :global(a) {
 		color: var(--primary-color);
 		text-decoration: none;
-		border-bottom: 1px dashed rgba(129, 140, 248, 0.2);
+		border-bottom: 1px dashed rgba(var(--primary-rgb), 0.2);
 		transition: border-color 0.2s;
 	}
 	.rich :global(a:hover) {
@@ -907,7 +907,7 @@
 		color: var(--primary-color);
 		font-weight: bold;
 		text-decoration: none;
-		border-bottom: 1px dashed rgba(129, 140, 248, 0.2);
+		border-bottom: 1px dashed rgba(var(--primary-rgb), 0.2);
 		transition: border-color 0.2s;
 	}
 	.rich :global(a.song-title:hover) {

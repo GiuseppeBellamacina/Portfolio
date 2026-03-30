@@ -359,6 +359,10 @@
 		let spawnTimer = 0;
 		let raf = 0;
 
+		// Read primary color RGB from CSS custom properties for canvas
+		const rootStyle = getComputedStyle(document.documentElement);
+		const primaryRgb = rootStyle.getPropertyValue('--primary-rgb').trim() || '129,140,248';
+
 		function tick(t: number) {
 			if (!canvasRunning) return;
 
@@ -366,7 +370,7 @@
 
 			// Draw constellations — batch fill calls
 			ctx!.shadowBlur = 6;
-			ctx!.shadowColor = 'rgba(129,140,248,0.4)';
+			ctx!.shadowColor = `rgba(${primaryRgb},0.4)`;
 			for (const s of cStars) {
 				const alpha = 0.6 + 0.4 * Math.sin(t * 0.002 + s.phase);
 				ctx!.fillStyle = `rgba(255,255,255,${alpha})`;
@@ -378,7 +382,7 @@
 
 			for (const l of cLines) {
 				const alpha = 0.3 + 0.3 * Math.sin(t * 0.002 + l.phase);
-				ctx!.strokeStyle = `rgba(129,140,248,${alpha})`;
+				ctx!.strokeStyle = `rgba(${primaryRgb},${alpha})`;
 				ctx!.lineWidth = 1;
 				ctx!.beginPath();
 				ctx!.moveTo(l.x1, l.y1);

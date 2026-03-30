@@ -45,6 +45,7 @@
 		let W = (canvas.width = window.innerWidth);
 		let H = (canvas.height = window.innerHeight);
 		let raf: number;
+		let paused = false;
 
 		const rockets: Rocket[] = [];
 		const sparks: Spark[] = [];
@@ -194,12 +195,15 @@
 		draw();
 
 		// Launch rockets at random intervals
+		let launchTimeout: ReturnType<typeof setTimeout>;
 		function scheduleLaunch() {
 			const delay = 400 + Math.random() * 2000;
-			setTimeout(() => {
-				if (!showNewYear) return;
+			launchTimeout = setTimeout(() => {
+				if (!showNewYear || paused) {
+					scheduleLaunch();
+					return;
+				}
 				launchRocket();
-				// Sometimes launch 2-3 together
 				if (Math.random() > 0.5) {
 					setTimeout(launchRocket, 100 + Math.random() * 200);
 				}
@@ -211,9 +215,26 @@
 		}
 		scheduleLaunch();
 
+		function onVisibilityChange() {
+			if (document.hidden) {
+				paused = true;
+				cancelAnimationFrame(raf);
+				// Clear existing particles so they don't burst on resume
+				rockets.length = 0;
+				sparks.length = 0;
+			} else {
+				paused = false;
+				ctx!.clearRect(0, 0, W, H);
+				raf = requestAnimationFrame(draw);
+			}
+		}
+		document.addEventListener('visibilitychange', onVisibilityChange);
+
 		window.addEventListener('resize', resize);
 		return () => {
 			cancelAnimationFrame(raf);
+			clearTimeout(launchTimeout);
+			document.removeEventListener('visibilitychange', onVisibilityChange);
 			window.removeEventListener('resize', resize);
 		};
 	}
