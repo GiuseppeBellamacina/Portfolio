@@ -23,13 +23,13 @@
 
 	// Fallback dark cyberpunk gradients for cards without images
 	const cardGradients = [
-		'linear-gradient(135deg, #0b0d17 0%, #1e1b4b 100%)',
-		'linear-gradient(135deg, #0f0d1a 0%, #312e81 100%)',
-		'linear-gradient(135deg, #0c0a18 0%, #1e1b4b 100%)',
-		'linear-gradient(135deg, #0a0d1b 0%, #1e3a5f 100%)',
-		'linear-gradient(135deg, #111025 0%, #3b0764 100%)',
-		'linear-gradient(135deg, #0b0e17 0%, #1a2744 100%)',
-		'linear-gradient(135deg, #0b0d17 0%, #1f2937 100%)'
+		'linear-gradient(135deg, #0d1b2a 0%, #0f3460 100%)',
+		'linear-gradient(135deg, #1a0533 0%, #2d1b69 100%)',
+		'linear-gradient(135deg, #0f0c29 0%, #302b63 100%)',
+		'linear-gradient(135deg, #0a1628 0%, #1e3a5f 100%)',
+		'linear-gradient(135deg, #1a1f3a 0%, #4a1f6b 100%)',
+		'linear-gradient(135deg, #0d1117 0%, #1b3a4b 100%)',
+		'linear-gradient(135deg, #0a0e27 0%, #1f2d4a 100%)'
 	];
 
 	let projects: Project[] = [
@@ -480,7 +480,7 @@
 
 <section id="projects" class="projects" bind:this={sectionEl}>
 	<div class="container">
-		<h2 class="section-title">Personal Projects</h2>
+		<h2 class="section-title">🚀 Personal Projects</h2>
 	</div>
 
 	<!-- ─── Row 0 ────────────────────────────────────────────────────────────── -->
@@ -723,12 +723,12 @@
 	}
 	/* Hover: lift and glow, stays in the strip */
 	.pcard.is-hovered {
-		transform: translateY(-12px) scale(1.08);
-		border-color: rgba(129, 140, 248, 0.4);
+		transform: translateY(-14px) scale(1.12);
+		border-color: rgba(0, 217, 255, 0.65);
 		box-shadow:
-			0 20px 60px rgba(0, 0, 0, 0.6),
-			0 0 30px rgba(99, 102, 241, 0.1),
-			0 0 0 1px rgba(129, 140, 248, 0.15);
+			0 24px 70px rgba(0, 0, 0, 0.75),
+			0 0 50px rgba(0, 217, 255, 0.22),
+			0 0 0 1px rgba(0, 217, 255, 0.3);
 		z-index: 10;
 	}
 	/* Dim siblings while one is hovered */
@@ -773,8 +773,8 @@
 		left: 1rem;
 		font-size: 0.6rem;
 		font-weight: 700;
-		background: linear-gradient(135deg, #f59e0b, #fbbf24);
-		color: #0b0d17;
+		background: linear-gradient(135deg, #ffd700, #ffed4e);
+		color: #0a0e27;
 		padding: 3px 9px;
 		border-radius: 20px;
 		z-index: 2;
@@ -810,8 +810,8 @@
 	.pcard-tag {
 		font-size: 0.56rem;
 		color: var(--primary-color);
-		background: rgba(99, 102, 241, 0.08);
-		border: 1px solid rgba(129, 140, 248, 0.2);
+		background: rgba(0, 217, 255, 0.1);
+		border: 1px solid rgba(0, 217, 255, 0.3);
 		padding: 2px 7px;
 		border-radius: 20px;
 		line-height: 1.7;
@@ -841,16 +841,18 @@
 		height: min(680px, calc(100vh - 40px));
 		border-radius: 20px;
 		overflow: hidden;
-		background: rgba(11, 13, 23, 0.97);
-		border: 1px solid rgba(129, 140, 248, 0.2);
+		background: rgba(8, 11, 30, 0.97);
+		border: 1px solid rgba(0, 217, 255, 0.35);
 		box-shadow:
-			0 0 0 1px rgba(129, 140, 248, 0.08),
-			0 40px 100px rgba(0, 0, 0, 0.8);
+			0 0 0 1px rgba(0, 217, 255, 0.15),
+			0 60px 140px rgba(0, 0, 0, 0.92),
+			0 0 80px rgba(0, 217, 255, 0.1);
 		z-index: 9999;
-		backdrop-filter: blur(20px);
+		backdrop-filter: blur(18px);
 		pointer-events: none;
 		opacity: 0;
-		transform: translate(-50%, -50%) scale(0.92);
+		/* Enters from centre with a scale-up — no positional FLIP needed */
+		transform: translate(-50%, -50%) scale(0.88);
 		transition:
 			transform 0.35s cubic-bezier(0.34, 1.28, 0.64, 1),
 			opacity 0.25s ease;
@@ -917,8 +919,8 @@
 		z-index: 2;
 		font-size: 0.62rem;
 		font-weight: 700;
-		background: linear-gradient(135deg, #f59e0b, #fbbf24);
-		color: #0b0d17;
+		background: linear-gradient(135deg, #ffd700, #ffed4e);
+		color: #0a0e27;
 		padding: 2px 9px;
 		border-radius: 20px;
 	}
@@ -943,7 +945,9 @@
 		color: #fff;
 		margin: 0;
 		letter-spacing: -0.02em;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+		text-shadow:
+			0 0 20px rgba(0, 217, 255, 0.4),
+			0 2px 8px rgba(0, 0, 0, 0.9);
 	}
 
 	/* Body content: hidden until panel is open */
@@ -1013,8 +1017,8 @@
 	.exp-tag {
 		font-size: 0.6rem;
 		color: var(--primary-color);
-		background: rgba(99, 102, 241, 0.06);
-		border: 1px solid rgba(129, 140, 248, 0.2);
+		background: rgba(0, 217, 255, 0.08);
+		border: 1px solid rgba(0, 217, 255, 0.28);
 		padding: 2px 8px;
 		border-radius: 20px;
 		line-height: 1.75;

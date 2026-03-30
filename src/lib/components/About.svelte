@@ -525,6 +525,13 @@
 		position: relative;
 		overflow: hidden;
 		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+		transition:
+			border-color 0.4s ease,
+			box-shadow 0.4s ease;
+	}
+	.bio-card:hover {
+		border-color: rgba(129, 140, 248, 0.2);
+		box-shadow: 0 8px 40px rgba(99, 102, 241, 0.1);
 	}
 	.bio-card::before {
 		content: '';
@@ -534,11 +541,13 @@
 		padding: 1px;
 		background: linear-gradient(
 			135deg,
-			rgba(129, 140, 248, 0.15),
-			transparent 40%,
-			transparent 60%,
-			rgba(167, 139, 250, 0.1)
+			rgba(129, 140, 248, 0.25),
+			transparent 30%,
+			transparent 70%,
+			rgba(167, 139, 250, 0.2)
 		);
+		background-size: 300% 300%;
+		animation: borderGlow 6s ease-in-out infinite;
 		-webkit-mask:
 			linear-gradient(#fff 0 0) content-box,
 			linear-gradient(#fff 0 0);
@@ -548,6 +557,15 @@
 		-webkit-mask-composite: xor;
 		mask-composite: exclude;
 		pointer-events: none;
+	}
+	@keyframes borderGlow {
+		0%,
+		100% {
+			background-position: 0% 0%;
+		}
+		50% {
+			background-position: 100% 100%;
+		}
 	}
 	.bio-card p {
 		font-size: 1.1rem;

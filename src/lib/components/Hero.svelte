@@ -5,6 +5,8 @@
 	let mounted = $state(false);
 	let heroCanvas: HTMLCanvasElement;
 	let heroSection: HTMLElement;
+	let spotlightX = $state(50);
+	let spotlightY = $state(50);
 
 	const texts = [
 		'AI/ML Engineer',
@@ -235,8 +237,23 @@
 	});
 </script>
 
-<section id="home" class="hero" bind:this={heroSection}>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<section
+	id="home"
+	class="hero"
+	bind:this={heroSection}
+	onmousemove={(e) => {
+		const rect = heroSection.getBoundingClientRect();
+		spotlightX = ((e.clientX - rect.left) / rect.width) * 100;
+		spotlightY = ((e.clientY - rect.top) / rect.height) * 100;
+	}}
+>
 	<canvas class="hero-canvas" bind:this={heroCanvas}></canvas>
+	<div
+		class="hero-spotlight"
+		style="--spot-x: {spotlightX}%; --spot-y: {spotlightY}%"
+		aria-hidden="true"
+	></div>
 
 	<div class="hero-content" class:hero-entered={mounted}>
 		<!-- Holographic ring -->
@@ -314,6 +331,21 @@
 		pointer-events: none;
 	}
 
+	/* ── Mouse-following spotlight ── */
+	.hero-spotlight {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		background: radial-gradient(
+			600px circle at var(--spot-x) var(--spot-y),
+			rgba(129, 140, 248, 0.06) 0%,
+			rgba(167, 139, 250, 0.03) 30%,
+			transparent 70%
+		);
+		transition: background 0.15s ease;
+	}
+
 	/* ── Holographic ring ── */
 	.profile-container {
 		position: relative;
@@ -330,18 +362,34 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		border-radius: 50%;
-		border: 1.5px solid transparent;
-		border-top-color: var(--primary-color);
-		border-bottom-color: var(--secondary-color);
-		animation: holoSpin 6s linear infinite;
-		filter: drop-shadow(0 0 4px rgba(129, 140, 248, 0.3));
+		background: conic-gradient(
+			from 0deg,
+			#818cf8,
+			#a78bfa,
+			#c084fc,
+			#e879f9,
+			#60a5fa,
+			#34d399,
+			#818cf8
+		);
+		padding: 2px;
+		animation: holoSpin 4s linear infinite;
+		filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.4));
+	}
+	.holo-ring::after {
+		content: '';
+		position: absolute;
+		inset: 2px;
+		border-radius: 50%;
+		background: var(--bg-dark);
 	}
 	.holo-ring-inner {
 		position: absolute;
-		inset: 6px;
+		inset: 8px;
 		border-radius: 50%;
-		border: 1px dashed rgba(129, 140, 248, 0.15);
-		animation: holoSpinInner 8s linear infinite reverse;
+		border: 1px dashed rgba(129, 140, 248, 0.12);
+		animation: holoSpinInner 10s linear infinite reverse;
+		z-index: 1;
 	}
 	@keyframes holoSpin {
 		to {
@@ -357,15 +405,18 @@
 	/* ── Staggered entrance ── */
 	.hero-stagger {
 		opacity: 0;
-		transform: translateY(30px);
+		transform: translateY(30px) scale(0.96);
+		filter: blur(8px);
 		transition:
-			opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-			transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+			opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+			filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 	:global(.hero-entered) .hero-stagger,
 	.hero-stagger:global(.hero-entered) {
 		opacity: 1;
-		transform: translateY(0);
+		transform: translateY(0) scale(1);
+		filter: blur(0);
 	}
 	.hero-stagger.s2 {
 		transition-delay: 0.15s;

@@ -83,11 +83,16 @@
 		if (dy > 10) snapToAbout();
 	}
 
-	// ── Detect return to Hero (e.g. user scrolls or clicks nav back up) ────
+	// ── Detect enter/leave Hero (e.g. user clicks nav link or scrolls) ─────
 	function onScroll() {
 		if (snapping || snapCooldown) return;
-		// Only re-engage Hero lock when user has fully scrolled to the top
-		if (!inHero && window.scrollY === 0) {
+		const nowInHero = checkHero();
+		// Left the Hero (e.g. navbar click scrolled to another section)
+		if (inHero && !nowInHero) {
+			inHero = false;
+		}
+		// Returned to Hero (e.g. user scrolled back to top)
+		if (!inHero && nowInHero && window.scrollY <= 5) {
 			inHero = true;
 		}
 	}

@@ -451,6 +451,46 @@
 			box-shadow 0.35s ease;
 		overflow: hidden;
 	}
+	/* Animated gradient border overlay */
+	.tl-card::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 16px;
+		padding: 1px;
+		background: linear-gradient(
+			135deg,
+			rgba(99, 102, 241, 0.2),
+			transparent 30%,
+			transparent 70%,
+			rgba(167, 139, 250, 0.2)
+		);
+		background-size: 300% 300%;
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.4s ease;
+		animation: borderGlowExp 5s ease-in-out infinite;
+	}
+	.tl-card:hover::after {
+		opacity: 1;
+	}
+	@keyframes borderGlowExp {
+		0%,
+		100% {
+			background-position: 0% 0%;
+		}
+		50% {
+			background-position: 100% 100%;
+		}
+	}
 	.tl-item.work .tl-card {
 		border-color: rgba(99, 102, 241, 0.1);
 	}

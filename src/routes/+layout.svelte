@@ -28,4 +28,6 @@
 <!-- Debug panel per testare gli effetti -->
 <!-- <SeasonalEffectsDebug /> -->
 
+<div class="noise-overlay" aria-hidden="true"></div>
+
 {@render children()}
