@@ -35,6 +35,8 @@ bun scripts/optimize-assets.mjs --apply --icons    # solo icone
 bun scripts/optimize-assets.mjs --apply --projects # solo immagini progetti
 bun scripts/optimize-assets.mjs --apply --profile  # solo profilo
 bun scripts/optimize-assets.mjs --apply --max-size 256  # override dimensione max
+bun scripts/optimize-assets.mjs --apply --to-webp  # converti PNG/JPG → WebP (elimina originale)
+bun scripts/optimize-assets.mjs --apply --to-webp --projects # converti solo progetti a WebP
 ```
 
 ## Struttura del progetto
@@ -71,9 +73,11 @@ src/
 static/
   assets/
     icons/                   # Icone tech stack (target: max 128px, ~2-8KB ciascuna)
-    projects/                # Screenshot progetti (target: max 800px)
-    profile.avif/.png/.webp  # Foto profilo
+    projects/                # Screenshot progetti (target: max 800px, formato WebP)
+    profile.avif/.png/.webp  # Foto profilo (.png tenuto come fallback per og:image)
     cv.pdf                   # CV
+scripts/
+  optimize-assets.mjs        # Script ottimizzazione + conversione WebP
 ```
 
 ## Skills — Come aggiungere una nuova skill
@@ -86,12 +90,31 @@ static/
    ```
 4. Le categorie sono: Languages, AI/ML & Data Science, Frameworks & Libraries, Databases, DevOps & Tools, IDEs & Editors, Operating Systems & Security
 
+## Projects — Come aggiungere un nuovo progetto
+
+1. Metti lo screenshot in `static/assets/projects/` (qualsiasi formato raster)
+2. Esegui `bun scripts/optimize-assets.mjs --apply --to-webp --projects` per ottimizzare e convertire a WebP
+3. In `src/lib/components/Projects.svelte`, aggiungi l'entry nell'array `projects`:
+   ```ts
+   {
+     icon: '🧬',
+     title: 'Nome Progetto',
+     description: 'Descrizione HTML...',
+     techTags: ['Tag1', 'Tag2'],
+     githubUrl: 'https://github.com/...',
+     image: '/assets/projects/nome.webp'
+   }
+   ```
+4. Opzionale: aggiungi `externalLink` per demo/download/youtube/hackathon
+5. Se è un progetto in corso, aggiungilo anche in `Terminal.svelte` (array `projectEntries`)
+
 ## Asset — Linee guida
 
 - **Icone**: vengono renderizzate a 50×50px CSS → max 128px (2× retina). Lo script le ridimensiona automaticamente.
-- **Progetti**: thumbnail renderizzati resize → max 800px.
-- **Profilo**: max 256px.
+- **Progetti**: thumbnail → max 800px, formato WebP preferito.
+- **Profilo**: max 256px. Il `.png` è mantenuto come fallback per `og:image` (social preview).
 - **SVG**: non vengono toccati dallo script (già vettoriali).
+- **Conversione WebP**: usare `--to-webp` per convertire PNG/JPG in WebP. Lo script elimina l'originale e bisogna aggiornare i path nel codice.
 - **Nomi file**: possono contenere spazi (es. `unsloth logo black text.png`).
 - Alcuni file hanno prefisso `white_bg_` per versioni con sfondo bianco.
 - Lo script scrive solo se il risparmio è > 5%.
