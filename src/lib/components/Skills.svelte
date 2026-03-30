@@ -365,8 +365,8 @@
 			ctx!.clearRect(0, 0, W, H);
 
 			// Draw constellations — batch fill calls
-			ctx!.shadowBlur = 8;
-			ctx!.shadowColor = 'rgba(100,200,255,0.6)';
+			ctx!.shadowBlur = 6;
+			ctx!.shadowColor = 'rgba(129,140,248,0.4)';
 			for (const s of cStars) {
 				const alpha = 0.6 + 0.4 * Math.sin(t * 0.002 + s.phase);
 				ctx!.fillStyle = `rgba(255,255,255,${alpha})`;
@@ -378,7 +378,7 @@
 
 			for (const l of cLines) {
 				const alpha = 0.3 + 0.3 * Math.sin(t * 0.002 + l.phase);
-				ctx!.strokeStyle = `rgba(100,200,255,${alpha})`;
+				ctx!.strokeStyle = `rgba(129,140,248,${alpha})`;
 				ctx!.lineWidth = 1;
 				ctx!.beginPath();
 				ctx!.moveTo(l.x1, l.y1);
@@ -547,7 +547,7 @@
 
 <section id="skills" class="skills" bind:this={skillsSection}>
 	<div class="container">
-		<h2 class="section-title">💻 Tech Stack</h2>
+		<h2 class="section-title">Tech Stack</h2>
 
 		{#each skillCategories as category}
 			<div class="skills-category">

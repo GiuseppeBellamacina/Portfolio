@@ -43,7 +43,7 @@
 		height: 50px;
 		border-radius: 50%;
 		background: var(--bg-card);
-		border: 2px solid var(--primary-color);
+		border: 1.5px solid var(--primary-color);
 		color: var(--primary-color);
 		font-size: 1.2rem;
 		cursor: pointer;
@@ -52,7 +52,7 @@
 		transform: translateY(20px) scale(0.8);
 		transition: all 0.3s ease;
 		z-index: 1000;
-		box-shadow: 0 4px 15px rgba(0, 217, 255, 0.2);
+		box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
 	}
 
 	.back-to-top.visible {
@@ -62,12 +62,10 @@
 	}
 
 	.back-to-top:hover {
-		background: var(--primary-color);
-		color: var(--bg-primary);
-		transform: translateY(-3px) scale(1.1);
-		box-shadow:
-			0 0 20px var(--primary-color),
-			0 0 40px rgba(0, 217, 255, 0.4);
+		background: rgba(99, 102, 241, 0.15);
+		color: #fff;
+		transform: translateY(-3px) scale(1.08);
+		box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
 	}
 
 	.back-to-top:active {

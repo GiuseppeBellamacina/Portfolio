@@ -20,7 +20,7 @@
 	}
 
 	const MAX_PARTICLES = 25;
-	const COLORS = ['#00d9ff', '#ff00ff', '#00ff9d'];
+	const COLORS = ['#818cf8', '#a78bfa', '#34d399'];
 	let particles: Particle[] = [];
 
 	function spawnParticle(w: number, h: number): Particle {
@@ -244,7 +244,7 @@
 <section id="experience" class="experience" bind:this={experienceSection}>
 	<canvas class="binary-canvas" bind:this={canvasEl}></canvas>
 	<div class="container">
-		<h2 class="section-title">🎓 Experience & Education</h2>
+		<h2 class="section-title">Experience & Education</h2>
 
 		<div class="cv-download">
 			<a href="/assets/cv.pdf" download="Giuseppe_Bellamacina_CV.pdf" class="btn btn-primary">
@@ -320,18 +320,17 @@
 		left: 50%;
 		top: 0;
 		bottom: 0;
-		width: 3px;
+		width: 2px;
 		translate: -50% 0;
 		background: linear-gradient(
 			180deg,
 			transparent 0%,
-			rgba(0, 217, 255, 0.6) 10%,
-			rgba(255, 0, 255, 0.6) 50%,
-			rgba(0, 255, 157, 0.6) 90%,
+			rgba(129, 140, 248, 0.4) 10%,
+			rgba(167, 139, 250, 0.4) 50%,
+			rgba(52, 211, 153, 0.4) 90%,
 			transparent 100%
 		);
 		border-radius: 2px;
-		filter: drop-shadow(0 0 6px rgba(0, 217, 255, 0.4));
 	}
 
 	/* ── Timeline item (row) ─────────────────────────────────────────────── */
@@ -408,12 +407,12 @@
 		z-index: 2;
 	}
 	.tl-item.work .tl-icon {
-		background: linear-gradient(135deg, #0d7377, #14ffec);
-		box-shadow: 0 0 22px rgba(0, 217, 255, 0.55);
+		background: linear-gradient(135deg, #4f46e5, #818cf8);
+		box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
 	}
 	.tl-item.education .tl-icon {
-		background: linear-gradient(135deg, #6b0f6b, #ff00ff);
-		box-shadow: 0 0 22px rgba(255, 0, 255, 0.55);
+		background: linear-gradient(135deg, #7c3aed, #a78bfa);
+		box-shadow: 0 0 16px rgba(167, 139, 250, 0.3);
 	}
 
 	/* Rotating ring */
@@ -426,10 +425,10 @@
 		animation: ringRotate 12s linear infinite;
 	}
 	.tl-item.work .tl-ring {
-		border-color: rgba(0, 217, 255, 0.35);
+		border-color: rgba(99, 102, 241, 0.2);
 	}
 	.tl-item.education .tl-ring {
-		border-color: rgba(255, 0, 255, 0.35);
+		border-color: rgba(167, 139, 250, 0.2);
 	}
 	@keyframes ringRotate {
 		to {
@@ -442,10 +441,10 @@
 		position: relative;
 		padding: 1.6rem 1.8rem;
 		border-radius: 16px;
-		background: rgba(15, 18, 40, 0.75);
+		background: rgba(15, 18, 35, 0.7);
 		backdrop-filter: blur(14px);
 		-webkit-backdrop-filter: blur(14px);
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		transition:
 			transform 0.35s ease,
 			border-color 0.35s ease,
@@ -453,25 +452,21 @@
 		overflow: hidden;
 	}
 	.tl-item.work .tl-card {
-		border-color: rgba(0, 217, 255, 0.15);
+		border-color: rgba(99, 102, 241, 0.1);
 	}
 	.tl-item.education .tl-card {
-		border-color: rgba(255, 0, 255, 0.15);
+		border-color: rgba(167, 139, 250, 0.1);
 	}
 	.tl-card:hover {
-		transform: translateY(-6px);
+		transform: translateY(-4px);
 	}
 	.tl-item.work .tl-card:hover {
-		border-color: rgba(0, 217, 255, 0.55);
-		box-shadow:
-			0 8px 40px rgba(0, 217, 255, 0.18),
-			0 0 60px rgba(0, 217, 255, 0.08);
+		border-color: rgba(99, 102, 241, 0.35);
+		box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
 	}
 	.tl-item.education .tl-card:hover {
-		border-color: rgba(255, 0, 255, 0.55);
-		box-shadow:
-			0 8px 40px rgba(255, 0, 255, 0.18),
-			0 0 60px rgba(255, 0, 255, 0.08);
+		border-color: rgba(167, 139, 250, 0.35);
+		box-shadow: 0 8px 30px rgba(167, 139, 250, 0.1);
 	}
 
 	/* Colour glow overlay inside card */
@@ -487,10 +482,10 @@
 		transition: opacity 0.4s ease;
 	}
 	.tl-item.work .tl-card-glow {
-		background: radial-gradient(circle, rgba(0, 217, 255, 0.08) 0%, transparent 70%);
+		background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
 	}
 	.tl-item.education .tl-card-glow {
-		background: radial-gradient(circle, rgba(255, 0, 255, 0.08) 0%, transparent 70%);
+		background: radial-gradient(circle, rgba(167, 139, 250, 0.05) 0%, transparent 70%);
 	}
 	.tl-card:hover .tl-card-glow {
 		opacity: 1;
@@ -508,14 +503,14 @@
 		margin-bottom: 0.75rem;
 	}
 	.tl-item.work .tl-date {
-		background: rgba(0, 217, 255, 0.1);
-		color: #14ffec;
-		border: 1px solid rgba(0, 217, 255, 0.25);
+		background: rgba(99, 102, 241, 0.08);
+		color: #818cf8;
+		border: 1px solid rgba(99, 102, 241, 0.2);
 	}
 	.tl-item.education .tl-date {
-		background: rgba(255, 0, 255, 0.1);
-		color: #ff66ff;
-		border: 1px solid rgba(255, 0, 255, 0.25);
+		background: rgba(167, 139, 250, 0.08);
+		color: #c4b5fd;
+		border: 1px solid rgba(167, 139, 250, 0.2);
 	}
 
 	.tl-title {
@@ -531,10 +526,10 @@
 		margin: 0 0 0.75rem;
 	}
 	.tl-item.work .tl-subtitle {
-		color: #14ffec;
+		color: #818cf8;
 	}
 	.tl-item.education .tl-subtitle {
-		color: #ff66ff;
+		color: #c4b5fd;
 	}
 	.tl-desc {
 		color: var(--text-muted);
@@ -561,14 +556,14 @@
 		content: '▸';
 		position: absolute;
 		left: 0;
-		color: #14ffec;
+		color: #818cf8;
 		font-size: 1rem;
 	}
 	.tl-item.education .tl-highlights li::before {
 		content: '▸';
 		position: absolute;
 		left: 0;
-		color: #ff66ff;
+		color: #c4b5fd;
 		font-size: 1rem;
 	}
 
@@ -585,12 +580,12 @@
 		opacity: 0.7;
 	}
 	.tl-item.work .tl-type-badge {
-		background: rgba(0, 217, 255, 0.08);
-		color: #14ffec;
+		background: rgba(99, 102, 241, 0.06);
+		color: #818cf8;
 	}
 	.tl-item.education .tl-type-badge {
-		background: rgba(255, 0, 255, 0.08);
-		color: #ff66ff;
+		background: rgba(167, 139, 250, 0.06);
+		color: #c4b5fd;
 	}
 
 	/* ── Responsive ──────────────────────────────────────────────────────── */

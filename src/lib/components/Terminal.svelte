@@ -783,13 +783,13 @@
 
 <style>
 	.terminal {
-		background: rgba(10, 12, 28, 0.45);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border: 1px solid rgba(0, 255, 255, 0.1);
+		background: rgba(11, 13, 23, 0.5);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid rgba(129, 140, 248, 0.08);
 		border-radius: 12px;
 		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 		font-family: 'Courier New', 'Fira Code', monospace;
 		cursor: text;
 	}
@@ -800,8 +800,8 @@
 		align-items: center;
 		gap: 7px;
 		padding: 10px 14px;
-		background: rgba(30, 34, 60, 0.5);
-		border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+		background: rgba(21, 24, 41, 0.5);
+		border-bottom: 1px solid rgba(129, 140, 248, 0.06);
 		cursor: default;
 	}
 	.dot {
@@ -831,7 +831,7 @@
 		height: 300px;
 		overflow-y: auto;
 		scrollbar-width: thin;
-		scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
+		scrollbar-color: rgba(129, 140, 248, 0.15) transparent;
 	}
 	.terminal-body::-webkit-scrollbar {
 		width: 5px;
@@ -840,7 +840,7 @@
 		background: transparent;
 	}
 	.terminal-body::-webkit-scrollbar-thumb {
-		background: rgba(0, 255, 255, 0.2);
+		background: rgba(129, 140, 248, 0.15);
 		border-radius: 3px;
 	}
 
@@ -882,7 +882,7 @@
 	.rich :global(a) {
 		color: var(--primary-color);
 		text-decoration: none;
-		border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
+		border-bottom: 1px dashed rgba(129, 140, 248, 0.2);
 		transition: border-color 0.2s;
 	}
 	.rich :global(a:hover) {
@@ -907,7 +907,7 @@
 		color: var(--primary-color);
 		font-weight: bold;
 		text-decoration: none;
-		border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
+		border-bottom: 1px dashed rgba(129, 140, 248, 0.2);
 		transition: border-color 0.2s;
 	}
 	.rich :global(a.song-title:hover) {

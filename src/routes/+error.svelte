@@ -284,9 +284,8 @@
 		position: relative;
 		color: var(--text-light);
 		text-shadow:
-			0 0 10px rgba(0, 255, 255, 0.6),
-			0 0 30px rgba(0, 255, 255, 0.3),
-			0 0 60px rgba(191, 0, 255, 0.2);
+			0 0 10px rgba(129, 140, 248, 0.4),
+			0 0 30px rgba(129, 140, 248, 0.2);
 		animation: neonPulse 3s ease-in-out infinite;
 	}
 
@@ -320,15 +319,13 @@
 		0%,
 		100% {
 			text-shadow:
-				0 0 10px rgba(0, 255, 255, 0.6),
-				0 0 30px rgba(0, 255, 255, 0.3),
-				0 0 60px rgba(191, 0, 255, 0.2);
+				0 0 10px rgba(129, 140, 248, 0.4),
+				0 0 30px rgba(129, 140, 248, 0.2);
 		}
 		50% {
 			text-shadow:
-				0 0 15px rgba(0, 255, 255, 0.8),
-				0 0 40px rgba(0, 255, 255, 0.4),
-				0 0 80px rgba(191, 0, 255, 0.3);
+				0 0 15px rgba(129, 140, 248, 0.5),
+				0 0 40px rgba(129, 140, 248, 0.3);
 		}
 	}
 	@keyframes glitchTop {
@@ -370,15 +367,13 @@
 
 	/* ── Terminal box ── */
 	.terminal-box {
-		background: rgba(10, 14, 39, 0.85);
-		border: 1px solid rgba(0, 255, 255, 0.2);
+		background: rgba(11, 13, 23, 0.85);
+		border: 1px solid rgba(129, 140, 248, 0.12);
 		border-radius: 12px;
 		overflow: hidden;
 		margin-bottom: 2.5rem;
 		text-align: left;
-		box-shadow:
-			0 0 30px rgba(0, 255, 255, 0.08),
-			inset 0 0 60px rgba(0, 0, 0, 0.3);
+		box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 		backdrop-filter: blur(12px);
 	}
 
@@ -387,8 +382,8 @@
 		align-items: center;
 		gap: 6px;
 		padding: 10px 14px;
-		background: rgba(26, 31, 58, 0.9);
-		border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+		background: rgba(21, 24, 41, 0.9);
+		border-bottom: 1px solid rgba(129, 140, 248, 0.08);
 	}
 	.terminal-dot {
 		width: 10px;

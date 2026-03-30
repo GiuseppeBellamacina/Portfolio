@@ -97,7 +97,7 @@
 				vx: (Math.random() - 0.5) * 0.4,
 				vy: (Math.random() - 0.5) * 0.4,
 				r: Math.random() * 2 + 1,
-				hue: Math.random() > 0.5 ? 180 + Math.random() * 20 : 290 + Math.random() * 20,
+				hue: Math.random() > 0.5 ? 235 + Math.random() * 15 : 270 + Math.random() * 20,
 				pulse: Math.random() * Math.PI * 2,
 				pulseSpeed: 0.02 + Math.random() * 0.02
 			});
@@ -115,7 +115,7 @@
 					if (distSq < CONNECT_DIST_SQ) {
 						const dist = Math.sqrt(distSq);
 						const alpha = (1 - dist / CONNECT_DIST) * 0.25;
-						ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) / 2}, 80%, 60%, ${alpha})`;
+						ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) / 2}, 60%, 60%, ${alpha})`;
 						ctx!.lineWidth = 0.6;
 						ctx!.beginPath();
 						ctx!.moveTo(nodes[i].x, nodes[i].y);
@@ -132,7 +132,7 @@
 				const dist = Math.sqrt(dx * dx + dy * dy);
 				if (dist < 200) {
 					const alpha = (1 - dist / 200) * 0.4;
-					ctx!.strokeStyle = `hsla(${n.hue}, 90%, 70%, ${alpha})`;
+					ctx!.strokeStyle = `hsla(${n.hue}, 65%, 65%, ${alpha})`;
 					ctx!.lineWidth = 0.8;
 					ctx!.beginPath();
 					ctx!.moveTo(n.x, n.y);
@@ -147,9 +147,9 @@
 				const glow = 0.5 + Math.sin(n.pulse) * 0.3;
 				const r = n.r + Math.sin(n.pulse) * 0.5;
 
-				ctx!.fillStyle = `hsla(${n.hue}, 80%, 65%, ${glow})`;
-				ctx!.shadowBlur = 12;
-				ctx!.shadowColor = `hsla(${n.hue}, 80%, 60%, 0.6)`;
+				ctx!.fillStyle = `hsla(${n.hue}, 55%, 65%, ${glow})`;
+				ctx!.shadowBlur = 10;
+				ctx!.shadowColor = `hsla(${n.hue}, 55%, 60%, 0.4)`;
 				ctx!.beginPath();
 				ctx!.arc(n.x, n.y, r, 0, Math.PI * 2);
 				ctx!.fill();
@@ -319,7 +319,7 @@
 		position: relative;
 		display: flex;
 		justify-content: center;
-		margin-bottom: 2rem;
+		margin: 0;
 	}
 
 	.holo-ring {
@@ -330,22 +330,27 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		border-radius: 50%;
-		border: 2px solid transparent;
+		border: 1.5px solid transparent;
 		border-top-color: var(--primary-color);
 		border-bottom-color: var(--secondary-color);
-		animation: holoSpin 4s linear infinite;
-		filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 8px var(--secondary-color));
+		animation: holoSpin 6s linear infinite;
+		filter: drop-shadow(0 0 4px rgba(129, 140, 248, 0.3));
 	}
 	.holo-ring-inner {
 		position: absolute;
 		inset: 6px;
 		border-radius: 50%;
-		border: 1.5px dashed rgba(0, 255, 255, 0.3);
-		animation: holoSpin 6s linear infinite reverse;
+		border: 1px dashed rgba(129, 140, 248, 0.15);
+		animation: holoSpinInner 8s linear infinite reverse;
 	}
 	@keyframes holoSpin {
 		to {
 			transform: translate(-50%, -50%) rotate(360deg);
+		}
+	}
+	@keyframes holoSpinInner {
+		to {
+			transform: rotate(360deg);
 		}
 	}
 
@@ -398,10 +403,9 @@
 	.scroll-mouse {
 		width: 22px;
 		height: 34px;
-		border: 2px solid var(--primary-color);
+		border: 1.5px solid rgba(129, 140, 248, 0.4);
 		border-radius: 12px;
 		position: relative;
-		box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
 	}
 	.scroll-dot {
 		position: absolute;
@@ -412,7 +416,7 @@
 		height: 6px;
 		background: var(--primary-color);
 		border-radius: 2px;
-		animation: scrollBounce 2s ease-in-out infinite;
+		animation: scrollBounce 2.5s ease-in-out infinite;
 		will-change: transform, opacity;
 	}
 	@keyframes scrollBounce {

@@ -44,7 +44,7 @@
 				vy: (Math.random() - 0.5) * 0.5,
 				radius: Math.random() * 2 + 1,
 				opacity: Math.random() * 0.5 + 0.3,
-				hue: Math.random() * 60 + 160 // Cyan to green
+				hue: Math.random() * 40 + 230 // Indigo to violet
 			});
 		}
 
@@ -67,7 +67,7 @@
 
 					if (dist < 150) {
 						const opacity = (1 - dist / 150) * 0.2;
-						ctx.strokeStyle = `hsla(${(p1.hue + p2.hue) / 2}, 70%, 60%, ${opacity})`;
+						ctx.strokeStyle = `hsla(${(p1.hue + p2.hue) / 2}, 50%, 60%, ${opacity})`;
 						ctx.lineWidth = 0.5;
 						ctx.beginPath();
 						ctx.moveTo(p1.x, p1.y);
@@ -91,9 +91,9 @@
 				particle.y = Math.max(0, Math.min(canvasElement.height, particle.y));
 
 				// Draw particle
-				ctx.fillStyle = `hsla(${particle.hue}, 70%, 60%, ${particle.opacity})`;
-				ctx.shadowBlur = 10;
-				ctx.shadowColor = `hsla(${particle.hue}, 70%, 60%, ${particle.opacity})`;
+				ctx.fillStyle = `hsla(${particle.hue}, 50%, 60%, ${particle.opacity})`;
+				ctx.shadowBlur = 8;
+				ctx.shadowColor = `hsla(${particle.hue}, 50%, 60%, ${particle.opacity})`;
 				ctx.beginPath();
 				ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
 				ctx.fill();
@@ -240,7 +240,7 @@
 			// Draw connections with subtle pulse
 			connections.forEach((conn) => {
 				const opacity = 0.15 + Math.sin(time + conn.weight * 10) * 0.05;
-				ctx.strokeStyle = `rgba(0, 217, 255, ${opacity})`;
+				ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
 				ctx.lineWidth = 1;
 				ctx.beginPath();
 				ctx.moveTo(conn.from.x, conn.from.y);
@@ -265,16 +265,16 @@
 				// Draw trail
 				impulse.trail.forEach((point, idx) => {
 					const trailOpacity = (idx / impulse.trail.length) * 0.8;
-					ctx.fillStyle = `rgba(0, 255, 157, ${trailOpacity})`;
+					ctx.fillStyle = `rgba(52, 211, 153, ${trailOpacity})`;
 					ctx.beginPath();
 					ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
 					ctx.fill();
 				});
 
 				// Draw main impulse
-				ctx.fillStyle = 'rgba(0, 255, 157, 1)';
-				ctx.shadowBlur = 10;
-				ctx.shadowColor = 'rgba(0, 255, 157, 0.8)';
+				ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
+				ctx.shadowBlur = 8;
+				ctx.shadowColor = 'rgba(52, 211, 153, 0.5)';
 				ctx.beginPath();
 				ctx.arc(x, y, 3, 0, Math.PI * 2);
 				ctx.fill();
@@ -332,11 +332,11 @@
 				// Determine color based on layer
 				let color;
 				if (neuron.layer === 0) {
-					color = 'rgba(0, 255, 157, '; // Input - green
+					color = 'rgba(52, 211, 153, '; // Input - emerald
 				} else if (neuron.layer === layers.length - 1) {
-					color = 'rgba(255, 0, 255, '; // Output - magenta
+					color = 'rgba(167, 139, 250, '; // Output - violet
 				} else {
-					color = 'rgba(0, 217, 255, '; // Hidden - cyan
+					color = 'rgba(99, 102, 241, '; // Hidden - indigo
 				}
 
 				// Base neuron
@@ -446,7 +446,7 @@
 	<canvas class="neural-canvas" bind:this={canvasElement}></canvas>
 	<div class="container">
 		<!-- Title -->
-		<h2 class="section-title about-block" class:show={revealed[0]} data-idx="0">💫 About Me</h2>
+		<h2 class="section-title about-block" class:show={revealed[0]} data-idx="0">About Me</h2>
 
 		<div class="about-content">
 			<!-- Bio card (glassmorphism) -->
@@ -515,29 +515,29 @@
 
 	/* ── Bio card (glassmorphism) ── */
 	.bio-card {
-		background: rgba(15, 18, 40, 0.4);
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border: 1px solid rgba(0, 255, 255, 0.1);
+		background: rgba(15, 18, 35, 0.5);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border: 1px solid rgba(129, 140, 248, 0.08);
 		border-radius: 16px;
 		padding: 2rem 2.2rem;
 		margin-bottom: 2rem;
 		position: relative;
 		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 	}
 	.bio-card::before {
 		content: '';
 		position: absolute;
 		inset: 0;
 		border-radius: 16px;
-		padding: 1.5px;
+		padding: 1px;
 		background: linear-gradient(
 			135deg,
-			rgba(0, 255, 255, 0.25),
+			rgba(129, 140, 248, 0.15),
 			transparent 40%,
 			transparent 60%,
-			rgba(255, 0, 255, 0.2)
+			rgba(167, 139, 250, 0.1)
 		);
 		-webkit-mask:
 			linear-gradient(#fff 0 0) content-box,

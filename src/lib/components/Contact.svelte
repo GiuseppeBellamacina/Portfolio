@@ -26,14 +26,13 @@
 
 <section id="contact" class="contact">
 	<div class="container">
-		<h2 class="section-title">📫 Get In Touch</h2>
-		<p class="contact-text">
-			I'm always open to new opportunities and collaborations!
-		</p>
+		<h2 class="section-title">Get In Touch</h2>
+		<p class="contact-text">I'm always open to new opportunities and collaborations!</p>
 		<div class="contact-links">
 			{#each contactLinks as link}
 				<a href={link.href} target="_blank" class="contact-btn">
-					<i class={link.icon}></i> {link.label}
+					<i class={link.icon}></i>
+					{link.label}
 				</a>
 			{/each}
 		</div>
