@@ -1,146 +1,220 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { setSeason, resetSeason } from '$lib/stores/seasonStore';
 
 	let { forceShow = false }: { forceShow?: boolean } = $props();
 
 	let showNewYear = $state(false);
-	let newYearContainer = $state<HTMLDivElement>();
+	let canvas = $state<HTMLCanvasElement>();
 
 	function isNewYearPeriod(): boolean {
 		const now = new Date();
-		const month = now.getMonth(); // 0-11
+		const month = now.getMonth();
 		const day = now.getDate();
-
-		// 31 Dicembre (mese 11)
 		if (month === 11 && day === 31) return true;
-
-		// 1-2 Gennaio (mese 0)
 		if (month === 0 && day <= 2) return true;
-
 		return false;
 	}
 
-	function createConfetti() {
-		if (!newYearContainer || !showNewYear) return;
-
-		const confetti = document.createElement('div');
-		confetti.classList.add('confetti');
-
-		// Colori vivaci per i coriandoli
-		const colors = [
-			'#ff6b6b',
-			'#4ecdc4',
-			'#45b7d1',
-			'#f9ca24',
-			'#6c5ce7',
-			'#fd79a8',
-			'#fdcb6e',
-			'#00b894'
-		];
-		confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-		// Posizione iniziale random
-		confetti.style.left = Math.random() * 100 + '%';
-		confetti.style.top = '-20px';
-
-		// Dimensione random
-		const width = Math.random() * 8 + 4; // 4-12px
-		const height = Math.random() * 15 + 10; // 10-25px
-		confetti.style.width = width + 'px';
-		confetti.style.height = height + 'px';
-
-		// Opacità random
-		confetti.style.opacity = (Math.random() * 0.3 + 0.7).toString(); // 0.7 - 1
-
-		newYearContainer.appendChild(confetti);
-
-		// Animazione con Web Animations API
-		const duration = (Math.random() * 3 + 2) * 1000; // 2-5 secondi
-		const shouldSpin = Math.random() > 0.5;
-
-		const keyframes = shouldSpin
-			? [
-					{ transform: 'translateY(0) translateX(0) rotate(0deg)', offset: 0 },
-					{ transform: `translateY(25vh) translateX(30px) rotate(180deg)`, offset: 0.25 },
-					{ transform: `translateY(50vh) translateX(-30px) rotate(360deg)`, offset: 0.5 },
-					{ transform: `translateY(75vh) translateX(30px) rotate(540deg)`, offset: 0.75 },
-					{ transform: `translateY(calc(100vh + 50px)) translateX(0) rotate(720deg)`, offset: 1 }
-				]
-			: [
-					{ transform: 'translateY(0) rotate(0deg)', offset: 0 },
-					{ transform: `translateY(calc(100vh + 50px)) rotate(720deg)`, offset: 1 }
-				];
-
-		const animation = confetti.animate(keyframes, {
-			duration: duration,
-			easing: 'linear',
-			fill: 'forwards'
-		});
-
-		animation.onfinish = () => {
-			if (confetti.parentNode) {
-				confetti.remove();
-			}
-		};
+	interface Spark {
+		x: number;
+		y: number;
+		vx: number;
+		vy: number;
+		life: number;
+		maxLife: number;
+		hue: number;
+		size: number;
+		trail: { x: number; y: number; alpha: number }[];
 	}
 
-	function createFirework() {
-		if (!newYearContainer || !showNewYear) return;
+	interface Rocket {
+		x: number;
+		y: number;
+		vy: number;
+		targetY: number;
+		hue: number;
+		trail: { x: number; y: number; alpha: number }[];
+	}
 
-		const firework = document.createElement('div');
-		firework.classList.add('firework');
+	function initFireworks() {
+		if (!canvas) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
 
-		// Posizione random per l'esplosione
-		const left = Math.random() * 80 + 10; // 10-90%
-		const top = Math.random() * 60 + 10; // 10-70%
-		firework.style.left = left + '%';
-		firework.style.top = top + '%';
+		let W = (canvas.width = window.innerWidth);
+		let H = (canvas.height = window.innerHeight);
+		let raf: number;
 
-		// Colore random
-		const colors = [
-			'#ff6b6b',
-			'#4ecdc4',
-			'#45b7d1',
-			'#f9ca24',
-			'#6c5ce7',
-			'#fd79a8',
-			'#fdcb6e',
-			'#00b894',
-			'#ffeaa7',
-			'#74b9ff'
-		];
-		const color = colors[Math.floor(Math.random() * colors.length)];
-		firework.style.setProperty('--firework-color', color);
+		const rockets: Rocket[] = [];
+		const sparks: Spark[] = [];
+		const GRAVITY = 0.035;
+		const FRICTION = 0.98;
 
-		newYearContainer.appendChild(firework);
+		function resize() {
+			W = canvas!.width = window.innerWidth;
+			H = canvas!.height = window.innerHeight;
+		}
 
-		// Usa Web Animations API per evitare conflitti
-		// 50% di probabilità di avere rotazione
-		const shouldRotate = Math.random() > 0.5;
-		const keyframes = shouldRotate
-			? [
-					{ opacity: 0, transform: 'scale(0) rotate(0deg)' },
-					{ opacity: 1, transform: 'scale(0.1) rotate(0deg)', offset: 0.1 },
-					{ opacity: 1, transform: 'scale(1.5) rotate(180deg)', offset: 0.5 },
-					{ opacity: 0, transform: 'scale(2) rotate(360deg)' }
-				]
-			: [
-					{ opacity: 0, transform: 'scale(0)' },
-					{ opacity: 1, transform: 'scale(0.1)', offset: 0.1 },
-					{ opacity: 1, transform: 'scale(1.5)', offset: 0.5 },
-					{ opacity: 0, transform: 'scale(2)' }
-				];
+		function launchRocket() {
+			const x = W * 0.15 + Math.random() * W * 0.7;
+			const hue = Math.random() * 360;
+			const targetY = H * 0.15 + Math.random() * H * 0.35;
+			// Calculate vy needed to reach target (no deceleration on rockets)
+			const dist = H - targetY;
+			const frames = 40 + Math.random() * 30; // 40-70 frames to reach target
+			const vy = -dist / frames;
+			rockets.push({
+				x,
+				y: H,
+				vy,
+				targetY,
+				hue,
+				trail: []
+			});
+		}
 
-		const animation = firework.animate(keyframes, {
-			duration: 1500,
-			easing: 'ease-out'
-		});
+		function explode(x: number, y: number, hue: number) {
+			const count = 60 + Math.floor(Math.random() * 40);
+			const pattern = Math.random();
 
-		animation.onfinish = () => {
-			if (firework.parentNode) {
-				firework.remove();
+			for (let i = 0; i < count; i++) {
+				let vx: number, vy: number;
+
+				if (pattern < 0.5) {
+					// Sphere burst
+					const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3;
+					const speed = 2 + Math.random() * 3;
+					vx = Math.cos(angle) * speed;
+					vy = Math.sin(angle) * speed;
+				} else {
+					// Random burst
+					const angle = Math.random() * Math.PI * 2;
+					const speed = 1 + Math.random() * 4;
+					vx = Math.cos(angle) * speed;
+					vy = Math.sin(angle) * speed;
+				}
+
+				const sparkHue = hue + (Math.random() - 0.5) * 40;
+				sparks.push({
+					x,
+					y,
+					vx,
+					vy,
+					life: 1,
+					maxLife: 60 + Math.random() * 50,
+					hue: sparkHue,
+					size: 1.5 + Math.random() * 1.5,
+					trail: []
+				});
 			}
+		}
+
+		function draw() {
+			// Clear canvas fully — transparent overlay, no darkening
+			ctx!.clearRect(0, 0, W, H);
+
+			// ── Update & draw rockets ──
+			for (let i = rockets.length - 1; i >= 0; i--) {
+				const r = rockets[i];
+				r.trail.push({ x: r.x, y: r.y, alpha: 1 });
+				if (r.trail.length > 15) r.trail.shift();
+
+				r.y += r.vy;
+
+				// Draw rocket trail
+				for (let t = 0; t < r.trail.length; t++) {
+					const pt = r.trail[t];
+					pt.alpha *= 0.85;
+					ctx!.beginPath();
+					ctx!.arc(pt.x, pt.y, 1.5 * pt.alpha, 0, Math.PI * 2);
+					ctx!.fillStyle = `hsla(${r.hue}, 50%, 80%, ${pt.alpha * 0.6})`;
+					ctx!.fill();
+				}
+
+				// Draw rocket head
+				ctx!.beginPath();
+				ctx!.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
+				ctx!.fillStyle = `hsla(${r.hue}, 60%, 90%, 1)`;
+				ctx!.shadowBlur = 15;
+				ctx!.shadowColor = `hsla(${r.hue}, 60%, 70%, 0.8)`;
+				ctx!.fill();
+				ctx!.shadowBlur = 0;
+
+				// Explode at target height
+				if (r.y <= r.targetY) {
+					explode(r.x, r.y, r.hue);
+					rockets.splice(i, 1);
+				}
+			}
+
+			// ── Update & draw sparks ──
+			for (let i = sparks.length - 1; i >= 0; i--) {
+				const s = sparks[i];
+
+				s.trail.push({ x: s.x, y: s.y, alpha: s.life });
+				if (s.trail.length > 8) s.trail.shift();
+
+				s.x += s.vx;
+				s.y += s.vy;
+				s.vy += GRAVITY;
+				s.vx *= FRICTION;
+				s.vy *= FRICTION;
+				s.life -= 1 / s.maxLife;
+
+				// Draw spark trail — fading tail
+				for (let t = 0; t < s.trail.length; t++) {
+					const pt = s.trail[t];
+					const a = pt.alpha * ((t + 1) / s.trail.length) * 0.4;
+					if (a < 0.01) continue;
+					ctx!.beginPath();
+					ctx!.arc(pt.x, pt.y, s.size * 0.4, 0, Math.PI * 2);
+					ctx!.fillStyle = `hsla(${s.hue}, 80%, 65%, ${a})`;
+					ctx!.fill();
+				}
+
+				// Draw spark
+				if (s.life > 0) {
+					const brightness = 50 + s.life * 30;
+					ctx!.beginPath();
+					ctx!.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+					ctx!.fillStyle = `hsla(${s.hue}, 80%, ${brightness}%, ${s.life})`;
+					ctx!.shadowBlur = 6 * s.life;
+					ctx!.shadowColor = `hsla(${s.hue}, 90%, 60%, ${s.life * 0.6})`;
+					ctx!.fill();
+					ctx!.shadowBlur = 0;
+				}
+
+				if (s.life <= 0) sparks.splice(i, 1);
+			}
+
+			raf = requestAnimationFrame(draw);
+		}
+
+		draw();
+
+		// Launch rockets at random intervals
+		function scheduleLaunch() {
+			const delay = 400 + Math.random() * 2000;
+			setTimeout(() => {
+				if (!showNewYear) return;
+				launchRocket();
+				// Sometimes launch 2-3 together
+				if (Math.random() > 0.5) {
+					setTimeout(launchRocket, 100 + Math.random() * 200);
+				}
+				if (Math.random() > 0.75) {
+					setTimeout(launchRocket, 200 + Math.random() * 300);
+				}
+				scheduleLaunch();
+			}, delay);
+		}
+		scheduleLaunch();
+
+		window.addEventListener('resize', resize);
+		return () => {
+			cancelAnimationFrame(raf);
+			window.removeEventListener('resize', resize);
 		};
 	}
 
@@ -148,36 +222,13 @@
 		showNewYear = forceShow || isNewYearPeriod();
 
 		if (showNewYear) {
-			// Set the season in the store
 			setSeason('newyear');
-
-			// Calcola la densità in base alla dimensione dello schermo
-			const screenArea = window.innerWidth * window.innerHeight;
-			const referenceArea = 1920 * 1080;
-			const densityFactor = screenArea / referenceArea;
-			const initialConfetti = Math.max(20, Math.floor(60 * densityFactor));
-
-			// Crea coriandoli iniziali
-			for (let i = 0; i < initialConfetti; i++) {
-				setTimeout(() => createConfetti(), i * 50);
-			}
-
-			// Continua a creare coriandoli
-			const confettiInterval = setInterval(() => {
-				if (Math.random() > 0.7) {
-					// 30% di probabilità ogni 200ms
-					createConfetti();
-				}
-			}, 200);
-
-			// Crea fuochi d'artificio periodicamente
-			const fireworkInterval = setInterval(() => {
-				createFirework();
-			}, 1200); // Ogni 1.2 secondi
-
+			let cleanup: (() => void) | undefined;
+			tick().then(() => {
+				cleanup = initFireworks();
+			});
 			return () => {
-				clearInterval(confettiInterval);
-				clearInterval(fireworkInterval);
+				cleanup?.();
 				resetSeason();
 			};
 		}
@@ -185,11 +236,11 @@
 </script>
 
 {#if showNewYear}
-	<div class="newyear-container" bind:this={newYearContainer}></div>
+	<canvas class="fireworks-canvas" bind:this={canvas}></canvas>
 {/if}
 
 <style>
-	.newyear-container {
+	.fireworks-canvas {
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -197,38 +248,5 @@
 		height: 100%;
 		pointer-events: none;
 		z-index: 10001;
-		overflow: hidden;
-	}
-
-	/* Coriandoli - stile statico, animazione gestita da JS */
-	:global(.confetti) {
-		position: absolute;
-		pointer-events: none;
-		user-select: none;
-		will-change: transform;
-	}
-
-	/* Fuochi d'artificio - stile statico, animazione gestita da JS */
-	:global(.firework) {
-		position: absolute;
-		width: 4px;
-		height: 4px;
-		border-radius: 50%;
-		background: var(--firework-color);
-		box-shadow:
-			0 0 20px var(--firework-color),
-			0 0 40px var(--firework-color),
-			0 0 60px var(--firework-color),
-			0 0 80px var(--firework-color),
-			0 -50px 5px 2px var(--firework-color),
-			0 50px 5px 2px var(--firework-color),
-			-50px 0 5px 2px var(--firework-color),
-			50px 0 5px 2px var(--firework-color),
-			-35px -35px 5px 2px var(--firework-color),
-			35px -35px 5px 2px var(--firework-color),
-			-35px 35px 5px 2px var(--firework-color),
-			35px 35px 5px 2px var(--firework-color);
-		pointer-events: none;
-		user-select: none;
 	}
 </style>
