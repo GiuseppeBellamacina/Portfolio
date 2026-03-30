@@ -49,6 +49,15 @@
 			image: '/assets/projects/guardian.webp'
 		},
 		{
+			icon: '🧬',
+			title: 'GRPO Strict Generation',
+			description:
+				'🚧 <strong>Work in progress</strong> — Reinforcement Learning project for the RL university module.<br>Applies <strong>Group Relative Policy Optimization (GRPO)</strong> to fine-tune a small open-weight LLM (~0.5B–1.5B params) so that it generates <strong>syntactically valid JSON and Python code</strong>.<br><strong>Key design choices:</strong><ul><li>Programmatic reward functions via <code>json.loads</code> and <code>ast.parse</code> — strict binary signal, no neural reward model</li><li><strong>LoRA / PEFT</strong> for memory-efficient training</li><li><strong>Unsloth</strong> for fast fine-tuning, <strong>vLLM</strong> for high-throughput inference</li><li>Evaluation on <strong>Pass@k</strong> metrics comparing pre- and post-training syntactic adherence</li></ul>Synthetic dataset generated programmatically. Full architecture and results in the formal report.',
+			techTags: ['GRPO', 'TRL', 'Unsloth', 'vLLM', 'LoRA'],
+			githubUrl: 'https://github.com/GiuseppeBellamacina/GRPO-strict-generation',
+			image: '/assets/projects/grpo.webp'
+		},
+		{
 			icon: '📸',
 			title: 'Image Enhancement',
 			description:
@@ -106,7 +115,7 @@
 				type: 'download',
 				icon: 'fas fa-download'
 			},
-			image: '/assets/projects/turi.png'
+			image: '/assets/projects/turi.webp'
 		},
 		{
 			icon: '🔍',

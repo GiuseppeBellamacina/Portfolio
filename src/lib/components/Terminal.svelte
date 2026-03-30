@@ -17,6 +17,10 @@
 	const projectEntries: HistoryEntry[] = [
 		{
 			type: 'html',
+			text: '<span class="file">grpo-strict-gen/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
+		},
+		{
+			type: 'html',
 			text: '<span class="file">image-enhancement/</span>  <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank" rel="noopener noreferrer">Advanced image quality improvement</a></span>'
 		},
 		{

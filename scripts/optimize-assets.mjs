@@ -16,10 +16,11 @@
  *   --projects    Only process static/assets/projects/
  *   --profile     Only process static/assets/ root (profile images etc.)
  *   --max-size N  Override max dimension in px (default: 128 for icons, 800 for projects, 256 for profile)
+ *   --to-webp     Convert PNG/JPG to WebP (deletes original if WebP is smaller)
  */
 
 import sharp from 'sharp';
-import { readdir, stat, readFile, writeFile } from 'node:fs/promises';
+import { readdir, stat, readFile, writeFile, unlink } from 'node:fs/promises';
 import { join, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -34,10 +35,11 @@ const onlyProjects = args.includes('--projects');
 const onlyProfile = args.includes('--profile');
 const maxSizeIdx = args.indexOf('--max-size');
 const customMaxSize = maxSizeIdx !== -1 ? parseInt(args[maxSizeIdx + 1], 10) : null;
+const toWebp = args.includes('--to-webp');
 
 const RASTER_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 
-/** @typedef {{ path: string, originalKB: number, optimizedKB: number, skipped: boolean, reason?: string }} Result */
+/** @typedef {{ path: string, newPath?: string, originalKB: number, optimizedKB: number, skipped: boolean, converted?: boolean, reason?: string }} Result */
 
 /**
  * Optimize a single raster image.
@@ -76,7 +78,29 @@ async function optimizeImage(filePath, maxDim, dryRun) {
 			});
 		}
 
-		// Compress based on format
+		// Try WebP conversion if --to-webp and source is PNG/JPG
+		if (toWebp && (ext === '.png' || ext === '.jpg' || ext === '.jpeg')) {
+			const webpBuf = await pipeline.webp({ quality: 80, effort: 6 }).toBuffer();
+			const webpKB = webpBuf.length / 1024;
+
+			if (webpKB < originalKB * 0.95) {
+				const newPath = filePath.replace(/\.(png|jpe?g)$/i, '.webp');
+				if (!dryRun) {
+					await writeFile(newPath, webpBuf);
+					if (newPath !== filePath) await unlink(filePath);
+				}
+				return {
+					path: filePath,
+					newPath,
+					originalKB,
+					optimizedKB: webpKB,
+					skipped: false,
+					converted: true
+				};
+			}
+		}
+
+		// Compress in original format
 		let outputBuf;
 		if (ext === '.png') {
 			outputBuf = await pipeline.png({ quality: 85, compressionLevel: 9, effort: 10 }).toBuffer();
@@ -199,8 +223,9 @@ async function main() {
 			const saved = r.originalKB - r.optimizedKB;
 			totalSaved += saved;
 			const rel = r.path.replace(ROOT, '').replace(/\\/g, '/');
+			const suffix = r.converted ? ' → .webp' : '';
 			console.log(
-				`   ${rel}  ${r.originalKB.toFixed(1)}KB → ${r.optimizedKB.toFixed(1)}KB  (-${saved.toFixed(1)}KB, -${((saved / r.originalKB) * 100).toFixed(0)}%)`
+				`   ${rel}  ${r.originalKB.toFixed(1)}KB → ${r.optimizedKB.toFixed(1)}KB  (-${saved.toFixed(1)}KB, -${((saved / r.originalKB) * 100).toFixed(0)}%)${suffix}`
 			);
 		}
 		console.log(
