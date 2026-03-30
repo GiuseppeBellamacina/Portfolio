@@ -80,9 +80,16 @@
 		let W = heroCanvas.offsetWidth;
 		let H = heroCanvas.offsetHeight;
 		const nodes: Node[] = [];
-		const COUNT = 50;
-		const CONNECT_DIST = 160;
+		const COUNT = 80;
+		const CONNECT_DIST = 150;
 		const CONNECT_DIST_SQ = CONNECT_DIST * CONNECT_DIST;
+		const REPULSE_DIST = 70; // inter-particle repulsion range
+		const REPULSE_DIST_SQ = REPULSE_DIST * REPULSE_DIST;
+		const REPULSE_FORCE = 0.004; // gentle push apart
+		const MOUSE_CONNECT_DIST = 190;
+		const MOUSE_REPULSE_DIST = 110;
+		const MAX_VEL = 1.2;
+		const DAMPING = 0.997;
 		let mouse = { x: -9999, y: -9999 };
 		let raf: number;
 
@@ -108,17 +115,31 @@
 		function draw() {
 			ctx!.clearRect(0, 0, W, H);
 
-			// Connections — use squared distance to avoid sqrt
+			// ── Connections + inter-particle repulsion (piggybacked on same loop) ──
+			ctx!.lineWidth = 0.6;
 			for (let i = 0; i < nodes.length; i++) {
 				for (let j = i + 1; j < nodes.length; j++) {
 					const dx = nodes[j].x - nodes[i].x;
 					const dy = nodes[j].y - nodes[i].y;
 					const distSq = dx * dx + dy * dy;
+
+					// Inter-particle repulsion — prevents clustering
+					if (distSq < REPULSE_DIST_SQ && distSq > 0) {
+						const dist = Math.sqrt(distSq);
+						const force = (1 - dist / REPULSE_DIST) * REPULSE_FORCE;
+						const fx = (dx / dist) * force;
+						const fy = (dy / dist) * force;
+						nodes[i].vx -= fx;
+						nodes[i].vy -= fy;
+						nodes[j].vx += fx;
+						nodes[j].vy += fy;
+					}
+
+					// Draw connection line
 					if (distSq < CONNECT_DIST_SQ) {
 						const dist = Math.sqrt(distSq);
 						const alpha = (1 - dist / CONNECT_DIST) * 0.25;
-						ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) / 2}, 60%, 60%, ${alpha})`;
-						ctx!.lineWidth = 0.6;
+						ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) >> 1}, 60%, 60%, ${alpha})`;
 						ctx!.beginPath();
 						ctx!.moveTo(nodes[i].x, nodes[i].y);
 						ctx!.lineTo(nodes[j].x, nodes[j].y);
@@ -127,15 +148,16 @@
 				}
 			}
 
-			// Mouse connections
+			// ── Mouse connections ──
+			ctx!.lineWidth = 0.8;
 			for (const n of nodes) {
 				const dx = n.x - mouse.x;
 				const dy = n.y - mouse.y;
-				const dist = Math.sqrt(dx * dx + dy * dy);
-				if (dist < 200) {
-					const alpha = (1 - dist / 200) * 0.4;
+				const distSq = dx * dx + dy * dy;
+				if (distSq < MOUSE_CONNECT_DIST * MOUSE_CONNECT_DIST) {
+					const dist = Math.sqrt(distSq);
+					const alpha = (1 - dist / MOUSE_CONNECT_DIST) * 0.4;
 					ctx!.strokeStyle = `hsla(${n.hue}, 65%, 65%, ${alpha})`;
-					ctx!.lineWidth = 0.8;
 					ctx!.beginPath();
 					ctx!.moveTo(n.x, n.y);
 					ctx!.lineTo(mouse.x, mouse.y);
@@ -143,7 +165,7 @@
 				}
 			}
 
-			// Nodes
+			// ── Nodes ──
 			for (const n of nodes) {
 				n.pulse += n.pulseSpeed;
 				const glow = 0.5 + Math.sin(n.pulse) * 0.3;
@@ -157,24 +179,32 @@
 				ctx!.fill();
 				ctx!.shadowBlur = 0;
 
-				// Move
+				// ── Physics ──
 				n.x += n.vx;
 				n.y += n.vy;
 
 				// Mouse repulsion
 				const mdx = n.x - mouse.x;
 				const mdy = n.y - mouse.y;
-				const md = Math.sqrt(mdx * mdx + mdy * mdy);
-				if (md < 120 && md > 0) {
+				const mdSq = mdx * mdx + mdy * mdy;
+				if (mdSq < MOUSE_REPULSE_DIST * MOUSE_REPULSE_DIST && mdSq > 0) {
+					const md = Math.sqrt(mdSq);
 					n.vx += (mdx / md) * 0.03;
 					n.vy += (mdy / md) * 0.03;
 				}
 
 				// Damping
-				n.vx *= 0.999;
-				n.vy *= 0.999;
+				n.vx *= DAMPING;
+				n.vy *= DAMPING;
 
-				// Wrap
+				// Velocity cap
+				const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+				if (speed > MAX_VEL) {
+					n.vx = (n.vx / speed) * MAX_VEL;
+					n.vy = (n.vy / speed) * MAX_VEL;
+				}
+
+				// Wrap around edges (seamless)
 				if (n.x < -10) n.x = W + 10;
 				if (n.x > W + 10) n.x = -10;
 				if (n.y < -10) n.y = H + 10;
