@@ -405,12 +405,25 @@
 		dragTargetEl = null;
 	}
 
-	// ── Hover highlight ────────────────────────────────────────────────────────
+	// ── Hover highlight + 3D tilt ──────────────────────────────────────────────
+	let tiltStyle = '';
+
 	function onCardEnter(p: ProjectWithIdx) {
 		hoveredProject = p;
 	}
 	function onCardLeave() {
 		hoveredProject = null;
+		tiltStyle = '';
+	}
+	function onCardMouseMove(e: MouseEvent, p: ProjectWithIdx) {
+		if (hoveredProject !== p) return;
+		const card = e.currentTarget as HTMLElement;
+		const rect = card.getBoundingClientRect();
+		const x = (e.clientX - rect.left) / rect.width;
+		const y = (e.clientY - rect.top) / rect.height;
+		const ry = (x - 0.5) * 16;
+		const rx = (0.5 - y) * 16;
+		tiltStyle = `--tilt-rx:${rx.toFixed(1)}deg;--tilt-ry:${ry.toFixed(1)}deg;--shine-x:${(x * 100).toFixed(0)}%;--shine-y:${(y * 100).toFixed(0)}%`;
 	}
 
 	// ── Expand state ────────────────────────────────────────────────────────
@@ -481,6 +494,7 @@
 <section id="projects" class="projects" bind:this={sectionEl}>
 	<div class="container">
 		<h2 class="section-title">🚀 Personal Projects</h2>
+		<p class="proj-hint">← Drag to explore →</p>
 	</div>
 
 	<!-- ─── Row 0 ────────────────────────────────────────────────────────────── -->
@@ -498,9 +512,10 @@
 						class="pcard"
 						class:is-hovered={hoveredProject === project && !dragMoved}
 						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={!project.image ? `--card-grad:${getCardBg(project)}` : ''}
+						style={`${!project.image ? `--card-grad:${getCardBg(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
 						on:mouseenter={() => onCardEnter(project)}
 						on:mouseleave={onCardLeave}
+						on:mousemove={(e) => onCardMouseMove(e, project)}
 						aria-label={project.title}
 					>
 						<div class="pcard-bg">
@@ -509,8 +524,12 @@
 							{/if}
 						</div>
 						<div class="pcard-overlay"></div>
+						<div class="pcard-shine"></div>
 						{#if project.isHackathonWinner}
 							<span class="pcard-badge">🏆 Winner</span>
+						{/if}
+						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+							<span class="pcard-stars">⭐ {project.stars}</span>
 						{/if}
 						<div class="pcard-body">
 							<span class="pcard-icon">{project.icon}</span>
@@ -542,9 +561,10 @@
 						class="pcard"
 						class:is-hovered={hoveredProject === project && !dragMoved}
 						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={!project.image ? `--card-grad:${getCardBg(project)}` : ''}
+						style={`${!project.image ? `--card-grad:${getCardBg(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
 						on:mouseenter={() => onCardEnter(project)}
 						on:mouseleave={onCardLeave}
+						on:mousemove={(e) => onCardMouseMove(e, project)}
 						aria-label={project.title}
 					>
 						<div class="pcard-bg">
@@ -553,8 +573,12 @@
 							{/if}
 						</div>
 						<div class="pcard-overlay"></div>
+						<div class="pcard-shine"></div>
 						{#if project.isHackathonWinner}
 							<span class="pcard-badge">🏆 Winner</span>
+						{/if}
+						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+							<span class="pcard-stars">⭐ {project.stars}</span>
 						{/if}
 						<div class="pcard-body">
 							<span class="pcard-icon">{project.icon}</span>
@@ -659,11 +683,21 @@
 	.proj-hint {
 		text-align: center;
 		color: var(--text-muted);
-		font-size: 0.82rem;
-		margin-top: -1.5rem;
-		margin-bottom: 2.2rem;
-		opacity: 0.5;
-		letter-spacing: 0.04em;
+		font-size: 0.78rem;
+		margin-top: -0.5rem;
+		margin-bottom: 1rem;
+		opacity: 0.35;
+		letter-spacing: 0.05em;
+		animation: hintPulse 3s ease-in-out infinite;
+	}
+	@keyframes hintPulse {
+		0%,
+		100% {
+			opacity: 0.35;
+		}
+		50% {
+			opacity: 0.55;
+		}
 	}
 
 	/* ── Strip wrapper ───────────────────────────────────────────────────────── */
@@ -713,6 +747,7 @@
 		flex-shrink: 0;
 		cursor: pointer;
 		border: 1px solid rgba(255, 255, 255, 0.07);
+		transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1);
 		transition:
 			transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
 			border-color 0.25s ease,
@@ -721,14 +756,15 @@
 			filter 0.25s ease;
 		will-change: transform;
 	}
-	/* Hover: lift and glow, stays in the strip */
+	/* Hover: 3D tilt, lift and glow */
 	.pcard.is-hovered {
-		transform: translateY(-14px) scale(1.12);
-		border-color: rgba(0, 217, 255, 0.65);
+		transform: perspective(800px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg))
+			translateY(-14px) scale(1.06);
+		border-color: rgba(129, 140, 248, 0.6);
 		box-shadow:
 			0 24px 70px rgba(0, 0, 0, 0.75),
-			0 0 50px rgba(0, 217, 255, 0.22),
-			0 0 0 1px rgba(0, 217, 255, 0.3);
+			0 0 50px rgba(129, 140, 248, 0.2),
+			0 0 0 1px rgba(129, 140, 248, 0.3);
 		z-index: 10;
 	}
 	/* Dim siblings while one is hovered */
@@ -754,6 +790,40 @@
 	}
 	.pcard.is-hovered .pcard-bg {
 		transform: scale(1.03);
+	}
+
+	/* Cursor-following shine */
+	.pcard-shine {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		opacity: 0;
+		background: radial-gradient(
+			circle at var(--shine-x, 50%) var(--shine-y, 50%),
+			rgba(255, 255, 255, 0.18) 0%,
+			transparent 55%
+		);
+		pointer-events: none;
+		transition: opacity 0.3s ease;
+		border-radius: inherit;
+	}
+	.pcard.is-hovered .pcard-shine {
+		opacity: 1;
+	}
+
+	/* Stars badge on card */
+	.pcard-stars {
+		position: absolute;
+		top: 0.7rem;
+		right: 0.7rem;
+		font-size: 0.58rem;
+		color: #ffd700;
+		background: rgba(0, 0, 0, 0.55);
+		padding: 2px 8px;
+		border-radius: 10px;
+		z-index: 4;
+		backdrop-filter: blur(6px);
+		border: 1px solid rgba(255, 215, 0, 0.15);
 	}
 
 	.pcard-overlay {
@@ -810,8 +880,8 @@
 	.pcard-tag {
 		font-size: 0.56rem;
 		color: var(--primary-color);
-		background: rgba(0, 217, 255, 0.1);
-		border: 1px solid rgba(0, 217, 255, 0.3);
+		background: rgba(129, 140, 248, 0.1);
+		border: 1px solid rgba(129, 140, 248, 0.25);
 		padding: 2px 7px;
 		border-radius: 20px;
 		line-height: 1.7;
@@ -842,11 +912,11 @@
 		border-radius: 20px;
 		overflow: hidden;
 		background: rgba(8, 11, 30, 0.97);
-		border: 1px solid rgba(0, 217, 255, 0.35);
+		border: 1px solid rgba(129, 140, 248, 0.3);
 		box-shadow:
-			0 0 0 1px rgba(0, 217, 255, 0.15),
+			0 0 0 1px rgba(129, 140, 248, 0.12),
 			0 60px 140px rgba(0, 0, 0, 0.92),
-			0 0 80px rgba(0, 217, 255, 0.1);
+			0 0 80px rgba(129, 140, 248, 0.08);
 		z-index: 9999;
 		backdrop-filter: blur(18px);
 		pointer-events: none;
@@ -946,7 +1016,7 @@
 		margin: 0;
 		letter-spacing: -0.02em;
 		text-shadow:
-			0 0 20px rgba(0, 217, 255, 0.4),
+			0 0 20px rgba(129, 140, 248, 0.4),
 			0 2px 8px rgba(0, 0, 0, 0.9);
 	}
 
@@ -1017,8 +1087,8 @@
 	.exp-tag {
 		font-size: 0.6rem;
 		color: var(--primary-color);
-		background: rgba(0, 217, 255, 0.08);
-		border: 1px solid rgba(0, 217, 255, 0.28);
+		background: rgba(129, 140, 248, 0.08);
+		border: 1px solid rgba(129, 140, 248, 0.25);
 		padding: 2px 8px;
 		border-radius: 20px;
 		line-height: 1.75;
