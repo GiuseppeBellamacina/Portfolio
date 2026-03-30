@@ -102,6 +102,13 @@
 					icon: 'huggingface-2-removebg-preview.png',
 					url: 'https://huggingface.co/'
 				},
+				{ name: 'TRL', icon: 'logo-trl.png', url: 'https://huggingface.co/docs/trl/' },
+				{
+					name: 'Unsloth',
+					icon: 'unsloth logo black text.png',
+					url: 'https://unsloth.ai/'
+				},
+				{ name: 'vLLM', icon: 'vLLM-Full-Logo.svg', url: 'https://docs.vllm.ai/' },
 				{ name: 'Kaggle', icon: 'kaggle-original-wordmark.svg', url: 'https://www.kaggle.com/' },
 				{
 					name: 'Google Colab',
