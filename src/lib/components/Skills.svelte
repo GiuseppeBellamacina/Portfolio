@@ -105,7 +105,7 @@
 				{ name: 'TRL', icon: 'logo-trl.png', url: 'https://huggingface.co/docs/trl/' },
 				{
 					name: 'Unsloth',
-					icon: 'unsloth logo black text.png',
+					icon: 'unslothg.webp',
 					url: 'https://unsloth.ai/'
 				},
 				{ name: 'vLLM', icon: 'vLLM-Full-Logo.svg', url: 'https://docs.vllm.ai/' },
