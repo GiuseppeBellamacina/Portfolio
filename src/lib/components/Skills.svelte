@@ -238,6 +238,12 @@
 					url: 'https://visualstudio.microsoft.com/'
 				},
 				{
+					name: 'Antigravity',
+					icon: 'antigravity-color.png',
+					url: 'https://antigravity.google'
+				},
+				{ name: 'Cursor', icon: 'Cursor_logo.png', url: 'https://cursor.com/get-started' },
+				{
 					name: 'Jupyter',
 					icon: 'jupyter-original-wordmark-removebg-preview.png',
 					url: 'https://jupyter.org/'
@@ -247,12 +253,6 @@
 					name: 'Blender',
 					icon: 'blender-original-removebg-preview.png',
 					url: 'https://www.blender.org/'
-				},
-				{ name: 'Cursor', icon: 'Cursor_logo.png', url: 'https://cursor.com/get-started' },
-				{
-					name: 'Antigravity',
-					icon: 'antigravity-color.png',
-					url: 'https://antigravity.google'
 				}
 			]
 		},
