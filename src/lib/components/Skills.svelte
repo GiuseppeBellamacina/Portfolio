@@ -105,7 +105,7 @@
 				{ name: 'TRL', icon: 'logo-trl.png', url: 'https://huggingface.co/docs/trl/' },
 				{
 					name: 'Unsloth',
-					icon: 'unslothg.webp',
+					icon: 'unsloth.webp',
 					url: 'https://unsloth.ai/'
 				},
 				{ name: 'vLLM', icon: 'vLLM-Full-Logo.svg', url: 'https://docs.vllm.ai/' },
@@ -122,6 +122,12 @@
 					name: 'Model Context Protocol',
 					icon: 'mcp.jpg',
 					url: 'https://modelcontextprotocol.io/'
+				},
+				{ name: 'Claude', icon: 'claude.png', url: 'https://claude.com/product/claude-code' },
+				{
+					name: 'GitHub Copilot',
+					icon: 'githubcopilot.webp',
+					url: 'https://github.com/features/copilot'
 				},
 				{ name: 'Chroma', icon: 'chroma.png', url: 'https://www.trychroma.com/' },
 				{ name: 'Weaviate', icon: 'weaviate.png', url: 'https://weaviate.io/' }
@@ -241,6 +247,12 @@
 					name: 'Blender',
 					icon: 'blender-original-removebg-preview.png',
 					url: 'https://www.blender.org/'
+				},
+				{ name: 'Cursor', icon: 'Cursor_logo.png', url: 'https://cursor.com/get-started' },
+				{
+					name: 'Antigravity',
+					icon: 'antigravity-color.png',
+					url: 'https://antigravity.google'
 				}
 			]
 		},
