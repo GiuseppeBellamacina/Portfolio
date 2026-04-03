@@ -1,4 +1,6 @@
 <script lang="ts">
+	import './contact.css';
+
 	interface ContactLink {
 		href: string;
 		icon: string;

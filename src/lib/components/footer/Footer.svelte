@@ -1,3 +1,7 @@
+<script lang="ts">
+	import './footer.css';
+</script>
+
 <footer id="footer" class="footer">
 	<div class="container">
 		<p>

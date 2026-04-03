@@ -1,0 +1,186 @@
+/* Terminal component styles */
+.terminal {
+		background: rgba(var(--bg-dark-rgb), 0.5);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid rgba(var(--primary-rgb), 0.08);
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+		font-family: 'Courier New', 'Fira Code', monospace;
+		cursor: text;
+	}
+
+	/* ── Title bar ── */
+	.terminal-bar {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 10px 14px;
+		background: rgba(var(--bg-card-rgb), 0.5);
+		border-bottom: 1px solid rgba(var(--primary-rgb), 0.06);
+		cursor: default;
+	}
+	.dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+	}
+	.dot.red {
+		background: #ff5f57;
+	}
+	.dot.yellow {
+		background: #febc2e;
+	}
+	.dot.green {
+		background: #28c840;
+	}
+	.bar-title {
+		margin-left: 8px;
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		letter-spacing: 0.5px;
+	}
+
+	/* ── Body ── */
+	.terminal-body {
+		padding: 1rem 1.2rem;
+		height: 300px;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(var(--primary-rgb), 0.15) transparent;
+	}
+	.terminal-body::-webkit-scrollbar {
+		width: 5px;
+	}
+	.terminal-body::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.terminal-body::-webkit-scrollbar-thumb {
+		background: rgba(var(--primary-rgb), 0.15);
+		border-radius: 3px;
+	}
+
+	/* ── Lines ── */
+	.line {
+		font-size: 0.85rem;
+		line-height: 1.6;
+		white-space: pre-wrap;
+		word-break: break-word;
+		min-height: 1.2em;
+	}
+	.line .prompt {
+		color: var(--neon-green);
+		font-weight: bold;
+		margin-right: 8px;
+	}
+	.line .cmd {
+		color: var(--primary-color);
+	}
+	.output {
+		color: var(--text-light);
+	}
+	.err {
+		color: #ff5f57;
+	}
+	.rich {
+		color: var(--text-light);
+	}
+
+	/* Rich HTML styles */
+	.rich .file {
+		color: #66d9ef;
+	}
+	.rich .cmt {
+		color: var(--text-muted);
+		opacity: 0.7;
+	}
+	.rich .cmt a,
+	.rich a {
+		color: var(--primary-color);
+		text-decoration: none;
+		border-bottom: 1px dashed rgba(var(--primary-rgb), 0.2);
+		transition: border-color 0.2s;
+	}
+	.rich a:hover {
+		border-bottom-color: var(--primary-color);
+	}
+	.rich .cmd-name {
+		color: var(--primary-color);
+		font-weight: bold;
+	}
+	.rich .sk-cat {
+		color: var(--neon-green);
+		font-weight: bold;
+	}
+	.rich .nf-label {
+		color: var(--primary-color);
+		font-weight: bold;
+	}
+	.rich .nf-value {
+		color: var(--neon-green);
+	}
+	.rich .song-title {
+		color: var(--primary-color);
+		font-weight: bold;
+		text-decoration: none;
+		border-bottom: 1px dashed rgba(var(--primary-rgb), 0.2);
+		transition: border-color 0.2s;
+	}
+	.rich a.song-title:hover {
+		border-bottom-color: var(--primary-color);
+	}
+	.rich .song-artist {
+		color: var(--neon-green);
+		font-style: italic;
+	}
+
+	/* ── Input line ── */
+	.input-line {
+		display: flex;
+		align-items: center;
+		gap: 0;
+	}
+	.input-line .prompt {
+		color: var(--neon-green);
+		font-weight: bold;
+		margin-right: 8px;
+		font-size: 0.85rem;
+	}
+	.term-input {
+		flex: 1;
+		background: none;
+		border: none;
+		outline: none;
+		color: var(--primary-color);
+		font-family: inherit;
+		font-size: 0.85rem;
+		caret-color: var(--neon-green);
+		padding: 0;
+		line-height: 1.6;
+	}
+
+	/* ── Responsive ── */
+	@media (max-width: 768px) {
+		.line {
+			font-size: 0.78rem;
+		}
+		.term-input {
+			font-size: 0.78rem;
+		}
+		.terminal-body {
+			height: 280px;
+		}
+	}
+	@media (max-width: 480px) {
+		.line {
+			font-size: 0.72rem;
+		}
+		.term-input {
+			font-size: 0.72rem;
+		}
+		.terminal-body {
+			padding: 0.8rem 0.9rem;
+			max-height: 240px;
+		}
+	}

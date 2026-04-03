@@ -1,21 +1,24 @@
 <script lang="ts">
-	import Navbar from '$lib/components/Navbar.svelte';
-	import Hero from '$lib/components/Hero.svelte';
-	import About from '$lib/components/About.svelte';
-	import Experience from '$lib/components/Experience.svelte';
-	import Projects from '$lib/components/Projects.svelte';
-	import Skills from '$lib/components/Skills.svelte';
-	import Contact from '$lib/components/Contact.svelte';
-	import Footer from '$lib/components/Footer.svelte';
+	import { onMount } from 'svelte';
+	import Navbar from '$lib/components/navbar/Navbar.svelte';
+	import Hero from '$lib/components/hero/Hero.svelte';
+	import About from '$lib/components/about/About.svelte';
+	import Experience from '$lib/components/experience/Experience.svelte';
+	import Projects from '$lib/components/projects/Projects.svelte';
+	import Skills from '$lib/components/skills/Skills.svelte';
+	import Contact from '$lib/components/contact/Contact.svelte';
+	import Footer from '$lib/components/footer/Footer.svelte';
 	import ScrollProgress from '$lib/components/ScrollProgress.svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
 	import CursorTrail from '$lib/components/CursorTrail.svelte';
-	import SectionSnap from '$lib/components/SectionSnap.svelte';
-	// import SeasonalEffectsDebug from '$lib/components/seasonal/SeasonalEffectsDebug.svelte';
+	import { initSectionSnap } from '$lib/components/sectionSnap';
+
+	onMount(() => {
+		const cleanup = initSectionSnap();
+		return cleanup;
+	});
 </script>
 
-<!-- <SeasonalEffectsDebug /> -->
-<SectionSnap />
 <ScrollProgress />
 <CursorTrail />
 <Navbar />

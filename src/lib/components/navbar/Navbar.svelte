@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import './navbar.css';
 
 	let isMenuActive = $state(false);
 	let navbarElement: HTMLElement;

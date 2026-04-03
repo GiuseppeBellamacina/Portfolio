@@ -1,19 +1,17 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
+// When the viewport is inside the Hero section, ALL scrolling is blocked.
+// Any scroll/swipe gesture (any direction, any intensity) snaps to About.
+// Once outside the Hero, normal scrolling is free.
+// Returning to the Hero re-enables the lock.
 
-	// When the viewport is inside the Hero section, ALL scrolling is blocked.
-	// Any scroll/swipe gesture (any direction, any intensity) snaps to About.
-	// Once outside the Hero, normal scrolling is free.
-	// Returning to the Hero re-enables the lock.
+function easeInOutCubic(t: number): number {
+	return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+}
 
-	let snapping = false; // true while the snap animation is running
-	let inHero = true; // true when viewport is inside the Hero
+export function initSectionSnap(): () => void {
+	let snapping = false;
+	let inHero = true;
 	let touchStartY = 0;
-	let snapCooldown = false; // brief cooldown after snap to avoid re-lock
-
-	function easeInOutCubic(t: number): number {
-		return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-	}
+	let snapCooldown = false;
 
 	function smoothScrollTo(target: number, cb?: () => void) {
 		snapping = true;
@@ -45,7 +43,6 @@
 		requestAnimationFrame(frame);
 	}
 
-	/** Check whether the viewport is currently within the Hero section */
 	function checkHero(): boolean {
 		const hero = document.getElementById('home');
 		if (!hero) return false;
@@ -61,7 +58,6 @@
 		});
 	}
 
-	// ── Wheel ───────────────────────────────────────────────────────────────
 	function onWheel(e: WheelEvent) {
 		if (!inHero) return;
 		e.preventDefault();
@@ -69,11 +65,11 @@
 		if (e.deltaY > 0) snapToAbout();
 	}
 
-	// ── Touch ───────────────────────────────────────────────────────────────
 	function onTouchStart(e: TouchEvent) {
 		if (!inHero) return;
 		if (e.touches.length === 1) touchStartY = e.touches[0].clientY;
 	}
+
 	function onTouchMove(e: TouchEvent) {
 		if (!inHero) return;
 		e.preventDefault();
@@ -83,21 +79,17 @@
 		if (dy > 10) snapToAbout();
 	}
 
-	// ── Detect enter/leave Hero (e.g. user clicks nav link or scrolls) ─────
 	function onScroll() {
 		if (snapping || snapCooldown) return;
 		const nowInHero = checkHero();
-		// Left the Hero (e.g. navbar click scrolled to another section)
 		if (inHero && !nowInHero) {
 			inHero = false;
 		}
-		// Returned to Hero (e.g. user scrolled back to top)
 		if (!inHero && nowInHero && window.scrollY <= 5) {
 			inHero = true;
 		}
 	}
 
-	// ── Keyboard: block arrow/space/page keys while in Hero ────────────────
 	function onKeyDown(e: KeyboardEvent) {
 		if (!inHero) return;
 		const scrollKeys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'];
@@ -109,21 +101,20 @@
 		}
 	}
 
-	onMount(() => {
-		// Determine initial state (page might be refreshed mid-scroll)
-		inHero = checkHero();
+	// Determine initial state (page might be refreshed mid-scroll)
+	inHero = checkHero();
 
-		window.addEventListener('wheel', onWheel, { passive: false });
-		window.addEventListener('touchstart', onTouchStart, { passive: true });
-		window.addEventListener('touchmove', onTouchMove, { passive: false });
-		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('keydown', onKeyDown);
-		return () => {
-			window.removeEventListener('wheel', onWheel);
-			window.removeEventListener('touchstart', onTouchStart);
-			window.removeEventListener('touchmove', onTouchMove);
-			window.removeEventListener('scroll', onScroll);
-			window.removeEventListener('keydown', onKeyDown);
-		};
-	});
-</script>
+	window.addEventListener('wheel', onWheel, { passive: false });
+	window.addEventListener('touchstart', onTouchStart, { passive: true });
+	window.addEventListener('touchmove', onTouchMove, { passive: false });
+	window.addEventListener('scroll', onScroll, { passive: true });
+	window.addEventListener('keydown', onKeyDown);
+
+	return () => {
+		window.removeEventListener('wheel', onWheel);
+		window.removeEventListener('touchstart', onTouchStart);
+		window.removeEventListener('touchmove', onTouchMove);
+		window.removeEventListener('scroll', onScroll);
+		window.removeEventListener('keydown', onKeyDown);
+	};
+}

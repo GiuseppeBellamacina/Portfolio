@@ -1,0 +1,138 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { currentSeason } from '$lib/stores/seasonStore';
+	import { baseTexts, seasonalGreetings } from './heroData';
+	import { initGpgpuParticles } from './gpgpuParticles';
+	import { startTypingEffect } from './typingEffect';
+	import './hero.css';
+
+	let typingText = $state('');
+	let mounted = $state(false);
+	let heroContainer: HTMLDivElement;
+	let heroSection: HTMLElement;
+	let spotlightX = $state(50);
+	let spotlightY = $state(50);
+
+	function getTexts(): string[] {
+		const season = get(currentSeason);
+		const greetings = seasonalGreetings[season];
+		if (!greetings) return baseTexts;
+		const texts = [...baseTexts];
+		for (let i = 0; i < greetings.length; i++) {
+			const pos = Math.floor((texts.length / (greetings.length + 1)) * (i + 1));
+			texts.splice(pos, 0, greetings[i]);
+		}
+		return texts;
+	}
+
+	onMount(() => {
+		let texts = getTexts();
+		const unsubscribe = currentSeason.subscribe(() => {
+			texts = getTexts();
+		});
+		startTypingEffect(texts, (t) => (typingText = t));
+
+		let cleanup: (() => void) | undefined;
+		const idle =
+			'requestIdleCallback' in window
+				? requestIdleCallback(async () => {
+						cleanup = await initGpgpuParticles(heroContainer, heroSection);
+					})
+				: setTimeout(async () => {
+						cleanup = await initGpgpuParticles(heroContainer, heroSection);
+					}, 50);
+
+		requestAnimationFrame(() => (mounted = true));
+		return () => {
+			unsubscribe();
+			if ('cancelIdleCallback' in window) cancelIdleCallback(idle as number);
+			else clearTimeout(idle as number);
+			cleanup?.();
+		};
+	});
+</script>
+
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<section
+	id="home"
+	class="hero"
+	bind:this={heroSection}
+	onmousemove={(e) => {
+		const rect = heroSection.getBoundingClientRect();
+		spotlightX = ((e.clientX - rect.left) / rect.width) * 100;
+		spotlightY = ((e.clientY - rect.top) / rect.height) * 100;
+	}}
+>
+	<div class="hero-canvas" bind:this={heroContainer}></div>
+	<div
+		class="hero-spotlight"
+		style="--spot-x: {spotlightX}%; --spot-y: {spotlightY}%"
+		aria-hidden="true"
+	></div>
+
+	<div class="hero-content" class:hero-entered={mounted}>
+		<!-- Holographic ring -->
+		<div class="profile-container hero-stagger">
+			<div class="holo-ring">
+				<div class="holo-ring-inner"></div>
+			</div>
+			<img
+				src="/assets/profile.webp"
+				alt="Giuseppe Bellamacina"
+				class="profile-image"
+				fetchpriority="high"
+				width="192"
+				height="192"
+			/>
+		</div>
+
+		<h1 class="glitch hero-stagger s2" data-text="Giuseppe Bellamacina">Giuseppe Bellamacina</h1>
+
+		<p class="subtitle hero-stagger s3">
+			<span class="typing-prefix">&gt;&nbsp;</span>
+			<span id="typing-text">{typingText}</span><span class="typing-cursor">|</span>
+		</p>
+
+		<div class="hero-buttons hero-stagger s4">
+			<a
+				href="#experience"
+				class="btn btn-primary"
+				onclick={(e) => {
+					e.preventDefault();
+					document
+						.querySelector('#experience')
+						?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}}>View Experience</a
+			>
+			<a href="/assets/cv.pdf" download="Giuseppe_Bellamacina_CV.pdf" class="btn btn-secondary">
+				<i class="fas fa-download"></i> Download CV
+			</a>
+			<a href="https://github.com/GiuseppeBellamacina" target="_blank" class="btn btn-secondary">
+				<i class="fab fa-github"></i> GitHub
+			</a>
+		</div>
+
+		<div class="social-links hero-stagger s5">
+			<a
+				href="https://www.linkedin.com/in/giuseppe-bellamacina-739b03204/"
+				target="_blank"
+				title="LinkedIn"
+			>
+				<i class="fab fa-linkedin"></i>
+			</a>
+			<a href="https://www.instagram.com/giuseppe_bellamacina/" target="_blank" title="Instagram">
+				<i class="fab fa-instagram"></i>
+			</a>
+			<a href="https://github.com/GiuseppeBellamacina" target="_blank" title="GitHub">
+				<i class="fab fa-github"></i>
+			</a>
+		</div>
+	</div>
+
+	<div class="scroll-indicator hero-stagger s6" class:hero-entered={mounted}>
+		<div class="scroll-mouse">
+			<div class="scroll-dot"></div>
+		</div>
+	</div>
+</section>
