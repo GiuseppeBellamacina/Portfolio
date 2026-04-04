@@ -1,6 +1,6 @@
 /**
- * Three.js GPGPU Particle System — 3D Tilted Spiral Galaxy.
- * Renders ~16K particles on GPU with simulation shaders, raycasting for cursor interaction.
+ * Three.js GPGPU Particle System — 3D Tilted Spiral Galaxy (desktop) / Wave field (mobile).
+ * Renders particles on GPU with simulation shaders, raycasting for cursor interaction.
  */
 export async function initGpgpuParticles(
 	container: HTMLElement,
@@ -32,10 +32,14 @@ export async function initGpgpuParticles(
 		AdditiveBlending
 	} = THREE;
 
-	const SIZE = 192; // 192x192 = 36864 particelle
-	const LENGTH = SIZE * SIZE;
 	let W = container.offsetWidth;
 	let H = container.offsetHeight;
+
+	const SIZE = 192; // 192x192 = 36864 particelle
+	const isMobile = W <= 768;
+	const MOBILE_SIZE = 128; // 128x128 = 16384 particelle (mobile)
+	const ACTIVE_SIZE = isMobile ? MOBILE_SIZE : SIZE;
+	const LENGTH = ACTIVE_SIZE * ACTIVE_SIZE;
 
 	// ── Renderer ──
 	const renderer = new WebGLRenderer({
@@ -60,18 +64,40 @@ export async function initGpgpuParticles(
 		return;
 	}
 
-	// ── Camera (Inquadratura per un disco ampio) ──
+	// ── Camera ──
 	const camera = new PerspectiveCamera(45, W / H, 0.1, 1000);
-	camera.position.set(0, -6.5, 4.5); // Angolazione a ~45 gradi
-	camera.lookAt(0, 0, 0);
+	if (isMobile) {
+		// Top-down view for wave field
+		camera.position.set(0, 0, 12);
+		camera.lookAt(0, 0, 0);
+	} else {
+		camera.position.set(0, -6.5, 4.5); // Angolazione a ~45 gradi
+		camera.lookAt(0, 0, 0);
+	}
 
 	// ── Scene ──
 	const scene = new Scene();
 
-	// ── Generazione Posizioni (Vero Disco Galattico) ──
+	// ── Generazione Posizioni ──
 	function createPositionData(): Float32Array {
 		const data = new Float32Array(LENGTH * 4);
-		const GALAXY_RADIUS = 8.0; // Disco più ampio
+
+		if (isMobile) {
+			// Mobile: particelle sparse su un campo rettangolare ampio
+			const aspect = W / H;
+			const spreadX = 12 * aspect;
+			const spreadY = 12;
+			for (let i = 0; i < LENGTH; i++) {
+				data[i * 4 + 0] = (Math.random() - 0.5) * spreadX * 2;
+				data[i * 4 + 1] = (Math.random() - 0.5) * spreadY * 2;
+				data[i * 4 + 2] = (Math.random() - 0.5) * 0.5; // Quasi piatte
+				data[i * 4 + 3] = 0;
+			}
+			return data;
+		}
+
+		// Desktop: Vero Disco Galattico
+		const GALAXY_RADIUS = 8.0;
 		const ARMS = 3;
 
 		function gauss(): number {
@@ -128,7 +154,7 @@ export async function initGpgpuParticles(
 	}
 
 	const posData = createPositionData();
-	const posTex = new DataTexture(posData, SIZE, SIZE, RGBAFormat, FloatType);
+	const posTex = new DataTexture(posData, ACTIVE_SIZE, ACTIVE_SIZE, RGBAFormat, FloatType);
 	posTex.minFilter = NearestFilter;
 	posTex.magFilter = NearestFilter;
 	posTex.wrapS = ClampToEdgeWrapping;
@@ -144,8 +170,8 @@ export async function initGpgpuParticles(
 		depthBuffer: false,
 		stencilBuffer: false
 	};
-	let rt1 = new WebGLRenderTarget(SIZE, SIZE, rtOptions);
-	let rt2 = new WebGLRenderTarget(SIZE, SIZE, rtOptions);
+	let rt1 = new WebGLRenderTarget(ACTIVE_SIZE, ACTIVE_SIZE, rtOptions);
+	let rt2 = new WebGLRenderTarget(ACTIVE_SIZE, ACTIVE_SIZE, rtOptions);
 
 	renderer.setRenderTarget(rt1);
 	renderer.clear();
@@ -163,7 +189,8 @@ export async function initGpgpuParticles(
 			uDeltaTime: { value: 0 },
 			uIsHovering: { value: 0 },
 			uRingRadius: { value: 0.2 },
-			uRotation: { value: 0 }
+			uRotation: { value: 0 },
+			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
 		},
 		vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`,
 		fragmentShader: `
@@ -175,6 +202,7 @@ export async function initGpgpuParticles(
             uniform float uTime;
             uniform float uIsHovering;
             uniform float uRingRadius;
+            uniform float uIsMobile;
 
             vec2 hash(vec2 p) {
                 p = vec2(dot(p,vec2(2127.1,81.17)), dot(p,vec2(1269.5,283.37)));
@@ -182,7 +210,7 @@ export async function initGpgpuParticles(
             }
 
             void main() {
-                vec2 uv = gl_FragCoord.xy / ${SIZE.toFixed(1)};
+                vec2 uv = gl_FragCoord.xy / ${ACTIVE_SIZE.toFixed(1)};
                 vec4 pFrame = texture2D(uPosition, uv);
                 vec3 refPos = texture2D(uPosRefs, uv).xyz;
                 
@@ -190,41 +218,66 @@ export async function initGpgpuParticles(
                 float velocity = pFrame.w;
 
                 vec2 seed = hash(uv);
-                float lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
-                float lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
 
-                float cr = cos(uRotation);
-                float sr = sin(uRotation);
-                vec3 rotRef = vec3(
-                    refPos.x * cr - refPos.y * sr,
-                    refPos.x * sr + refPos.y * cr,
-                    refPos.z
-                );
+                if (uIsMobile > 0.5) {
+                    // ─── MOBILE: Wave field ───
+                    float lifeEnd = 4.0 + seed.y * 3.0;
+                    float lifeTime = mod(seed.x * 100.0 + uTime * 0.3, lifeEnd);
 
-                vec3 targetPos = rotRef;
+                    vec3 targetPos = refPos;
 
-                // Calcolo interazione (EFFETTO DELICATO)
-                vec2 mDiff = pos.xy - uMousePos;
-                float mDist = length(mDiff);
-                
-                // L'influenza del mouse cala morbidamente allontanandosi dal cursore
-                float mouseInfluence = smoothstep(uRingRadius + 0.4, 0.0, mDist) * uIsHovering;
-                
-                if (mDist > 0.001) {
-                    // 1. Spinta Radiale: allontana le particelle sul piano XY (effetto onda)
-                    targetPos.xy += (mDiff / mDist) * mouseInfluence * 0.3;
-                }
-                // 2. Spinta Verticale: alzata millimetrica su Z
-                targetPos.z += mouseInfluence * 0.15;
+                    // Multiple overlapping sine waves for organic ocean feel
+                    float px = refPos.x;
+                    float py = refPos.y;
+                    float wave1 = sin(px * 0.4 + uTime * 0.6) * cos(py * 0.3 + uTime * 0.4) * 0.8;
+                    float wave2 = sin(px * 0.7 - uTime * 0.3 + py * 0.5) * 0.4;
+                    float wave3 = cos(px * 0.2 + py * 0.6 + uTime * 0.5) * 0.3;
+                    
+                    targetPos.z = refPos.z + wave1 + wave2 + wave3;
 
-                velocity = mouseInfluence;
+                    // Gentle horizontal drift
+                    targetPos.x += sin(uTime * 0.15 + seed.x * 6.28) * 0.3;
+                    targetPos.y += cos(uTime * 0.12 + seed.y * 6.28) * 0.3;
 
-                // Elastico verso la posizione target
-                vec3 toRef = targetPos - pos;
-                pos += toRef * 0.06; 
+                    velocity = abs(wave1) * 0.15;
 
-                if (lifeTime < 0.01) {
-                    pos = rotRef;
+                    // Smooth follow
+                    pos += (targetPos - pos) * 0.04;
+
+                    if (lifeTime < 0.01) {
+                        pos = refPos;
+                    }
+                } else {
+                    // ─── DESKTOP: Galaxy ───
+                    float lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
+                    float lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
+
+                    float cr = cos(uRotation);
+                    float sr = sin(uRotation);
+                    vec3 rotRef = vec3(
+                        refPos.x * cr - refPos.y * sr,
+                        refPos.x * sr + refPos.y * cr,
+                        refPos.z
+                    );
+
+                    vec3 targetPos = rotRef;
+
+                    vec2 mDiff = pos.xy - uMousePos;
+                    float mDist = length(mDiff);
+                    float mouseInfluence = smoothstep(uRingRadius + 0.4, 0.0, mDist) * uIsHovering;
+                    
+                    if (mDist > 0.001) {
+                        targetPos.xy += (mDiff / mDist) * mouseInfluence * 0.3;
+                    }
+                    targetPos.z += mouseInfluence * 0.15;
+                    velocity = mouseInfluence;
+
+                    vec3 toRef = targetPos - pos;
+                    pos += toRef * 0.06;
+
+                    if (lifeTime < 0.01) {
+                        pos = rotRef;
+                    }
                 }
 
                 gl_FragColor = vec4(pos, velocity);
@@ -246,11 +299,11 @@ export async function initGpgpuParticles(
 
 	const geo = new BufferGeometry();
 	const uvs = new Float32Array(LENGTH * 2);
-	for (let i = 0; i < SIZE; i++) {
-		for (let j = 0; j < SIZE; j++) {
-			const idx = i * SIZE + j;
-			uvs[idx * 2 + 0] = (j + 0.5) / SIZE;
-			uvs[idx * 2 + 1] = (i + 0.5) / SIZE;
+	for (let i = 0; i < ACTIVE_SIZE; i++) {
+		for (let j = 0; j < ACTIVE_SIZE; j++) {
+			const idx = i * ACTIVE_SIZE + j;
+			uvs[idx * 2 + 0] = (j + 0.5) / ACTIVE_SIZE;
+			uvs[idx * 2 + 1] = (i + 0.5) / ACTIVE_SIZE;
 		}
 	}
 	geo.setAttribute('position', new Float32BufferAttribute(new Float32Array(LENGTH * 3), 3));
@@ -286,7 +339,8 @@ export async function initGpgpuParticles(
 			uColorC4: { value: new Color(0x818cf8) },
 			uColorC5: { value: new Color(0xa78bfa) },
 			uColorC6: { value: new Color(0x1e1b4b) },
-			uAlpha: { value: 1.0 }
+			uAlpha: { value: 1.0 },
+			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
 		},
 		vertexShader: `
             precision highp float;
@@ -295,6 +349,7 @@ export async function initGpgpuParticles(
             uniform float uTime;
             uniform float uParticleScale;
             uniform float uPixelRatio;
+            uniform float uIsMobile;
 
             varying vec3 vLocalPos;
             varying float vVelocity;
@@ -311,18 +366,26 @@ export async function initGpgpuParticles(
                 vVelocity = pos.w;
 
                 vec2 seed = hash(uv);
-                float lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
-                float lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
-                float animScale = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
+
+                float lifeEnd, lifeTime, animScale;
+                if (uIsMobile > 0.5) {
+                    lifeEnd = 4.0 + seed.y * 3.0;
+                    lifeTime = mod(seed.x * 100.0 + uTime * 0.3, lifeEnd);
+                    animScale = smoothstep(0.01, 0.8, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
+                } else {
+                    lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
+                    lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
+                    animScale = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
+                }
                 
                 vScale = animScale + (vVelocity * 1.5);
 
                 vec4 viewSpace = modelViewMatrix * vec4(pos.xyz, 1.0);
                 gl_Position = projectionMatrix * viewSpace;
 
-                float depthFade = 1.0 / -viewSpace.z; 
-                // Dimensione calibrata (le polveri saranno piccole, i flare più visibili)
-                gl_PointSize = (vScale * 35.0) * uPixelRatio * uParticleScale * depthFade;
+                float depthFade = 1.0 / -viewSpace.z;
+                float basePtSize = uIsMobile > 0.5 ? 25.0 : 35.0;
+                gl_PointSize = (vScale * basePtSize) * uPixelRatio * uParticleScale * depthFade;
             }
         `,
 		fragmentShader: `
@@ -339,9 +402,16 @@ export async function initGpgpuParticles(
             uniform vec3 uColorC5;
             uniform vec3 uColorC6;
             uniform float uAlpha;
+            uniform float uIsMobile;
 
             void main() {
-                float dist = length(vLocalPos.xy) / 8.0;
+                float dist;
+                if (uIsMobile > 0.5) {
+                    // Mobile: color by distance from center, wider radius
+                    dist = length(vLocalPos.xy) / 14.0;
+                } else {
+                    dist = length(vLocalPos.xy) / 8.0;
+                }
 
                 // 6-stop gradient: center → edge
                 vec3 col = mix(uColorC1, uColorC2, smoothstep(0.0, 0.06, dist));
@@ -350,9 +420,8 @@ export async function initGpgpuParticles(
                 col = mix(col, uColorC5, smoothstep(0.35, 0.6, dist));
                 col = mix(col, uColorC6, smoothstep(0.6, 1.0, dist));
 
-                col += vec3(vVelocity * 0.8); // Si illuminano quando scostate dal mouse
+                col += vec3(vVelocity * 0.8);
 
-                // Rendering della singola stella: sfumata e naturale
                 vec2 uv = gl_PointCoord.xy - 0.5;
                 float pDist = length(uv);
                 float alpha = max(0.0, 0.5 - pDist) * 2.0;
@@ -372,18 +441,22 @@ export async function initGpgpuParticles(
 	const points = new Points(geo, renderMaterial);
 	scene.add(points);
 
-	// ── Raycasting ──
+	// ── Raycasting (desktop only) ──
 	const raycaster = new Raycaster();
 	const mouseNDC = new Vector2(-9, -9);
 	const intersectionPoint = new Vector3();
 	let isIntersecting = false;
 	let mouseIsOver = false;
 
-	// Piano enorme per intercettare il mouse ovunque
-	const rayPlaneGeo = new PlaneGeometry(80, 80);
-	const rayPlaneMat = new ShaderMaterial({ visible: false });
-	const rayPlane = new Mesh(rayPlaneGeo, rayPlaneMat);
-	scene.add(rayPlane);
+	let rayPlaneGeo: InstanceType<typeof PlaneGeometry> | null = null;
+	let rayPlaneMat: InstanceType<typeof ShaderMaterial> | null = null;
+	let rayPlane: InstanceType<typeof Mesh> | null = null;
+	if (!isMobile) {
+		rayPlaneGeo = new PlaneGeometry(80, 80);
+		rayPlaneMat = new ShaderMaterial({ visible: false });
+		rayPlane = new Mesh(rayPlaneGeo, rayPlaneMat);
+		scene.add(rayPlane);
+	}
 
 	// ── Animazione ──
 	const clock = new Clock();
@@ -406,8 +479,8 @@ export async function initGpgpuParticles(
 		hoverProgress += (targetHover - hoverProgress) * (dt * 3);
 
 		skipFrame = !skipFrame;
-		if (!skipFrame) {
-			if (mouseIsOver) {
+		if (!skipFrame && !isMobile) {
+			if (mouseIsOver && rayPlane) {
 				raycaster.setFromCamera(mouseNDC, camera);
 				const hits = raycaster.intersectObject(rayPlane);
 				if (hits.length > 0) {
@@ -432,7 +505,9 @@ export async function initGpgpuParticles(
 		simMaterial.uniforms.uIsHovering.value = hoverProgress;
 		simMaterial.uniforms.uRingRadius.value = 0.5 + Math.sin(time) * 0.1;
 
-		simMaterial.uniforms.uRotation.value += dt * 0.05; // Rotazione lenta
+		if (!isMobile) {
+			simMaterial.uniforms.uRotation.value += dt * 0.05; // Rotazione lenta (solo desktop)
+		}
 
 		renderer.setRenderTarget(rt2);
 		renderer.render(simScene, simCamera);
@@ -498,8 +573,8 @@ export async function initGpgpuParticles(
 		rt1.dispose();
 		rt2.dispose();
 		posTex.dispose();
-		rayPlaneGeo.dispose();
-		rayPlaneMat.dispose();
+		if (rayPlaneGeo) rayPlaneGeo.dispose();
+		if (rayPlaneMat) rayPlaneMat.dispose();
 		canvas.remove();
 	};
 }
