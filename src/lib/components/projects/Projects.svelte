@@ -346,87 +346,129 @@
 		<h2 class="section-title">Personal Projects</h2>
 	</div>
 
-	{#if viewMode === 'carousel'}
-		<!-- Triple 3D Carousel -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="carousel-viewport" onpointerdown={onPointerDown}>
-			<div class="carousel-stage">
+	<!-- Desktop: Carousel / Grid -->
+	<div class="desktop-only">
+		{#if viewMode === 'carousel'}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="carousel-viewport" onpointerdown={onPointerDown}>
+				<div class="carousel-stage">
+					{#each projects as project, i}
+						<div class="carousel-card" style={getCardStyle(i)}>
+							<div class="carousel-card-bg">
+								{#if project.image}
+									<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+								{:else}
+									<div
+										class="carousel-card-grad"
+										style="background:{getCardBgForProject(project)}"
+									></div>
+								{/if}
+							</div>
+							<div class="carousel-card-overlay"></div>
+							{#if project.isHackathonWinner}
+								<span class="carousel-badge">🏆 Winner</span>
+							{/if}
+							{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+								<span class="carousel-stars">⭐ {project.stars}</span>
+							{/if}
+							<div class="carousel-card-body">
+								<span class="carousel-card-icon">{project.icon}</span>
+								<h3 class="carousel-card-title">{project.title}</h3>
+								<div class="carousel-card-tags">
+									{#each project.techTags.slice(0, 4) as t}
+										<span class="carousel-card-tag">{t}</span>
+									{/each}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{:else}
+			<!-- Grid View -->
+			<div class="grid-container">
 				{#each projects as project, i}
-					<div class="carousel-card" style={getCardStyle(i)}>
-						<div class="carousel-card-bg">
+					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<article
+						class="pcard"
+						class:is-hovered={hoveredProject === project}
+						style={`${!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
+						onmouseenter={() => onGridCardEnter(project)}
+						onmouseleave={onGridCardLeave}
+						onmousemove={(e) => onGridCardMouseMove(e, project)}
+						onclick={() => onGridCardClick(project)}
+					>
+						<div class="pcard-bg">
 							{#if project.image}
 								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
 							{:else}
-								<div
-									class="carousel-card-grad"
-									style="background:{getCardBgForProject(project)}"
-								></div>
+								<div class="pcard-grad"></div>
 							{/if}
 						</div>
-						<div class="carousel-card-overlay"></div>
+						<div class="pcard-overlay"></div>
+						<div class="pcard-shine"></div>
 						{#if project.isHackathonWinner}
-							<span class="carousel-badge">🏆 Winner</span>
+							<span class="pcard-badge">🏆 Winner</span>
 						{/if}
 						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-							<span class="carousel-stars">⭐ {project.stars}</span>
+							<span class="pcard-stars">⭐ {project.stars}</span>
 						{/if}
-						<div class="carousel-card-body">
-							<span class="carousel-card-icon">{project.icon}</span>
-							<h3 class="carousel-card-title">{project.title}</h3>
-							<div class="carousel-card-tags">
-								{#each project.techTags.slice(0, 4) as t}
-									<span class="carousel-card-tag">{t}</span>
+						<div class="pcard-body">
+							<span class="pcard-icon">{project.icon}</span>
+							<h3 class="pcard-title">{project.title}</h3>
+							<div class="pcard-tags">
+								{#each project.techTags.slice(0, 3) as t}
+									<span class="pcard-tag">{t}</span>
 								{/each}
 							</div>
 						</div>
-					</div>
+					</article>
 				{/each}
 			</div>
-		</div>
-	{:else}
-		<!-- Grid View -->
-		<div class="grid-container">
-			{#each projects as project, i}
-				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<article
-					class="pcard"
-					class:is-hovered={hoveredProject === project}
-					class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-					style={`${!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
-					onmouseenter={() => onGridCardEnter(project)}
-					onmouseleave={onGridCardLeave}
-					onmousemove={(e) => onGridCardMouseMove(e, project)}
-					onclick={() => onGridCardClick(project)}
-				>
-					<div class="pcard-bg">
-						{#if project.image}
-							<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-						{:else}
-							<div class="pcard-grad"></div>
-						{/if}
-					</div>
-					<div class="pcard-overlay"></div>
-					<div class="pcard-shine"></div>
-					{#if project.isHackathonWinner}
-						<span class="pcard-badge">🏆 Winner</span>
-					{/if}
-					{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-						<span class="pcard-stars">⭐ {project.stars}</span>
-					{/if}
-					<div class="pcard-body">
-						<span class="pcard-icon">{project.icon}</span>
-						<h3 class="pcard-title">{project.title}</h3>
-						<div class="pcard-tags">
-							{#each project.techTags.slice(0, 3) as t}
-								<span class="pcard-tag">{t}</span>
-							{/each}
+		{/if}
+	</div>
+
+	<!-- Mobile: 2-row swipe -->
+	<div class="mobile-rows">
+		{#each [0, 1] as row}
+			<div class="mobile-scroll-row">
+				{#each projects.filter((_, idx) => idx % 2 === row) as project}
+					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<article
+						class="pcard"
+						style={!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}
+						onclick={() => onGridCardClick(project)}
+					>
+						<div class="pcard-bg">
+							{#if project.image}
+								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+							{:else}
+								<div class="pcard-grad"></div>
+							{/if}
 						</div>
-					</div>
-				</article>
-			{/each}
-		</div>
-	{/if}
+						<div class="pcard-overlay"></div>
+						{#if project.isHackathonWinner}
+							<span class="pcard-badge">🏆 Winner</span>
+						{/if}
+						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+							<span class="pcard-stars">⭐ {project.stars}</span>
+						{/if}
+						<div class="pcard-body">
+							<span class="pcard-icon">{project.icon}</span>
+							<h3 class="pcard-title">{project.title}</h3>
+							<div class="pcard-tags">
+								{#each project.techTags.slice(0, 3) as t}
+									<span class="pcard-tag">{t}</span>
+								{/each}
+							</div>
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/each}
+	</div>
 
 	<!-- Expanded card panel -->
 	{#if expandedProject}
