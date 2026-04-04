@@ -14,21 +14,16 @@
 		]);
 	}
 
-	// Funzione retry con backoff esponenziale
 	async function fetchWithRetry(url: string, retries = 2, backoff = 1000) {
 		for (let i = 0; i <= retries; i++) {
 			try {
 				const response = await fetchWithTimeout(url, 5000);
-				if (response.ok) {
-					return response;
-				}
-				// Se la risposta è 403 (rate limit) o 404, non ritentare
+				if (response.ok) return response;
 				if (response.status === 403 || response.status === 404) {
 					throw new Error(`HTTP ${response.status}`);
 				}
 			} catch (error) {
 				if (i === retries) throw error;
-				// Backoff esponenziale
 				await new Promise((resolve) => setTimeout(resolve, backoff * Math.pow(2, i)));
 			}
 		}
@@ -75,167 +70,157 @@
 		await Promise.all(fetchPromises);
 	}
 
-	// ─── Marquee Carousel ───────────────────────────────────────────────────────
+	// ─── 3D Carousel ────────────────────────────────────────────────────────────
 
-	type ProjectWithIdx = Project & { _idx: number };
-	const enriched: ProjectWithIdx[] = [...initialProjects].map((p, i) => ({ ...p, _idx: i }));
-	const row0: ProjectWithIdx[] = enriched.filter((_, i) => i % 2 === 0);
-	const row1: ProjectWithIdx[] = enriched.filter((_, i) => i % 2 === 1);
-
-	// ── Drag-scroll state ──────────────────────────────────────────────────────
-	const CARD_W = 280;
-	const GAP = 20;
-	const STEP = CARD_W + GAP; // pixels per card slot
-
-	// Each strip holds 2 copies → half-width is N * STEP
-	const halfW = [row0.length * STEP, row1.length * STEP];
-
-	let stripEls: (HTMLElement | null)[] = [null, null];
-	// pos[0] starts at 0 (scrolls left → decrements)
-	// pos[1] starts at -halfW[1] (scrolls right → increments)
-	let pos = [0, -halfW[1]];
-	let vel = [0, 0];
-	const AUTO = [-0.45, 0.5]; // px/frame auto-speed (negative = scroll left, positive = right)
-
-	let dragging = $state(-1); // which row is being dragged (-1 = none)
-	let dragLastX = 0;
+	let activeIndex = $state(0);
+	let smoothOffset = $state(0); // Fractional offset for smooth auto-scroll
+	let isAnimating = $state(false);
 	let dragStartX = 0;
-	let dragVel = 0;
-	let dragMoved = $state(false); // true once mouse moved > threshold
-	let dragTargetEl: HTMLElement | null = null;
-	let rafId = 0;
+	let dragDelta = $state(0);
+	let isDragging = $state(false);
+	let dragMoved = false;
 	let sectionEl: HTMLElement;
 
-	// ── Hover state ────────────────────────────────────────────────────────────
-	let hoveredProject: ProjectWithIdx | null = $state.raw(null);
+	const DRAG_THRESHOLD = 50;
 
-	function loop() {
-		const paused = !!hoveredProject || !!expandedProject;
-		for (let i = 0; i < 2; i++) {
-			if (dragging !== -1) {
-				// While any row is being dragged, both rows freeze auto-scroll
-				if (dragging === i) vel[i] *= 0.85;
-			} else if (!paused) {
-				// Auto-scroll, paused on hover or expand
-				vel[i] = vel[i] * 0.93 + AUTO[i] * 0.07;
-				pos[i] += vel[i];
-			}
-			// Infinite wrap
-			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
-			if (pos[i] >= 0) pos[i] -= halfW[i];
-			if (stripEls[i]) stripEls[i]!.style.transform = `translateX(${pos[i]}px)`;
-		}
-		// Clear hover when strips are visibly moving (dragging or inertia)
-		if (hoveredProject && (dragging !== -1 || Math.abs(vel[0]) > 0.8 || Math.abs(vel[1]) > 0.8)) {
-			hoveredProject = null;
-		}
-		rafId = requestAnimationFrame(loop);
+	function goTo(idx: number) {
+		if (isAnimating) return;
+		isAnimating = true;
+		smoothOffset = 0;
+		activeIndex = ((idx % projects.length) + projects.length) % projects.length;
+		setTimeout(() => (isAnimating = false), 500);
 	}
 
-	function startDrag(e: MouseEvent, row: number) {
-		if (e.button !== 0) return;
-		dragging = row;
+	function prev() {
+		goTo(activeIndex - 1);
+	}
+	function next() {
+		goTo(activeIndex + 1);
+	}
+
+	function getCardStyle(i: number): string {
+		const n = projects.length;
+		let diff = i - activeIndex;
+
+		if (diff > n / 2) diff -= n;
+		if (diff < -n / 2) diff += n;
+
+		// Smooth auto-scroll offset + drag offset
+		const dragOffset = isDragging ? dragDelta / 400 : 0;
+		const d = diff + dragOffset - smoothOffset;
+		const absd = Math.abs(d);
+
+		if (absd > 4.5) return 'visibility:hidden; opacity:0; pointer-events:none;';
+
+		// ─── MATEMATICA CONCAVA ───
+		const theta = 24;
+		const angleDeg = d * theta;
+		const angleRad = angleDeg * (Math.PI / 180);
+		const R = 1100;
+
+		// X: fattore 1.15 per evitare overlap con card 480px
+		const tx = R * Math.sin(angleRad) * 1.15;
+
+		// Z: il centro parte da -1100, le laterali salgono verso Z=0
+		const tz = -R * Math.cos(angleRad) + 350;
+
+		// Rotazione: guardano verso il centro
+		const ry = -angleDeg;
+
+		const brightness = Math.max(0.4, 1 - absd * 0.15);
+		const opacity = absd > 3.5 ? Math.max(0, 1 - (absd - 3.5)) : 1;
+
+		return `transform: translateX(${tx.toFixed(1)}px) translateZ(${tz.toFixed(1)}px) rotateY(${ry.toFixed(1)}deg); opacity:${opacity}; filter: brightness(${brightness});`;
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		if (isAnimating) return;
+		isDragging = true;
 		dragStartX = e.clientX;
-		dragLastX = e.clientX;
-		dragVel = 0;
+		dragDelta = 0;
 		dragMoved = false;
-		dragTargetEl = (e.target as HTMLElement).closest('.pcard') as HTMLElement | null;
+		stopAutoPlay();
 	}
-	function startDragTouch(e: TouchEvent, row: number) {
-		if (e.touches.length !== 1) return;
-		const t = e.touches[0];
-		dragging = row;
-		dragStartX = t.clientX;
-		dragLastX = t.clientX;
-		dragVel = 0;
-		dragMoved = false;
-		dragTargetEl = (e.target as HTMLElement).closest('.pcard') as HTMLElement | null;
+	function onPointerMove(e: PointerEvent) {
+		if (!isDragging) return;
+		dragDelta = e.clientX - dragStartX;
+		if (Math.abs(dragDelta) > 15) dragMoved = true;
 	}
-	function onMouseMove(e: MouseEvent) {
-		if (dragging === -1) return;
-		const dx = e.clientX - dragLastX;
-		if (!dragMoved) {
-			if (Math.abs(e.clientX - dragStartX) < 6) return; // below threshold
-			dragMoved = true;
+	function onPointerUp() {
+		if (!isDragging) return;
+		isDragging = false;
+		if (Math.abs(dragDelta) > DRAG_THRESHOLD) {
+			if (dragDelta > 0) prev();
+			else next();
 		}
-		dragLastX = e.clientX;
-		dragVel = dx;
-		// Move dragged row + counter-rotate the other row
-		const other = dragging === 0 ? 1 : 0;
-		pos[dragging] += dx;
-		pos[other] -= dx;
-		for (const i of [dragging, other]) {
-			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
-			if (pos[i] >= 0) pos[i] -= halfW[i];
-		}
+		dragDelta = 0;
+		startAutoPlay();
 	}
-	function onTouchMove(e: TouchEvent) {
-		if (dragging === -1 || e.touches.length !== 1) return;
-		const t = e.touches[0];
-		const dx = t.clientX - dragLastX;
-		if (!dragMoved) {
-			if (Math.abs(t.clientX - dragStartX) < 6) return;
-			dragMoved = true;
-		}
-		e.preventDefault();
-		dragLastX = t.clientX;
-		dragVel = dx;
-		const other = dragging === 0 ? 1 : 0;
-		pos[dragging] += dx;
-		pos[other] -= dx;
-		for (const i of [dragging, other]) {
-			if (pos[i] <= -halfW[i]) pos[i] += halfW[i];
-			if (pos[i] >= 0) pos[i] -= halfW[i];
-		}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Escape') closePanel();
 	}
-	function endDrag() {
-		if (dragging === -1) return;
-		const i = dragging;
-		const other = i === 0 ? 1 : 0;
-		if (!dragMoved) {
-			// It was a click — open the card that was pressed
-			if (dragTargetEl) {
-				// Find the project from the target element's data
-				const title = dragTargetEl.getAttribute('aria-label');
-				const p = enriched.find((e) => e.title === title);
-				if (p) openCard(p);
+
+	// ── Auto-play (smooth continuous) ──────────────────────────────────────
+	let autoPlayRaf: number | null = null;
+	let lastTime = 0;
+	const AUTO_SPEED = 0.12; // Cards per second
+
+	function autoPlayLoop(time: number) {
+		if (lastTime > 0) {
+			const dt = (time - lastTime) / 1000;
+			smoothOffset += dt * AUTO_SPEED;
+
+			// When we've scrolled a full card, snap to the next index
+			if (smoothOffset >= 1) {
+				smoothOffset = 0;
+				activeIndex = (activeIndex + 1) % projects.length;
 			}
-		} else {
-			vel[i] = dragVel;
-			vel[other] = -dragVel; // counter-rotate inertia
 		}
-		dragVel = 0;
-		dragging = -1;
-		dragMoved = false;
-		dragTargetEl = null;
+		lastTime = time;
+		autoPlayRaf = requestAnimationFrame(autoPlayLoop);
 	}
 
-	// ── Hover highlight + 3D tilt ──────────────────────────────────────────────
-	let tiltStyle = $state('');
-
-	function onCardEnter(p: ProjectWithIdx) {
-		hoveredProject = p;
+	function startAutoPlay() {
+		stopAutoPlay();
+		lastTime = 0;
+		autoPlayRaf = requestAnimationFrame(autoPlayLoop);
 	}
-	function onCardLeave() {
-		hoveredProject = null;
-		tiltStyle = '';
-	}
-	function onCardMouseMove(e: MouseEvent, p: ProjectWithIdx) {
-		if (hoveredProject !== p) return;
-		const card = e.currentTarget as HTMLElement;
-		const rect = card.getBoundingClientRect();
-		const x = (e.clientX - rect.left) / rect.width;
-		const y = (e.clientY - rect.top) / rect.height;
-		const ry = (x - 0.5) * 16;
-		const rx = (0.5 - y) * 16;
-		tiltStyle = `--tilt-rx:${rx.toFixed(1)}deg;--tilt-ry:${ry.toFixed(1)}deg;--shine-x:${(x * 100).toFixed(0)}%;--shine-y:${(y * 100).toFixed(0)}%`;
+	function stopAutoPlay() {
+		if (autoPlayRaf) {
+			cancelAnimationFrame(autoPlayRaf);
+			autoPlayRaf = null;
+		}
+		// Snap to nearest card instead of jumping back
+		if (smoothOffset > 0.5) {
+			activeIndex = (activeIndex + 1) % projects.length;
+		}
+		smoothOffset = 0;
+		lastTime = 0;
 	}
 
 	// ── Expand state ────────────────────────────────────────────────────────
-	let expandedProject: ProjectWithIdx | null = $state.raw(null);
+	let expandedProject: Project | null = $state.raw(null);
 	let panelExpanded = $state(false);
 
-	async function openCard(p: ProjectWithIdx) {
+	async function openCard(p: Project, i: number) {
+		if (dragMoved) return;
+		stopAutoPlay();
+		if (i !== activeIndex) {
+			goTo(i);
+			// Wait for animation to finish then open
+			setTimeout(async () => {
+				expandedProject = p;
+				panelExpanded = false;
+				await tick();
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => {
+						panelExpanded = true;
+					})
+				);
+			}, 550);
+			return;
+		}
 		expandedProject = p;
 		panelExpanded = false;
 		await tick();
@@ -249,15 +234,14 @@
 		panelExpanded = false;
 		setTimeout(() => {
 			expandedProject = null;
+			startAutoPlay();
 		}, 380);
 	}
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Escape') closePanel();
-	}
 
-	function getCardBg(p: ProjectWithIdx): string {
+	function getCardBg(i: number): string {
+		const p = projects[i];
 		if (p.accentColor) return p.accentColor;
-		return cardGradients[p._idx % cardGradients.length];
+		return cardGradients[i % cardGradients.length];
 	}
 	function getLinkLabel(type: string): string {
 		if (type === 'download') return 'Download';
@@ -267,11 +251,6 @@
 	}
 
 	onMount(() => {
-		rafId = requestAnimationFrame(loop);
-		window.addEventListener('mousemove', onMouseMove);
-		window.addEventListener('mouseup', endDrag);
-		window.addEventListener('touchmove', onTouchMove, { passive: false });
-		window.addEventListener('touchend', endDrag);
 		window.addEventListener('keydown', onKeyDown);
 		const io = new IntersectionObserver(
 			(entries) =>
@@ -280,17 +259,15 @@
 						isVisible = true;
 						fetchGitHubStars();
 					}
+					if (e.isIntersecting) startAutoPlay();
+					else stopAutoPlay();
 				}),
 			{ threshold: 0.05, rootMargin: '100px' }
 		);
 		io.observe(sectionEl);
 		return () => {
-			cancelAnimationFrame(rafId);
-			window.removeEventListener('mousemove', onMouseMove);
-			window.removeEventListener('mouseup', endDrag);
-			window.removeEventListener('touchmove', onTouchMove);
-			window.removeEventListener('touchend', endDrag);
 			window.removeEventListener('keydown', onKeyDown);
+			stopAutoPlay();
 			io.disconnect();
 		};
 	});
@@ -299,126 +276,70 @@
 <section id="projects" class="projects" bind:this={sectionEl}>
 	<div class="container">
 		<h2 class="section-title">Personal Projects</h2>
-		<p class="proj-hint">← Drag to explore →</p>
 	</div>
 
-	<!-- ─── Row 0 ────────────────────────────────────────────────────────────── -->
-	<div class="strip-outer">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="strip-wrap"
-			class:dragging-active={dragging === 0}
-			onmousedown={(e) => startDrag(e, 0)}
-			ontouchstart={(e) => startDragTouch(e, 0)}
-		>
-			<div class="strip" bind:this={stripEls[0]}>
-				{#each [...row0, ...row0] as project}
-					<article
-						class="pcard"
-						class:is-hovered={hoveredProject === project && !dragMoved}
-						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={`${!project.image ? `--card-grad:${getCardBg(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
-						onmouseenter={() => onCardEnter(project)}
-						onmouseleave={onCardLeave}
-						onmousemove={(e) => onCardMouseMove(e, project)}
-						aria-label={project.title}
-					>
-						<div class="pcard-bg">
-							{#if project.image}
-								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-							{/if}
-						</div>
-						<div class="pcard-overlay"></div>
-						<div class="pcard-shine"></div>
-						{#if project.isHackathonWinner}
-							<span class="pcard-badge">🏆 Winner</span>
+	<!-- 3D Carousel -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="carousel-viewport"
+		onpointerdown={onPointerDown}
+		onpointermove={onPointerMove}
+		onpointerup={onPointerUp}
+		onpointercancel={onPointerUp}
+	>
+		<div class="carousel-stage">
+			{#each projects as project, i}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="carousel-card"
+					class:is-active={i === activeIndex}
+					style={getCardStyle(i)}
+					onclick={() => openCard(project, i)}
+				>
+					<div class="carousel-card-bg">
+						{#if project.image}
+							<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+						{:else}
+							<div class="carousel-card-grad" style="background:{getCardBg(i)}"></div>
 						{/if}
-						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-							<span class="pcard-stars">⭐ {project.stars}</span>
-						{/if}
-						<div class="pcard-body">
-							<span class="pcard-icon">{project.icon}</span>
-							<h3 class="pcard-title">{project.title}</h3>
-							<div class="pcard-tags">
-								{#each project.techTags.slice(0, 3) as t}
-									<span class="pcard-tag">{t}</span>
-								{/each}
-							</div>
+					</div>
+					<div class="carousel-card-overlay"></div>
+					{#if project.isHackathonWinner}
+						<span class="carousel-badge">🏆 Winner</span>
+					{/if}
+					{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+						<span class="carousel-stars">⭐ {project.stars}</span>
+					{/if}
+					<div class="carousel-card-body">
+						<span class="carousel-card-icon">{project.icon}</span>
+						<h3 class="carousel-card-title">{project.title}</h3>
+						<div class="carousel-card-tags">
+							{#each project.techTags.slice(0, 4) as t}
+								<span class="carousel-card-tag">{t}</span>
+							{/each}
 						</div>
-					</article>
-				{/each}
-			</div>
+					</div>
+				</div>
+			{/each}
 		</div>
 	</div>
 
-	<!-- ─── Row 1 ────────────────────────────────────────────────────────────── -->
-	<div class="strip-outer">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="strip-wrap"
-			class:dragging-active={dragging === 1}
-			onmousedown={(e) => startDrag(e, 1)}
-			ontouchstart={(e) => startDragTouch(e, 1)}
-		>
-			<div class="strip" bind:this={stripEls[1]}>
-				{#each [...row1, ...row1] as project}
-					<article
-						class="pcard"
-						class:is-hovered={hoveredProject === project && !dragMoved}
-						class:is-dimmed={hoveredProject !== null && hoveredProject !== project}
-						style={`${!project.image ? `--card-grad:${getCardBg(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
-						onmouseenter={() => onCardEnter(project)}
-						onmouseleave={onCardLeave}
-						onmousemove={(e) => onCardMouseMove(e, project)}
-						aria-label={project.title}
-					>
-						<div class="pcard-bg">
-							{#if project.image}
-								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-							{/if}
-						</div>
-						<div class="pcard-overlay"></div>
-						<div class="pcard-shine"></div>
-						{#if project.isHackathonWinner}
-							<span class="pcard-badge">🏆 Winner</span>
-						{/if}
-						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-							<span class="pcard-stars">⭐ {project.stars}</span>
-						{/if}
-						<div class="pcard-body">
-							<span class="pcard-icon">{project.icon}</span>
-							<h3 class="pcard-title">{project.title}</h3>
-							<div class="pcard-tags">
-								{#each project.techTags.slice(0, 3) as t}
-									<span class="pcard-tag">{t}</span>
-								{/each}
-							</div>
-						</div>
-					</article>
-				{/each}
-			</div>
-		</div>
-	</div>
-
-	<!-- ─── Expanded card panel ─────────────────────────────────────────────── -->
+	<!-- Expanded card panel -->
 	{#if expandedProject}
-		<!-- Backdrop -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="exp-backdrop" class:is-visible={panelExpanded} onclick={closePanel}></div>
 
-		<!-- Panel — always centred, enters with scale-up -->
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<aside class="exp-panel" class:is-open={panelExpanded}>
-			<!-- visual header = same bg as card -->
 			<div
 				class="exp-visual"
 				style={expandedProject.image
 					? `background-image:url('${expandedProject.image}')`
-					: `background:${getCardBg(expandedProject)}`}
+					: `background:${getCardBg(activeIndex)}`}
 			>
 				<div class="exp-voverlay"></div>
-				<!-- Close button -->
 				<button class="exp-close" onclick={closePanel} aria-label="Close">✕</button>
 				{#if expandedProject.isHackathonWinner}
 					<span class="exp-trophy">🏆 Hackathon Winner</span>
@@ -429,7 +350,6 @@
 				</div>
 			</div>
 
-			<!-- body: fades in once expanded -->
 			<div class="exp-body">
 				<p class="exp-desc">{@html expandedProject.description}</p>
 				<div class="exp-tags">
