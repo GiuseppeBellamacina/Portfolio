@@ -295,6 +295,11 @@ export const skillCategories: SkillCategory[] = [
 				name: 'Wireshark',
 				icon: 'Wireshark_icon_new.png',
 				url: 'https://www.wireshark.org/'
+			},
+			{
+				name: 'Burp Suite',
+				icon: 'burp.png',
+				url: 'https://portswigger.net/burp'
 			}
 		]
 	}
