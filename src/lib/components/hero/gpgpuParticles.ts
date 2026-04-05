@@ -320,15 +320,15 @@ export async function initGpgpuParticles(
 		renderMaterial.uniforms.uColorC1.value.copy(getCSSColor('--galaxy-c1', '#ffffff'));
 		renderMaterial.uniforms.uColorC2.value.copy(getCSSColor('--galaxy-c2', '#f5f0ff'));
 		renderMaterial.uniforms.uColorC3.value.copy(getCSSColor('--galaxy-c3', '#ede4ff'));
-		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#e0d0ff'));
+		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#ddd0ff'));
 		renderMaterial.uniforms.uColorC5.value.copy(getCSSColor('--galaxy-c5', '#c4b5fd'));
 		renderMaterial.uniforms.uColorC6.value.copy(getCSSColor('--galaxy-c6', '#a78bfa'));
 		renderMaterial.uniforms.uColorC7.value.copy(getCSSColor('--galaxy-c7', '#8b5cf6'));
 		renderMaterial.uniforms.uColorC8.value.copy(getCSSColor('--galaxy-c8', '#7c3aed'));
-		renderMaterial.uniforms.uColorC9.value.copy(getCSSColor('--galaxy-c9', '#6366f1'));
-		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#818cf8'));
-		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#a5b4fc'));
-		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#c7d2fe'));
+		renderMaterial.uniforms.uColorC9.value.copy(getCSSColor('--galaxy-c9', '#7e5cdb'));
+		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#8a7ace'));
+		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#9d9ad4'));
+		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#b8b8e0'));
 	}
 
 	// ── Render shader ──
@@ -342,15 +342,15 @@ export async function initGpgpuParticles(
 			uColorC1: { value: new Color(0xffffff) },
 			uColorC2: { value: new Color(0xf5f0ff) },
 			uColorC3: { value: new Color(0xede4ff) },
-			uColorC4: { value: new Color(0xe0d0ff) },
+			uColorC4: { value: new Color(0xddd0ff) },
 			uColorC5: { value: new Color(0xc4b5fd) },
 			uColorC6: { value: new Color(0xa78bfa) },
 			uColorC7: { value: new Color(0x8b5cf6) },
 			uColorC8: { value: new Color(0x7c3aed) },
-			uColorC9: { value: new Color(0x6366f1) },
-			uColorC10: { value: new Color(0x818cf8) },
-			uColorC11: { value: new Color(0xa5b4fc) },
-			uColorC12: { value: new Color(0xc7d2fe) },
+			uColorC9: { value: new Color(0x7e5cdb) },
+			uColorC10: { value: new Color(0x8a7ace) },
+			uColorC11: { value: new Color(0x9d9ad4) },
+			uColorC12: { value: new Color(0xb8b8e0) },
 			uAlpha: { value: 1.0 },
 			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
 		},

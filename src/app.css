@@ -35,15 +35,15 @@
 	--galaxy-c1: #ffffff;
 	--galaxy-c2: #f5f0ff;
 	--galaxy-c3: #ede4ff;
-	--galaxy-c4: #e0d0ff;
+	--galaxy-c4: #ddd0ff;
 	--galaxy-c5: #c4b5fd;
 	--galaxy-c6: #a78bfa;
 	--galaxy-c7: #8b5cf6;
 	--galaxy-c8: #7c3aed;
-	--galaxy-c9: #6366f1;
-	--galaxy-c10: #818cf8;
-	--galaxy-c11: #a5b4fc;
-	--galaxy-c12: #c7d2fe;
+	--galaxy-c9: #7e5cdb;
+	--galaxy-c10: #8a7ace;
+	--galaxy-c11: #9d9ad4;
+	--galaxy-c12: #b8b8e0;
 }
 
 /* ── Seasonal Theme Overrides ─────────────────────────────────────────────── */
@@ -84,9 +84,9 @@ body.season-snow {
 	--galaxy-c7: #dc2626;
 	--galaxy-c8: #fbbf24;
 	--galaxy-c9: #f59e0b;
-	--galaxy-c10: #b91c1c;
-	--galaxy-c11: #7f1d1d;
-	--galaxy-c12: #450a0a;
+	--galaxy-c10: #fca5a5;
+	--galaxy-c11: #fecaca;
+	--galaxy-c12: #fde0d0;
 }
 
 body.season-newyear {
@@ -126,9 +126,9 @@ body.season-newyear {
 	--galaxy-c7: #c4b5fd;
 	--galaxy-c8: #a78bfa;
 	--galaxy-c9: #93c5fd;
-	--galaxy-c10: #60a5fa;
-	--galaxy-c11: #3b82f6;
-	--galaxy-c12: #0c1445;
+	--galaxy-c10: #a5b4fc;
+	--galaxy-c11: #c4b5fd;
+	--galaxy-c12: #ddd6fe;
 }
 
 /* ── Seasonal name gradient overrides ─────────────────────────────────────── */
@@ -159,9 +159,9 @@ body.season-summer {
 	--galaxy-c7: #fb923c;
 	--galaxy-c8: #06b6d4;
 	--galaxy-c9: #38bdf8;
-	--galaxy-c10: #0ea5e9;
-	--galaxy-c11: #0369a1;
-	--galaxy-c12: #0c4a6e;
+	--galaxy-c10: #7dd3fc;
+	--galaxy-c11: #bae6fd;
+	--galaxy-c12: #e0f2fe;
 }
 
 body.season-summer .glitch {
