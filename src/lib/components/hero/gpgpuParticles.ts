@@ -318,17 +318,17 @@ export async function initGpgpuParticles(
 
 	function updateGalaxyColors() {
 		renderMaterial.uniforms.uColorC1.value.copy(getCSSColor('--galaxy-c1', '#ffffff'));
-		renderMaterial.uniforms.uColorC2.value.copy(getCSSColor('--galaxy-c2', '#ffcccc'));
-		renderMaterial.uniforms.uColorC3.value.copy(getCSSColor('--galaxy-c3', '#ff4040'));
-		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#ff8c00'));
-		renderMaterial.uniforms.uColorC5.value.copy(getCSSColor('--galaxy-c5', '#ffd700'));
-		renderMaterial.uniforms.uColorC6.value.copy(getCSSColor('--galaxy-c6', '#40ff40'));
-		renderMaterial.uniforms.uColorC7.value.copy(getCSSColor('--galaxy-c7', '#00e5ff'));
-		renderMaterial.uniforms.uColorC8.value.copy(getCSSColor('--galaxy-c8', '#4080ff'));
-		renderMaterial.uniforms.uColorC9.value.copy(getCSSColor('--galaxy-c9', '#6040ff'));
-		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#a020f0'));
-		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#ff40ff'));
-		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#1a0033'));
+		renderMaterial.uniforms.uColorC2.value.copy(getCSSColor('--galaxy-c2', '#f5f0ff'));
+		renderMaterial.uniforms.uColorC3.value.copy(getCSSColor('--galaxy-c3', '#ede4ff'));
+		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#e0d0ff'));
+		renderMaterial.uniforms.uColorC5.value.copy(getCSSColor('--galaxy-c5', '#c4b5fd'));
+		renderMaterial.uniforms.uColorC6.value.copy(getCSSColor('--galaxy-c6', '#a78bfa'));
+		renderMaterial.uniforms.uColorC7.value.copy(getCSSColor('--galaxy-c7', '#8b5cf6'));
+		renderMaterial.uniforms.uColorC8.value.copy(getCSSColor('--galaxy-c8', '#7c3aed'));
+		renderMaterial.uniforms.uColorC9.value.copy(getCSSColor('--galaxy-c9', '#6366f1'));
+		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#818cf8'));
+		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#a5b4fc'));
+		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#c7d2fe'));
 	}
 
 	// ── Render shader ──
@@ -340,17 +340,17 @@ export async function initGpgpuParticles(
 			uPixelRatio: { value: renderer.getPixelRatio() },
 			uIsHovering: { value: 0 },
 			uColorC1: { value: new Color(0xffffff) },
-			uColorC2: { value: new Color(0xffcccc) },
-			uColorC3: { value: new Color(0xff4040) },
-			uColorC4: { value: new Color(0xff8c00) },
-			uColorC5: { value: new Color(0xffd700) },
-			uColorC6: { value: new Color(0x40ff40) },
-			uColorC7: { value: new Color(0x00e5ff) },
-			uColorC8: { value: new Color(0x4080ff) },
-			uColorC9: { value: new Color(0x6040ff) },
-			uColorC10: { value: new Color(0xa020f0) },
-			uColorC11: { value: new Color(0xff40ff) },
-			uColorC12: { value: new Color(0x1a0033) },
+			uColorC2: { value: new Color(0xf5f0ff) },
+			uColorC3: { value: new Color(0xede4ff) },
+			uColorC4: { value: new Color(0xe0d0ff) },
+			uColorC5: { value: new Color(0xc4b5fd) },
+			uColorC6: { value: new Color(0xa78bfa) },
+			uColorC7: { value: new Color(0x8b5cf6) },
+			uColorC8: { value: new Color(0x7c3aed) },
+			uColorC9: { value: new Color(0x6366f1) },
+			uColorC10: { value: new Color(0x818cf8) },
+			uColorC11: { value: new Color(0xa5b4fc) },
+			uColorC12: { value: new Color(0xc7d2fe) },
 			uAlpha: { value: 1.0 },
 			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
 		},
@@ -582,7 +582,7 @@ export async function initGpgpuParticles(
 	// Sync galaxy colors with CSS seasonal variables
 	updateGalaxyColors();
 	const seasonObserver = new MutationObserver(() => updateGalaxyColors());
-	seasonObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	seasonObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	return () => {
 		cancelAnimationFrame(raf);

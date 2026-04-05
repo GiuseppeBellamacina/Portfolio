@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { setSeason, resetSeason } from '$lib/stores/seasonStore';
-
-	let { forceShow = false }: { forceShow?: boolean } = $props();
+	import { onMount, tick } from 'svelte';
+	import { currentSeason, setSeason } from '$lib/stores/seasonStore';
 
 	let showSnow = $state(false);
 	let snowContainer = $state<HTMLDivElement>();
+	let snowInterval: ReturnType<typeof setInterval> | undefined;
+	let isDateBased = false;
 
 	function isChristmasPeriod(): boolean {
 		const now = new Date();
@@ -52,37 +52,65 @@
 		snowContainer.appendChild(snowflake);
 	}
 
-	onMount(() => {
-		showSnow = forceShow || isChristmasPeriod();
-
-		if (showSnow) {
-			// Set the season in the store
-			setSeason('snow');
-
-			// Calcola la densità in base alla dimensione dello schermo
-			// Dimensione di riferimento: 1920x1080 (desktop) = 40 fiocchi
+	function startSnow() {
+		if (snowInterval) return;
+		// Wait a tick for the container to bind
+		tick().then(() => {
 			const screenArea = window.innerWidth * window.innerHeight;
-			const referenceArea = 1920 * 1080; // Area di riferimento
+			const referenceArea = 1920 * 1080;
 			const densityFactor = screenArea / referenceArea;
-			const initialFlakes = Math.max(12, Math.floor(40 * densityFactor)); // Minimo 12 fiocchi
+			const initialFlakes = Math.max(12, Math.floor(40 * densityFactor));
 
-			// Crea fiocchi iniziali
 			for (let i = 0; i < initialFlakes; i++) {
 				setTimeout(() => createSnowflake(), i * 200);
 			}
 
-			// Continua a creare nuovi fiocchi (anche la frequenza è proporzionale)
-			const interval = setInterval(() => {
+			snowInterval = setInterval(() => {
 				if (document.hidden) return;
 				if (Math.random() > 0.78) {
 					createSnowflake();
 				}
 			}, 500);
-			resetSeason();
+		});
+	}
 
-			return () => {
-				clearInterval(interval);
-			};
+	function stopSnow() {
+		if (snowInterval) {
+			clearInterval(snowInterval);
+			snowInterval = undefined;
+		}
+		if (snowContainer) {
+			snowContainer.innerHTML = '';
+		}
+	}
+
+	onMount(() => {
+		if (isChristmasPeriod()) {
+			isDateBased = true;
+			showSnow = true;
+			setSeason('snow');
+			startSnow();
+		}
+
+		return () => {
+			stopSnow();
+		};
+	});
+
+	// React to terminal theme commands
+	$effect(() => {
+		const season = $currentSeason;
+		if (season === 'snow' && !showSnow) {
+			showSnow = true;
+			startSnow();
+		} else if (season !== 'snow' && showSnow && !isDateBased) {
+			showSnow = false;
+			stopSnow();
+		} else if (season !== 'snow' && showSnow && isDateBased) {
+			// Date-based was overridden by another theme
+			showSnow = false;
+			stopSnow();
+			isDateBased = false;
 		}
 	});
 </script>

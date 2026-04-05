@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { setSeason, resetSeason } from '$lib/stores/seasonStore';
-
-	let { forceShow = false }: { forceShow?: boolean } = $props();
+	import { currentSeason, setSeason } from '$lib/stores/seasonStore';
 
 	let showNewYear = $state(false);
 	let canvas = $state<HTMLCanvasElement>();
+	let effectCleanup: (() => void) | undefined;
+	let isDateBased = false;
 
 	function isNewYearPeriod(): boolean {
 		const now = new Date();
@@ -239,19 +239,44 @@
 		};
 	}
 
-	onMount(() => {
-		showNewYear = forceShow || isNewYearPeriod();
+	function startFireworks() {
+		if (effectCleanup) return;
+		tick().then(() => {
+			effectCleanup = initFireworks();
+		});
+	}
 
-		if (showNewYear) {
+	function stopFireworks() {
+		effectCleanup?.();
+		effectCleanup = undefined;
+	}
+
+	onMount(() => {
+		if (isNewYearPeriod()) {
+			isDateBased = true;
+			showNewYear = true;
 			setSeason('newyear');
-			let cleanup: (() => void) | undefined;
-			tick().then(() => {
-				cleanup = initFireworks();
-			});
-			return () => {
-				cleanup?.();
-				resetSeason();
-			};
+			startFireworks();
+		}
+
+		return () => {
+			stopFireworks();
+		};
+	});
+
+	// React to terminal theme commands
+	$effect(() => {
+		const season = $currentSeason;
+		if (season === 'newyear' && !showNewYear) {
+			showNewYear = true;
+			startFireworks();
+		} else if (season !== 'newyear' && showNewYear && !isDateBased) {
+			showNewYear = false;
+			stopFireworks();
+		} else if (season !== 'newyear' && showNewYear && isDateBased) {
+			showNewYear = false;
+			stopFireworks();
+			isDateBased = false;
 		}
 	});
 </script>

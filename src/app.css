@@ -31,19 +31,19 @@
 	--hero-glow-1: rgba(var(--indigo-rgb), 0.12);
 	--hero-glow-2: rgba(var(--secondary-rgb), 0.1);
 	--hero-glow-3: rgba(var(--neon-pink-rgb), 0.06);
-	/* Galaxy particle gradient (center → edge) — 12-stop rainbow */
+	/* Galaxy particle gradient (center → edge) — 12-stop violet/indigo */
 	--galaxy-c1: #ffffff;
-	--galaxy-c2: #ffcccc;
-	--galaxy-c3: #ff4040;
-	--galaxy-c4: #ff8c00;
-	--galaxy-c5: #ffd700;
-	--galaxy-c6: #40ff40;
-	--galaxy-c7: #00e5ff;
-	--galaxy-c8: #4080ff;
-	--galaxy-c9: #6040ff;
-	--galaxy-c10: #a020f0;
-	--galaxy-c11: #ff40ff;
-	--galaxy-c12: #cecece;
+	--galaxy-c2: #f5f0ff;
+	--galaxy-c3: #ede4ff;
+	--galaxy-c4: #e0d0ff;
+	--galaxy-c5: #c4b5fd;
+	--galaxy-c6: #a78bfa;
+	--galaxy-c7: #8b5cf6;
+	--galaxy-c8: #7c3aed;
+	--galaxy-c9: #6366f1;
+	--galaxy-c10: #818cf8;
+	--galaxy-c11: #a5b4fc;
+	--galaxy-c12: #c7d2fe;
 }
 
 /* ── Seasonal Theme Overrides ─────────────────────────────────────────────── */

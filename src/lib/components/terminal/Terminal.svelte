@@ -4,6 +4,7 @@
 	import { t as tStore, lang } from '$lib/i18n';
 	import type { Translations } from '$lib/i18n';
 	import './terminal.css';
+	import { setSeason, resetSeason } from '$lib/stores/seasonStore';
 	import {
 		type HistoryEntry,
 		type Song,
@@ -149,6 +150,10 @@
 					{
 						type: 'html',
 						text: `<span class="cmd-name">music</span> [-l]    ${tr.term_helpMusic}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">themes</span>        ${tr.term_helpThemes}`
 					},
 					{ type: 'output', text: '' },
 					{ type: 'output', text: tr.term_helpHidden }
@@ -484,6 +489,135 @@
 			case 'hi':
 			case 'ciao':
 				return [{ type: 'output', text: tr.term_hello }];
+
+			case 'themes':
+			case 'theme':
+			case 'temi':
+				return [
+					{ type: 'output', text: tr.term_themesTitle },
+					{
+						type: 'html',
+						text: '<span class="cmd-name">default</span>                   🌌 Violet/Indigo'
+					},
+					{
+						type: 'html',
+						text: '<span class="cmd-name">rainbow</span> <span class="cmt">(arcobaleno)</span>    🌈 Rainbow'
+					},
+					{
+						type: 'html',
+						text: '<span class="cmd-name">christmas</span> <span class="cmt">(natale)</span>     🎄 Christmas Red/Gold'
+					},
+					{
+						type: 'html',
+						text: '<span class="cmd-name">summer</span> <span class="cmt">(estate)</span>        ☀️ Summer Cyan/Gold'
+					},
+					{
+						type: 'html',
+						text: '<span class="cmd-name">newyear</span> <span class="cmt">(capodanno)</span>    🎆 New Year Gold/Blue'
+					},
+					{ type: 'output', text: '' },
+					{ type: 'output', text: tr.term_themesUsage },
+					{
+						type: 'html',
+						text: `<span class="cmt">${tr.term_themesTemp}</span>`
+					}
+				];
+
+			case 'rainbow':
+			case 'arcobaleno': {
+				// Apply rainbow CSS variables directly as inline overrides
+				const rainbowVars: Record<string, string> = {
+					'--galaxy-c1': '#ffffff',
+					'--galaxy-c2': '#ffcccc',
+					'--galaxy-c3': '#ff4040',
+					'--galaxy-c4': '#ff8c00',
+					'--galaxy-c5': '#ffd700',
+					'--galaxy-c6': '#40ff40',
+					'--galaxy-c7': '#00e5ff',
+					'--galaxy-c8': '#4080ff',
+					'--galaxy-c9': '#6040ff',
+					'--galaxy-c10': '#a020f0',
+					'--galaxy-c11': '#ff40ff',
+					'--galaxy-c12': '#cecece'
+				};
+				for (const [k, v] of Object.entries(rainbowVars)) {
+					document.body.style.setProperty(k, v);
+				}
+				return [
+					{
+						type: 'html',
+						text: `🌈 ${tr.term_themeApplied} <span class="cmd-name">Rainbow</span>`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmt">${tr.term_themesTemp}</span>`
+					}
+				];
+			}
+
+			case 'christmas':
+			case 'natale':
+				// Clear any inline rainbow overrides, then set season
+				for (let i = 1; i <= 12; i++) {
+					document.body.style.removeProperty(`--galaxy-c${i}`);
+				}
+				setSeason('snow');
+				return [
+					{
+						type: 'html',
+						text: `🎄 ${tr.term_themeApplied} <span class="cmd-name">Christmas</span>`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmt">${tr.term_themesTemp}</span>`
+					}
+				];
+
+			case 'summer':
+			case 'estate':
+				for (let i = 1; i <= 12; i++) {
+					document.body.style.removeProperty(`--galaxy-c${i}`);
+				}
+				setSeason('summer');
+				return [
+					{
+						type: 'html',
+						text: `☀️ ${tr.term_themeApplied} <span class="cmd-name">Summer</span>`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmt">${tr.term_themesTemp}</span>`
+					}
+				];
+
+			case 'newyear':
+			case 'capodanno':
+				for (let i = 1; i <= 12; i++) {
+					document.body.style.removeProperty(`--galaxy-c${i}`);
+				}
+				setSeason('newyear');
+				return [
+					{
+						type: 'html',
+						text: `🎆 ${tr.term_themeApplied} <span class="cmd-name">New Year</span>`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmt">${tr.term_themesTemp}</span>`
+					}
+				];
+
+			case 'default':
+				for (let i = 1; i <= 12; i++) {
+					document.body.style.removeProperty(`--galaxy-c${i}`);
+				}
+				resetSeason();
+				return [
+					{
+						type: 'html',
+						text: `🌌 ${tr.term_themeDefault}`
+					}
+				];
 
 			default:
 				return [{ type: 'error', text: `${tr.term_notFound} ${cmd}. ${tr.term_typeHelp}` }];
