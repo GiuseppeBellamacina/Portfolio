@@ -497,7 +497,7 @@
 					{ type: 'output', text: tr.term_themesTitle },
 					{
 						type: 'html',
-						text: '<span class="cmd-name">default</span>                 🌌 Violet/Indigo'
+						text: '<span class="cmd-name">default</span>                🌌 Violet/Indigo'
 					},
 					{
 						type: 'html',
