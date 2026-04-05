@@ -318,11 +318,17 @@ export async function initGpgpuParticles(
 
 	function updateGalaxyColors() {
 		renderMaterial.uniforms.uColorC1.value.copy(getCSSColor('--galaxy-c1', '#ffffff'));
-		renderMaterial.uniforms.uColorC2.value.copy(getCSSColor('--galaxy-c2', '#f0e0ff'));
-		renderMaterial.uniforms.uColorC3.value.copy(getCSSColor('--galaxy-c3', '#e879f9'));
-		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#818cf8'));
-		renderMaterial.uniforms.uColorC5.value.copy(getCSSColor('--galaxy-c5', '#a78bfa'));
-		renderMaterial.uniforms.uColorC6.value.copy(getCSSColor('--galaxy-c6', '#1e1b4b'));
+		renderMaterial.uniforms.uColorC2.value.copy(getCSSColor('--galaxy-c2', '#ffcccc'));
+		renderMaterial.uniforms.uColorC3.value.copy(getCSSColor('--galaxy-c3', '#ff4040'));
+		renderMaterial.uniforms.uColorC4.value.copy(getCSSColor('--galaxy-c4', '#ff8c00'));
+		renderMaterial.uniforms.uColorC5.value.copy(getCSSColor('--galaxy-c5', '#ffd700'));
+		renderMaterial.uniforms.uColorC6.value.copy(getCSSColor('--galaxy-c6', '#40ff40'));
+		renderMaterial.uniforms.uColorC7.value.copy(getCSSColor('--galaxy-c7', '#00e5ff'));
+		renderMaterial.uniforms.uColorC8.value.copy(getCSSColor('--galaxy-c8', '#4080ff'));
+		renderMaterial.uniforms.uColorC9.value.copy(getCSSColor('--galaxy-c9', '#6040ff'));
+		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#a020f0'));
+		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#ff40ff'));
+		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#1a0033'));
 	}
 
 	// ── Render shader ──
@@ -334,11 +340,17 @@ export async function initGpgpuParticles(
 			uPixelRatio: { value: renderer.getPixelRatio() },
 			uIsHovering: { value: 0 },
 			uColorC1: { value: new Color(0xffffff) },
-			uColorC2: { value: new Color(0xf0e0ff) },
-			uColorC3: { value: new Color(0xe879f9) },
-			uColorC4: { value: new Color(0x818cf8) },
-			uColorC5: { value: new Color(0xa78bfa) },
-			uColorC6: { value: new Color(0x1e1b4b) },
+			uColorC2: { value: new Color(0xffcccc) },
+			uColorC3: { value: new Color(0xff4040) },
+			uColorC4: { value: new Color(0xff8c00) },
+			uColorC5: { value: new Color(0xffd700) },
+			uColorC6: { value: new Color(0x40ff40) },
+			uColorC7: { value: new Color(0x00e5ff) },
+			uColorC8: { value: new Color(0x4080ff) },
+			uColorC9: { value: new Color(0x6040ff) },
+			uColorC10: { value: new Color(0xa020f0) },
+			uColorC11: { value: new Color(0xff40ff) },
+			uColorC12: { value: new Color(0x1a0033) },
 			uAlpha: { value: 1.0 },
 			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
 		},
@@ -401,6 +413,12 @@ export async function initGpgpuParticles(
             uniform vec3 uColorC4;
             uniform vec3 uColorC5;
             uniform vec3 uColorC6;
+            uniform vec3 uColorC7;
+            uniform vec3 uColorC8;
+            uniform vec3 uColorC9;
+            uniform vec3 uColorC10;
+            uniform vec3 uColorC11;
+            uniform vec3 uColorC12;
             uniform float uAlpha;
             uniform float uIsMobile;
 
@@ -413,12 +431,18 @@ export async function initGpgpuParticles(
                     dist = length(vLocalPos.xy) / 8.0;
                 }
 
-                // 6-stop gradient: center → edge
-                vec3 col = mix(uColorC1, uColorC2, smoothstep(0.0, 0.06, dist));
-                col = mix(col, uColorC3, smoothstep(0.06, 0.15, dist));
-                col = mix(col, uColorC4, smoothstep(0.15, 0.35, dist));
-                col = mix(col, uColorC5, smoothstep(0.35, 0.6, dist));
-                col = mix(col, uColorC6, smoothstep(0.6, 1.0, dist));
+                // 12-stop rainbow gradient: center → edge
+                vec3 col = mix(uColorC1, uColorC2, smoothstep(0.0, 0.03, dist));
+                col = mix(col, uColorC3, smoothstep(0.03, 0.08, dist));
+                col = mix(col, uColorC4, smoothstep(0.08, 0.15, dist));
+                col = mix(col, uColorC5, smoothstep(0.15, 0.22, dist));
+                col = mix(col, uColorC6, smoothstep(0.22, 0.32, dist));
+                col = mix(col, uColorC7, smoothstep(0.32, 0.42, dist));
+                col = mix(col, uColorC8, smoothstep(0.42, 0.52, dist));
+                col = mix(col, uColorC9, smoothstep(0.52, 0.62, dist));
+                col = mix(col, uColorC10, smoothstep(0.62, 0.72, dist));
+                col = mix(col, uColorC11, smoothstep(0.72, 0.85, dist));
+                col = mix(col, uColorC12, smoothstep(0.85, 1.0, dist));
 
                 col += vec3(vVelocity * 0.8);
 
