@@ -15,9 +15,7 @@ export function initLang() {
 	} else if (navigator.language.toLowerCase().startsWith('it')) {
 		lang.set('it');
 	}
-}
-
-if (browser) {
+	// Start persisting only after the real language has been detected
 	lang.subscribe(($lang) => {
 		localStorage.setItem('portfolio-lang', $lang);
 		document.documentElement.lang = $lang;
