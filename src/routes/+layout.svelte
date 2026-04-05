@@ -2,8 +2,10 @@
 	import '../app.css';
 	import '../lib/performance.css';
 	import { dev } from '$app/environment';
+	import { onMount } from 'svelte';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
+	import { initLang } from '$lib/i18n';
 	import { currentSeason } from '$lib/stores/seasonStore';
 	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
 	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
@@ -17,6 +19,10 @@
 	injectSpeedInsights();
 
 	let { children } = $props();
+
+	onMount(() => {
+		initLang();
+	});
 
 	// Apply seasonal CSS class on <body>
 	$effect(() => {

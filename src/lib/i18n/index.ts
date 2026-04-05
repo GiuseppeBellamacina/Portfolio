@@ -3,16 +3,19 @@ import { browser } from '$app/environment';
 
 export type Lang = 'en' | 'it';
 
-function getInitialLang(): Lang {
-	if (browser) {
-		const saved = localStorage.getItem('portfolio-lang');
-		if (saved === 'it' || saved === 'en') return saved;
-		if (navigator.language.toLowerCase().startsWith('it')) return 'it';
-	}
-	return 'en';
-}
+// Always start as 'en' so SSR and hydration produce the same DOM
+export const lang = writable<Lang>('en');
 
-export const lang = writable<Lang>(getInitialLang());
+/** Call from onMount in the root layout to detect the real language after hydration */
+export function initLang() {
+	if (!browser) return;
+	const saved = localStorage.getItem('portfolio-lang');
+	if (saved === 'it' || saved === 'en') {
+		lang.set(saved);
+	} else if (navigator.language.toLowerCase().startsWith('it')) {
+		lang.set('it');
+	}
+}
 
 if (browser) {
 	lang.subscribe(($lang) => {
