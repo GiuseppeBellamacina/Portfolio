@@ -85,8 +85,11 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'Seaborn', icon: 'seaborn-1.svg', url: 'https://seaborn.pydata.org/' },
 			{ name: 'Plotly', icon: 'plotly.png', url: 'https://plotly.com/' },
 			{ name: 'OpenCV', icon: 'opencv-original.svg', url: 'https://opencv.org/' },
+			{ name: 'Pillow', icon: 'pillow-logo-248x250.png', url: 'https://pillow.readthedocs.io/' },
 			{ name: 'spaCy', icon: 'spacy.png', url: 'https://spacy.io/' },
 			{ name: 'NLTK', icon: 'nltk.png', url: 'https://www.nltk.org/' },
+			{ name: 'Streamlit', icon: 'streamlit-mark-color.svg', url: 'https://streamlit.io/' },
+			{ name: 'Gradio', icon: 'gradio-color.png', url: 'https://www.gradio.app/' },
 			{ name: 'LangChain', icon: 'langchain.jpg', url: 'https://www.langchain.com/' },
 			{
 				name: 'LangGraph',
@@ -103,6 +106,11 @@ export const skillCategories: SkillCategory[] = [
 				icon: 'huggingface-2-removebg-preview.png',
 				url: 'https://huggingface.co/'
 			},
+			{
+				name: 'Kaggle',
+				icon: 'kaggle-original-wordmark.svg',
+				url: 'https://www.kaggle.com/'
+			},
 			{ name: 'TRL', icon: 'logo-trl.png', url: 'https://huggingface.co/docs/trl/' },
 			{
 				name: 'Unsloth',
@@ -110,16 +118,6 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://unsloth.ai/'
 			},
 			{ name: 'vLLM', icon: 'vLLM-Full-Logo.svg', url: 'https://docs.vllm.ai/' },
-			{
-				name: 'Kaggle',
-				icon: 'kaggle-original-wordmark.svg',
-				url: 'https://www.kaggle.com/'
-			},
-			{
-				name: 'Google Colab',
-				icon: 'google-colab-icon.webp',
-				url: 'https://colab.research.google.com/'
-			},
 			{ name: 'Ollama', icon: 'white_bg_ollamalogo.png', url: 'https://ollama.com/' },
 			{ name: 'Meta', icon: 'meta-6871457_1280.webp', url: 'https://ai.meta.com/' },
 			{ name: 'OpenAI', icon: 'white_bg_openai-2.png', url: 'https://openai.com/' },
@@ -143,8 +141,9 @@ export const skillCategories: SkillCategory[] = [
 		title: 'Frameworks & Libraries',
 		emoji: '🌐',
 		icons: [
-			{ name: 'Svelte', icon: 'svelte.svg', url: 'https://svelte.dev/' },
+			{ name: 'Svelte', icon: 'svelte.png', url: 'https://svelte.dev/' },
 			{ name: 'React', icon: 'react.png', url: 'https://react.dev/' },
+			{ name: 'Three.js', icon: 'three.png', url: 'https://threejs.org/' },
 			{
 				name: 'Node.js',
 				icon: 'free-node-js-icon-svg-download-png-1174935.webp',
@@ -157,13 +156,15 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://flask.palletsprojects.com/'
 			},
 			{ name: 'Quart', icon: 'quart.png', url: 'https://quart.palletsprojects.com/' },
-			{ name: 'Uvicorn', icon: 'white_bg_uvicorn.png', url: 'https://www.uvicorn.org/' },
-			{ name: 'Streamlit', icon: 'streamlit-mark-color.svg', url: 'https://streamlit.io/' },
-			{ name: 'Gradio', icon: 'gradio-color.png', url: 'https://www.gradio.app/' },
 			{
 				name: 'Requests',
 				icon: 'Requests_Python_Logo.png',
 				url: 'https://requests.readthedocs.io/'
+			},
+			{
+				name: 'BeautifulSoup',
+				icon: 'beautifulsoup.jpg',
+				url: 'https://www.crummy.com/software/BeautifulSoup/'
 			},
 			{ name: 'Selenium', icon: 'selenium-original.svg', url: 'https://www.selenium.dev/' },
 			{ name: 'Pytest', icon: 'pytest.png', url: 'https://pytest.org/' }
@@ -195,11 +196,6 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://neo4j.com/'
 			},
 			{
-				name: 'PHPMyAdmin',
-				icon: 'white_bg_phpmyadmin-thumb.png',
-				url: 'https://www.phpmyadmin.net/'
-			},
-			{
 				name: 'SQLAlchemy',
 				icon: 'white_bg_sqlalchemy-original-wordmark.png',
 				url: 'https://www.sqlalchemy.org/'
@@ -227,6 +223,9 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://github.com/features/actions'
 			},
 			{ name: 'Docker', icon: 'docker-original.svg', url: 'https://www.docker.com/' },
+			{ name: 'Vite', icon: 'vite.svg', url: 'https://vite.dev/' },
+			{ name: 'Vercel', icon: 'Vercel_favicon.svg', url: 'https://vercel.com/' },
+			{ name: 'Render', icon: 'render.jpeg', url: 'https://render.com/' },
 			{ name: 'VirtualBox', icon: 'virtualbox.png', url: 'https://www.virtualbox.org/' },
 			{ name: 'AWS', icon: 'aws.webp', url: 'https://aws.amazon.com/' },
 			{
@@ -236,8 +235,14 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{ name: 'Poetry', icon: 'poetry.png', url: 'https://python-poetry.org/' },
 			{ name: 'uv', icon: 'uv.svg', url: 'https://docs.astral.sh/uv/' },
+			{ name: 'Uvicorn', icon: 'white_bg_uvicorn.png', url: 'https://www.uvicorn.org/' },
 			{ name: 'npm', icon: 'npm.webp', url: 'https://www.npmjs.com/' },
-			{ name: 'Bun', icon: 'bun.png', url: 'https://bun.sh/' }
+			{ name: 'Bun', icon: 'bun.png', url: 'https://bun.sh/' },
+			{
+				name: 'PHPMyAdmin',
+				icon: 'white_bg_phpmyadmin-thumb.png',
+				url: 'https://www.phpmyadmin.net/'
+			}
 		]
 	},
 	{
@@ -265,6 +270,11 @@ export const skillCategories: SkillCategory[] = [
 				name: 'Jupyter',
 				icon: 'jupyter-original-wordmark-removebg-preview.png',
 				url: 'https://jupyter.org/'
+			},
+			{
+				name: 'Google Colab',
+				icon: 'google-colab-icon.webp',
+				url: 'https://colab.research.google.com/'
 			},
 			{ name: 'Unity', icon: 'white_bg_unity-original.png', url: 'https://unity.com/' },
 			{
@@ -301,7 +311,8 @@ export const skillCategories: SkillCategory[] = [
 				name: 'Burp Suite',
 				icon: 'burp.png',
 				url: 'https://portswigger.net/burp'
-			}
+			},
+			{ name: 'Nmap', icon: 'nmap.jpg', url: 'https://nmap.org/' }
 		]
 	}
 ];
