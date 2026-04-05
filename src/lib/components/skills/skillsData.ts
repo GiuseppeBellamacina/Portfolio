@@ -143,6 +143,7 @@ export const skillCategories: SkillCategory[] = [
 		title: 'Frameworks & Libraries',
 		emoji: '🌐',
 		icons: [
+			{ name: 'Svelte', icon: 'svelte.svg', url: 'https://svelte.dev/' },
 			{ name: 'React', icon: 'react.png', url: 'https://react.dev/' },
 			{
 				name: 'Node.js',
