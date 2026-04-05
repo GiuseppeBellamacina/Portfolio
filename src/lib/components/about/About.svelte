@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
 	import Terminal from '../terminal/Terminal.svelte';
 	import { createNeuralNetworkViz, createMobileParticles } from './neuralNetwork';
 	import './about.css';
@@ -75,29 +76,17 @@
 	<canvas class="neural-canvas" bind:this={canvasElement}></canvas>
 	<div class="container">
 		<!-- Title -->
-		<h2 class="section-title about-block" class:show={revealed[0]} data-idx="0">About Me</h2>
+		<h2 class="section-title about-block" class:show={revealed[0]} data-idx="0">
+			{$t.about_title}
+		</h2>
 
 		<div class="about-content">
 			<!-- Bio card (glassmorphism) -->
 			<div class="bio-card about-block" class:show={revealed[1]} data-idx="1">
-				<p>
-					Hi there! 👋 I'm Giuseppe, a Computer Science student at the University of Catania. I'm
-					passionate about <strong>Artificial Intelligence</strong> and
-					<strong>Cybersecurity</strong>, always diving into new challenges and exploring the
-					unknown.
-				</p>
-				<p>
-					Most of the time, I just end up doing weird stuff because, well... <strong
-						>Sbaddu Supecchiu</strong
-					>.
-				</p>
-				<p>
-					I'm a huge fan of Marvel and Star Wars universe, but I'm just as obsessed with anime and
-					way too many other things to list here. I also have a deep love for video games.
-				</p>
-				<p>
-					Oh, and I have a thing for cars. I drive. <em>(Yes, I'm Ryan Gosling)</em>.
-				</p>
+				<p>{@html $t.about_p1}</p>
+				<p>{@html $t.about_p2}</p>
+				<p>{@html $t.about_p3}</p>
+				<p>{@html $t.about_p4}</p>
 			</div>
 
 			<!-- Interactive terminal -->

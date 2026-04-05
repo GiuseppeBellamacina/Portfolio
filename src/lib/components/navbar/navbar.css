@@ -42,6 +42,15 @@
 	position: relative;
 }
 
+/* Language toggle — fixed to the right edge, vertically centered in navbar */
+.desktop-lang {
+	position: absolute;
+	right: 1.25rem;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 1001;
+}
+
 .nav-brand {
 	font-size: 1.5rem;
 	font-weight: bold;
@@ -94,6 +103,36 @@
 	display: none;
 }
 
+/* Language toggle */
+.lang-toggle {
+	background: none;
+	border: none;
+	padding: 0.25rem;
+	cursor: pointer;
+	line-height: 1;
+	transition: transform 0.3s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+.lang-toggle:hover {
+	transform: scale(1.15);
+}
+.desktop-lang:hover {
+	transform: translateY(-50%) scale(1.15);
+}
+.flag-icon {
+	width: 1.5em;
+	height: 1.1em;
+	border-radius: 2px;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+	vertical-align: middle;
+}
+/* Hide mobile-lang on desktop */
+.mobile-lang {
+	display: none;
+}
+
 .hamburger {
 	display: none;
 	flex-direction: column;
@@ -132,6 +171,15 @@
 	/* Nascondi il menu desktop */
 	.desktop-menu {
 		display: none !important;
+	}
+
+	.desktop-lang {
+		display: none;
+	}
+
+	.mobile-lang {
+		display: inline-flex;
+		margin-right: 0.75rem;
 	}
 
 	/* Mostra il mobile menu wrapper */

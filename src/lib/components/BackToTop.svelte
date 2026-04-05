@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
 
 	let visible = false;
 
@@ -28,8 +29,8 @@
 	class="back-to-top"
 	class:visible
 	on:click={scrollToTop}
-	aria-label="Back to top"
-	title="Back to top"
+	aria-label={$t.backToTop}
+	title={$t.backToTop}
 >
 	<i class="fas fa-arrow-up"></i>
 </button>

@@ -1,10 +1,23 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-	import { projects as initialProjects, cardGradients, type Project } from './projectsData';
+	import { onMount, tick, untrack } from 'svelte';
+	import { t, lang } from '$lib/i18n';
+	import { getProjects, cardGradients, type Project } from './projectsData';
 	import './projects.css';
 
 	let isVisible = false;
-	let projects = $state<Project[]>([...initialProjects]);
+	let projects = $state<Project[]>([...getProjects('en')]);
+
+	// Keep projects in sync with language
+	$effect(() => {
+		const currentLang = $lang;
+		const newProjects = getProjects(currentLang);
+		const oldProjects = untrack(() => projects);
+		projects = newProjects.map((p, i) => ({
+			...p,
+			stars: oldProjects[i]?.stars,
+			starsLoaded: oldProjects[i]?.starsLoaded
+		}));
+	});
 
 	// ─── View mode ──────────────────────────────────────────────────────────────
 	let viewMode = $state<'carousel' | 'grid'>('carousel');
@@ -291,10 +304,11 @@
 		return cardGradients[(idx >= 0 ? idx : 0) % cardGradients.length];
 	}
 	function getLinkLabel(type: string): string {
-		if (type === 'download') return 'Download';
-		if (type === 'youtube') return 'Watch';
-		if (type === 'hackathon') return 'Hackathon';
-		return 'Demo';
+		const tr = $t;
+		if (type === 'download') return tr.proj_download;
+		if (type === 'youtube') return tr.proj_watch;
+		if (type === 'hackathon') return tr.proj_hackathon;
+		return tr.proj_demo;
 	}
 
 	function toggleView() {
@@ -302,10 +316,15 @@
 			stopAutoPlay();
 			stopSnapAnimation();
 			viewMode = 'grid';
+			tick().then(() => {
+				sectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			});
 		} else {
 			viewMode = 'carousel';
-			// Restart carousel auto-play after switching back
-			tick().then(() => startAutoPlay());
+			tick().then(() => {
+				startAutoPlay();
+				sectionEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			});
 		}
 	}
 
@@ -343,7 +362,7 @@
 	bind:this={sectionEl}
 >
 	<div class="container">
-		<h2 class="section-title">Personal Projects</h2>
+		<h2 class="section-title">{$t.proj_title}</h2>
 	</div>
 
 	<!-- Desktop: Carousel / Grid -->
@@ -409,7 +428,7 @@
 						<div class="pcard-overlay"></div>
 						<div class="pcard-shine"></div>
 						{#if project.isHackathonWinner}
-							<span class="pcard-badge">🏆 Winner</span>
+							<span class="carousel-badge">{$t.proj_winner}</span>
 						{/if}
 						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
 							<span class="pcard-stars">⭐ {project.stars}</span>
@@ -487,7 +506,7 @@
 				<div class="exp-voverlay"></div>
 				<button class="exp-close" onclick={closePanel} aria-label="Close">✕</button>
 				{#if expandedProject.isHackathonWinner}
-					<span class="exp-trophy">🏆 Hackathon Winner</span>
+					<span class="exp-trophy">{$t.proj_hackathonWinner}</span>
 				{/if}
 				<div class="exp-title-area">
 					<span class="exp-icon">{expandedProject.icon}</span>
@@ -504,7 +523,7 @@
 				</div>
 				<div class="exp-footer">
 					{#if expandedProject.starsLoaded && expandedProject.stars !== undefined}
-						<span class="exp-stars">⭐ {expandedProject.stars} stars</span>
+						<span class="exp-stars">⭐ {expandedProject.stars} {$t.proj_stars}</span>
 					{:else}
 						<span></span>
 					{/if}
@@ -527,7 +546,8 @@
 							rel="noopener noreferrer"
 							class="exp-link exp-link-primary"
 						>
-							<i class="fab fa-github"></i> View on GitHub
+							<i class="fab fa-github"></i>
+							{$t.proj_viewOnGithub}
 						</a>
 					</div>
 				</div>
@@ -542,13 +562,14 @@
 				target="_blank"
 				class="btn btn-primary"
 			>
-				<i class="fab fa-github"></i> View All Repos
+				<i class="fab fa-github"></i>
+				{$t.proj_viewAllRepos}
 			</a>
 			<button class="btn btn-secondary" onclick={toggleView}>
 				{#if viewMode === 'carousel'}
-					<i class="fas fa-th"></i> Show Grid
+					<i class="fas fa-th"></i> {$t.proj_showGrid}
 				{:else}
-					<i class="fas fa-stream"></i> Show Carousel
+					<i class="fas fa-stream"></i> {$t.proj_showCarousel}
 				{/if}
 			</button>
 		</div>

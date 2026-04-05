@@ -1,3 +1,5 @@
+import type { Lang } from '$lib/i18n';
+
 export interface TimelineItem {
 	type: 'work' | 'education';
 	icon: string;
@@ -8,7 +10,7 @@ export interface TimelineItem {
 	highlights: string[];
 }
 
-export const timelineItems: TimelineItem[] = [
+const timelineItemsEN: TimelineItem[] = [
 	{
 		type: 'education',
 		icon: 'fas fa-graduation-cap',
@@ -88,3 +90,87 @@ export const timelineItems: TimelineItem[] = [
 		highlights: []
 	}
 ];
+
+const timelineItemsIT: TimelineItem[] = [
+	{
+		type: 'education',
+		icon: 'fas fa-graduation-cap',
+		date: '2025 - Presente',
+		title: 'Laurea Magistrale in Machine Learning e Intelligenza Artificiale',
+		subtitle: 'Università degli Studi di Catania',
+		description: "Studi avanzati in tecnologie e metodologie AI all'avanguardia",
+		highlights: [
+			'Deep Learning e Architetture di Reti Neurali',
+			'Elaborazione del Linguaggio Naturale e Computer Vision',
+			'Reinforcement Learning e Sistemi Multi-Agente'
+		]
+	},
+	{
+		type: 'work',
+		icon: 'fas fa-laptop-code',
+		date: 'Settembre 2025 - Presente',
+		title: 'AI Developer',
+		subtitle: 'RICCA IT',
+		description: 'Sviluppo di soluzioni AI innovative e sistemi intelligenti',
+		highlights: [
+			'Progettazione e implementazione di applicazioni basate su AI',
+			'Integrazione di modelli di machine learning in sistemi di produzione',
+			'Collaborazione con team interfunzionali su progetti AI'
+		]
+	},
+	{
+		type: 'work',
+		icon: 'fas fa-briefcase',
+		date: 'Dicembre 2024 - Maggio 2025',
+		title: 'Artificial Intelligence Engineer & Data Scientist',
+		subtitle: 'Intellisync',
+		description: 'Ricerca e Sviluppo AI con focus su sistemi multi-agente e analisi predittiva',
+		highlights: [
+			'Sviluppo e ottimizzazione di architetture multi-agente',
+			'Analisi e ricerca di nuovi campi applicativi per tecnologie AI innovative',
+			'Progettazione e implementazione di prototipi funzionali per validare approcci tecnici',
+			'Data Science & Analisi Predittiva: Analisi avanzata di dati eolici',
+			'Sviluppo di modelli predittivi per stima delle perdite energetiche e previsione guasti',
+			'Identificazione di pattern e anomalie tramite reti neurali e machine learning'
+		]
+	},
+	{
+		type: 'work',
+		icon: 'fas fa-code',
+		date: 'Giugno 2024 - Novembre 2024',
+		title: 'Ricerca e Sviluppo AI',
+		subtitle: 'Intellisync - Tirocinio Aziendale',
+		description: 'Progettazione e sviluppo di sistemi chatbot avanzati basati su RAG',
+		highlights: [
+			'Sviluppo di chatbot basati su tecniche di Retrieval-Augmented Generation (RAG)',
+			"Analisi delle esigenze del cliente per definire l'architettura del sistema",
+			'Definizione dei requisiti funzionali e delle specifiche tecniche'
+		]
+	},
+	{
+		type: 'education',
+		icon: 'fas fa-graduation-cap',
+		date: '2021 - 2024',
+		title: 'Laurea Triennale in Informatica',
+		subtitle: 'Università degli Studi di Catania',
+		description: 'Laureato con lode, specializzazione in Elaborazione Dati e Applicazioni',
+		highlights: [
+			'Voto di Laurea: 110 e Lode',
+			'Focus su Intelligenza Artificiale, Machine Learning e Data Science',
+			'Corsi avanzati in Reti Neurali e Deep Learning'
+		]
+	},
+	{
+		type: 'education',
+		icon: 'fas fa-school',
+		date: '2016 - 2021',
+		title: 'Diploma di Maturità',
+		subtitle: 'Liceo Archimede, Acireale (CT)',
+		description: 'Solida formazione in matematica e scienze',
+		highlights: []
+	}
+];
+
+export function getTimelineItems(lang: Lang): TimelineItem[] {
+	return lang === 'it' ? timelineItemsIT : timelineItemsEN;
+}

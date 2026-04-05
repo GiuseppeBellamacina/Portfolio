@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { t as tStore } from '$lib/i18n';
 
 	let mounted = $state(false);
 	let glitchActive = $state(false);
@@ -11,14 +13,17 @@
 	const status = $derived(page.status);
 	const message = $derived(page.error?.message ?? 'Page not found');
 
-	const bootSequence = [
-		'> Initializing system diagnostic...',
-		'> Scanning route table............',
-		`> ERROR ${page.status}: ${page.error?.message ?? 'Page not found'}`,
-		'> Requested path: ' + (typeof window !== 'undefined' ? window.location.pathname : '???'),
-		'> Stack trace: REDACTED',
-		'> Suggestion: Return to base /'
-	];
+	function getBootSequence() {
+		const tr = get(tStore);
+		return [
+			tr.error_boot1,
+			tr.error_boot2,
+			`> ERROR ${page.status}: ${page.error?.message ?? 'Page not found'}`,
+			'> Requested path: ' + (typeof window !== 'undefined' ? window.location.pathname : '???'),
+			tr.error_boot5,
+			tr.error_boot6
+		];
+	}
 
 	function triggerGlitch() {
 		glitchActive = true;
@@ -169,6 +174,7 @@
 		requestAnimationFrame(() => (mounted = true));
 
 		// Boot sequence animation
+		const bootSequence = getBootSequence();
 		let i = 0;
 		const interval = setInterval(() => {
 			if (i < bootSequence.length) {
@@ -226,10 +232,12 @@
 		<!-- Action buttons -->
 		<div class="error-actions">
 			<a href="/" class="btn btn-primary">
-				<i class="fas fa-home"></i> Torna alla Home
+				<i class="fas fa-home"></i>
+				{$tStore.error_home}
 			</a>
 			<button class="btn btn-secondary" onclick={() => history.back()}>
-				<i class="fas fa-arrow-left"></i> Indietro
+				<i class="fas fa-arrow-left"></i>
+				{$tStore.error_back}
 			</button>
 		</div>
 	</div>

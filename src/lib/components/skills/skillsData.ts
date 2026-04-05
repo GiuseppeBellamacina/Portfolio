@@ -5,6 +5,7 @@ export interface TechIcon {
 }
 
 export interface SkillCategory {
+	key: string;
 	title: string;
 	emoji: string;
 	icons: TechIcon[];
@@ -12,6 +13,7 @@ export interface SkillCategory {
 
 export const skillCategories: SkillCategory[] = [
 	{
+		key: 'skills_languages',
 		title: 'Languages',
 		emoji: '🔤',
 		icons: [
@@ -58,6 +60,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_aiml',
 		title: 'AI/ML & Data Science',
 		emoji: '🤖',
 		icons: [
@@ -136,6 +139,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_frameworks',
 		title: 'Frameworks & Libraries',
 		emoji: '🌐',
 		icons: [
@@ -165,6 +169,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_databases',
 		title: 'Databases',
 		emoji: '🗃️',
 		icons: [
@@ -201,6 +206,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_devops',
 		title: 'DevOps & Tools',
 		emoji: '🛠️',
 		icons: [
@@ -234,6 +240,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_ides',
 		title: 'IDEs & Editors',
 		emoji: '🖥️',
 		icons: [
@@ -267,6 +274,7 @@ export const skillCategories: SkillCategory[] = [
 		]
 	},
 	{
+		key: 'skills_os',
 		title: 'Operating Systems & Security',
 		emoji: '💻',
 		icons: [

@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { currentSeason } from '$lib/stores/seasonStore';
-	import { baseTexts, seasonalGreetings } from './heroData';
+	import { t, lang } from '$lib/i18n';
+	import { getBaseTexts, getSeasonalGreetings } from './heroData';
 	import { initGpgpuParticles } from './gpgpuParticles';
 	import { startTypingEffect } from './typingEffect';
 	import './hero.css';
@@ -16,9 +17,10 @@
 
 	function getTexts(): string[] {
 		const season = get(currentSeason);
-		const greetings = seasonalGreetings[season];
-		if (!greetings) return baseTexts;
-		const texts = [...baseTexts];
+		const currentLang = get(lang);
+		const greetings = getSeasonalGreetings(currentLang)[season];
+		const texts = [...getBaseTexts(currentLang)];
+		if (!greetings) return texts;
 		for (let i = 0; i < greetings.length; i++) {
 			const pos = Math.floor((texts.length / (greetings.length + 1)) * (i + 1));
 			texts.splice(pos, 0, greetings[i]);
@@ -27,11 +29,9 @@
 	}
 
 	onMount(() => {
-		let texts = getTexts();
-		const unsubscribe = currentSeason.subscribe(() => {
-			texts = getTexts();
-		});
-		startTypingEffect(texts, (t) => (typingText = t));
+		const unsubSeason = currentSeason.subscribe(() => {});
+		const unsubLang = lang.subscribe(() => {});
+		startTypingEffect(getTexts, (t) => (typingText = t));
 
 		let cleanup: (() => void) | undefined;
 		const idle =
@@ -45,7 +45,8 @@
 
 		requestAnimationFrame(() => (mounted = true));
 		return () => {
-			unsubscribe();
+			unsubSeason();
+			unsubLang();
 			if ('cancelIdleCallback' in window) cancelIdleCallback(idle as number);
 			else clearTimeout(idle as number);
 			cleanup?.();
@@ -103,10 +104,11 @@
 					document
 						.querySelector('#experience')
 						?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-				}}>View Experience</a
+				}}>{$t.hero_viewExperience}</a
 			>
 			<a href="/assets/cv.pdf" download="Giuseppe_Bellamacina_CV.pdf" class="btn btn-secondary">
-				<i class="fas fa-download"></i> Download CV
+				<i class="fas fa-download"></i>
+				{$t.hero_downloadCV}
 			</a>
 			<a href="https://github.com/GiuseppeBellamacina" target="_blank" class="btn btn-secondary">
 				<i class="fab fa-github"></i> GitHub

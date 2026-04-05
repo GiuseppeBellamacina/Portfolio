@@ -1,23 +1,33 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { timelineItems } from './experienceData';
+	import { t, lang } from '$lib/i18n';
+	import { getTimelineItems } from './experienceData';
 	import { createBinaryRain } from './binaryRain';
 	import './experience.css';
 
 	let experienceSection: HTMLElement;
 	let isVisible = false;
-	let visibleItems: boolean[] = [];
+	let visibleItems = $state<boolean[]>([]);
 	let canvasEl: HTMLCanvasElement;
 	let rafId = 0;
+
+	const timelineItems = $derived(getTimelineItems($lang));
+
+	let itemDirs = $state<('up' | 'down')[]>([]);
+
+	$effect(() => {
+		const len = timelineItems.length;
+		if (visibleItems.length !== len) {
+			visibleItems = timelineItems.map(() => false);
+			itemDirs = timelineItems.map(() => 'down' as const);
+		}
+	});
 
 	function sizeCanvas() {
 		if (!canvasEl || !experienceSection) return;
 		canvasEl.width = experienceSection.clientWidth;
 		canvasEl.height = experienceSection.clientHeight;
 	}
-
-	visibleItems = timelineItems.map(() => false);
-	let itemDirs: ('up' | 'down')[] = timelineItems.map(() => 'down');
 
 	onMount(() => {
 		sizeCanvas();
@@ -89,11 +99,12 @@
 <section id="experience" class="experience" bind:this={experienceSection}>
 	<canvas class="binary-canvas" bind:this={canvasEl}></canvas>
 	<div class="container">
-		<h2 class="section-title">Experience & Education</h2>
+		<h2 class="section-title">{$t.exp_title}</h2>
 
 		<div class="cv-download">
 			<a href="/assets/cv.pdf" download="Giuseppe_Bellamacina_CV.pdf" class="btn btn-primary">
-				<i class="fas fa-download"></i> Download CV
+				<i class="fas fa-download"></i>
+				{$t.exp_downloadCV}
 			</a>
 		</div>
 
@@ -127,9 +138,9 @@
 						{/if}
 						<span class="tl-type-badge">
 							{#if item.type === 'work'}
-								<i class="fas fa-briefcase"></i> Work
+								<i class="fas fa-briefcase"></i> {$t.exp_work}
 							{:else}
-								<i class="fas fa-book"></i> Education
+								<i class="fas fa-book"></i> {$t.exp_education}
 							{/if}
 						</span>
 					</div>

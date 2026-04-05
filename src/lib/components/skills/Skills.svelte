@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
+	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from './skillsData';
 	import { createCanvasConstellation } from './skillsConstellation';
 	import './skills.css';
@@ -93,11 +95,11 @@
 
 <section id="skills" class="skills" bind:this={skillsSection}>
 	<div class="container">
-		<h2 class="section-title">Tech Stack</h2>
+		<h2 class="section-title">{$t.skills_title}</h2>
 
 		{#each skillCategories as category}
 			<div class="skills-category">
-				<h3>{category.emoji} {category.title}</h3>
+				<h3>{category.emoji} {$t[category.key as keyof Translations]}</h3>
 				<div class="skills-grid">
 					{#each category.icons as icon}
 						<a href={icon.url} target="_blank" rel="noopener noreferrer" class="tech-icon-link">

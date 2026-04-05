@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { get } from 'svelte/store';
+	import { t as tStore, lang } from '$lib/i18n';
+	import type { Translations } from '$lib/i18n';
 	import './terminal.css';
 	import {
 		type HistoryEntry,
 		type Song,
 		projectEntries,
 		bootLines,
+		getBootHelpText,
 		completableCommands,
 		musicCatalog
 	} from './terminalData';
@@ -66,12 +70,13 @@
 		}
 		inputLocked = true;
 		(async () => {
+			const tr = get(tStore);
 			const titleHtml = song.url
 				? `<a href="${song.url}" target="_blank" rel="noopener noreferrer" class="song-title">${song.title}</a>`
 				: `<span class="song-title">${song.title}</span>`;
 			await pushLine({
 				type: 'html',
-				text: `🎵 Now playing: ${titleHtml} — <span class="song-artist">${song.artist}</span>`
+				text: `🎵 ${tr.term_nowPlaying} ${titleHtml} — <span class="song-artist">${song.artist}</span>`
 			});
 			await delay(400);
 			await pushLines(
@@ -81,7 +86,7 @@
 			await pushLine({ type: 'output', text: '' });
 			await pushLine({
 				type: 'html',
-				text: '<span class="cmt">Tip: music -l to see all available songs</span>'
+				text: `<span class="cmt">${tr.term_musicTipShort}</span>`
 			});
 			inputLocked = false;
 			inputEl?.focus();
@@ -96,34 +101,65 @@
 		const parts = trimmed.split(/\s+/);
 		const cmd = parts[0].toLowerCase();
 		const args = parts.slice(1);
+		const tr = get(tStore);
 
 		switch (cmd) {
 			case 'help':
 				return [
-					{ type: 'output', text: 'Available commands:' },
-					{ type: 'html', text: '<span class="cmd-name">help</span>          Show this message' },
-					{ type: 'html', text: '<span class="cmd-name">about</span>         Who is Giuseppe?' },
-					{ type: 'html', text: '<span class="cmd-name">skills</span>        List tech skills' },
-					{ type: 'html', text: '<span class="cmd-name">contact</span>       Contact info' },
-					{ type: 'html', text: '<span class="cmd-name">projects</span>      Current projects' },
-					{ type: 'html', text: '<span class="cmd-name">socials</span>       Social links' },
-					{ type: 'html', text: '<span class="cmd-name">whoami</span>        Identity check' },
-					{ type: 'html', text: '<span class="cmd-name">date</span>          Current date' },
-					{ type: 'html', text: '<span class="cmd-name">echo</span> [text]   Repeat after me' },
-					{ type: 'html', text: '<span class="cmd-name">clear</span>         Clear terminal' },
-					{ type: 'html', text: '<span class="cmd-name">neofetch</span>      System info' },
-					{ type: 'html', text: '<span class="cmd-name">anime</span>         Random anime pick' },
-					{ type: 'html', text: '<span class="cmd-name">music</span> [-l]    Play a random song' },
+					{ type: 'output', text: tr.term_helpTitle },
+					{ type: 'html', text: `<span class="cmd-name">help</span>          ${tr.term_helpHelp}` },
+					{
+						type: 'html',
+						text: `<span class="cmd-name">about</span>         ${tr.term_helpAbout}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">skills</span>        ${tr.term_helpSkills}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">contact</span>       ${tr.term_helpContact}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">projects</span>      ${tr.term_helpProjects}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">socials</span>       ${tr.term_helpSocials}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">whoami</span>        ${tr.term_helpWhoami}`
+					},
+					{ type: 'html', text: `<span class="cmd-name">date</span>          ${tr.term_helpDate}` },
+					{ type: 'html', text: `<span class="cmd-name">echo</span> [text]   ${tr.term_helpEcho}` },
+					{
+						type: 'html',
+						text: `<span class="cmd-name">clear</span>         ${tr.term_helpClear}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">neofetch</span>      ${tr.term_helpNeofetch}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">anime</span>         ${tr.term_helpAnime}`
+					},
+					{
+						type: 'html',
+						text: `<span class="cmd-name">music</span> [-l]    ${tr.term_helpMusic}`
+					},
 					{ type: 'output', text: '' },
-					{ type: 'output', text: '...and maybe some hidden ones 👀' }
+					{ type: 'output', text: tr.term_helpHidden }
 				];
 
 			case 'about':
 				return [
-					{ type: 'output', text: '👋 Giuseppe Bellamacina' },
-					{ type: 'output', text: 'CS Student @ University of Catania' },
-					{ type: 'output', text: 'Passionate about AI/ML & Cybersecurity' },
-					{ type: 'output', text: 'Also known as: Ryan Gosling' }
+					{ type: 'output', text: tr.term_aboutName },
+					{ type: 'output', text: tr.term_aboutStudent },
+					{ type: 'output', text: tr.term_aboutPassion },
+					{ type: 'output', text: tr.term_aboutAlias }
 				];
 
 			case 'skills':
@@ -243,18 +279,19 @@
 			// ── Easter eggs ──
 
 			case 'sudo':
-				return [{ type: 'error', text: "Nice try. You don't have root access here 😏" }];
+				return [{ type: 'error', text: tr.term_sudo }];
 
 			case 'rm':
 				if (args.includes('-rf') || args.includes('-rf/')) {
-					return [{ type: 'error', text: '🚨 NICE TRY! This portfolio is rm-proof.' }];
+					return [{ type: 'error', text: tr.term_rmrf }];
 				}
-				return [{ type: 'error', text: 'Permission denied. This is a read-only filesystem.' }];
+				return [{ type: 'error', text: tr.term_rmDenied }];
 
 			case 'hack': {
 				inputLocked = true;
 				(async () => {
-					await pushLine({ type: 'output', text: '🔓 Initializing hack sequence...' });
+					const tr2 = get(tStore);
+					await pushLine({ type: 'output', text: tr2.term_hackInit });
 					await delay(500);
 
 					/* animated progress bar */
@@ -274,10 +311,10 @@
 
 					await delay(300);
 					await pushLine({ type: 'output', text: '' });
-					await pushLine({ type: 'output', text: 'ACCESS GRANTED ✅' });
+					await pushLine({ type: 'output', text: tr2.term_hackGranted });
 					await delay(600);
 					await pushLine({ type: 'output', text: '' });
-					await pushLine({ type: 'output', text: 'Just kidding. But I do study cybersecurity 😎' });
+					await pushLine({ type: 'output', text: tr2.term_hackJk });
 					inputLocked = false;
 					inputEl?.focus();
 				})();
@@ -288,8 +325,8 @@
 			case 'star':
 				return [
 					{ type: 'ascii', text: '⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣶⣶⣶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀' },
-					{ type: 'output', text: '"Do or do not. There is no try." — Yoda' },
-					{ type: 'output', text: 'May the Force be with you! ⚔️' }
+					{ type: 'output', text: tr.term_starwarsQuote },
+					{ type: 'output', text: tr.term_starwarsForce }
 				];
 
 			case 'anime': {
@@ -318,13 +355,13 @@
 					'Sakamoto Days',
 					'Call of the Night'
 				];
-				return [{ type: 'output', text: `🎌 You should watch: ${smartPick('anime', animeList)}` }];
+				return [{ type: 'output', text: `${tr.term_animeWatch} ${smartPick('anime', animeList)}` }];
 			}
 
 			case 'music':
 			case 'musica':
 				if (args[0] === '-l' || args[0] === '-ls') {
-					const lines: HistoryEntry[] = [{ type: 'output', text: '🎵 Available music:' }];
+					const lines: HistoryEntry[] = [{ type: 'output', text: tr.term_musicAvailable }];
 					for (const [key, songs] of Object.entries(musicCatalog)) {
 						const unique = [...new Set(songs.map((s) => s.title))];
 						lines.push({
@@ -335,7 +372,7 @@
 					lines.push({ type: 'output', text: '' });
 					lines.push({
 						type: 'output',
-						text: 'Tip: type an artist name directly to play their music.'
+						text: tr.term_musicTipArtist
 					});
 					return lines;
 				}
@@ -358,9 +395,9 @@
 			case 'gosling':
 			case 'ryan':
 				return [
-					{ type: 'output', text: '🏎️ *puts on scorpion jacket*' },
-					{ type: 'output', text: '*stares intensely*' },
-					{ type: 'output', text: '"I drive." — The Driver' },
+					{ type: 'output', text: tr.term_driveJacket },
+					{ type: 'output', text: tr.term_driveStare },
+					{ type: 'output', text: tr.term_driveQuote },
 					{ type: 'output', text: '' },
 					{
 						type: 'html',
@@ -374,26 +411,26 @@
 						type: 'html',
 						text: '💊 <span style="color:#ff4444;font-weight:bold">Red pill</span> or <span style="color:#4488ff;font-weight:bold">blue pill</span>?'
 					},
-					{ type: 'output', text: 'You chose to visit this portfolio.' },
+					{ type: 'output', text: tr.term_matrixChose },
 					{
 						type: 'html',
-						text: 'You\'re already in the <span style="color:#00ff41;font-weight:bold">Matrix</span>.'
+						text: `${tr.term_matrixIn} <span style="color:#00ff41;font-weight:bold">Matrix</span>.`
 					},
-					{ type: 'output', text: 'Wake up, Neo...' }
+					{ type: 'output', text: tr.term_matrixWake }
 				];
 
 			case 'sbaddu':
 			case 'supecchiu':
 				return [
-					{ type: 'output', text: '🤌 SBADDU SUPECCHIU!' },
-					{ type: 'output', text: 'If you know, you know.' }
+					{ type: 'output', text: tr.term_sbaddu },
+					{ type: 'output', text: tr.term_sbadduKnow }
 				];
 
 			case 'exit':
 			case 'quit':
 				return [
-					{ type: 'output', text: 'There is no escape from this portfolio.' },
-					{ type: 'output', text: "You're stuck here forever. Enjoy! 🔒" }
+					{ type: 'output', text: tr.term_exitNo },
+					{ type: 'output', text: tr.term_exitStuck }
 				];
 
 			case 'cat':
@@ -407,13 +444,13 @@
 						{ type: 'output', text: 'done' }
 					];
 				}
-				return [{ type: 'error', text: `cat: ${args[0] || ''}: No such file or directory` }];
+				return [{ type: 'error', text: `cat: ${args[0] || ''}: ${tr.term_catNotFound}` }];
 
 			case 'pwd':
 				return [{ type: 'output', text: '/home/visitor/giuseppe-portfolio' }];
 
 			case 'cd':
-				return [{ type: 'output', text: "You're already where you need to be." }];
+				return [{ type: 'output', text: tr.term_cdHere }];
 
 			case 'ping':
 				return [
@@ -439,19 +476,17 @@
 				return [
 					{
 						type: 'output',
-						text: 'The Answer to the Ultimate Question of Life, the Universe, and Everything.'
+						text: tr.term_42answer
 					}
 				];
 
 			case 'hello':
 			case 'hi':
 			case 'ciao':
-				return [{ type: 'output', text: 'Hey there! 👋 Welcome to my portfolio!' }];
+				return [{ type: 'output', text: tr.term_hello }];
 
 			default:
-				return [
-					{ type: 'error', text: `command not found: ${cmd}. Type "help" for available commands.` }
-				];
+				return [{ type: 'error', text: `${tr.term_notFound} ${cmd}. ${tr.term_typeHelp}` }];
 		}
 	}
 
@@ -539,7 +574,8 @@
 	}
 
 	onMount(() => {
-		history = [...bootLines];
+		const currentLang = get(lang);
+		history = [...bootLines, { type: 'output', text: getBootHelpText(currentLang) }];
 	});
 </script>
 

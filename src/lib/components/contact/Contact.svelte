@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import './contact.css';
 
 	interface ContactLink {
@@ -28,8 +29,8 @@
 
 <section id="contact" class="contact">
 	<div class="container">
-		<h2 class="section-title">Get In Touch</h2>
-		<p class="contact-text">I'm always open to new opportunities and collaborations!</p>
+		<h2 class="section-title">{$t.contact_title}</h2>
+		<p class="contact-text">{$t.contact_subtitle}</p>
 		<div class="contact-links">
 			{#each contactLinks as link}
 				<a href={link.href} target="_blank" class="contact-btn">
