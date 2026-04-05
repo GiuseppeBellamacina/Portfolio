@@ -131,6 +131,9 @@
 /* Hide mobile-lang on desktop */
 .mobile-lang {
 	display: none;
+	color: var(--text-light);
+	font-size: 1.1rem;
+	padding: 0.5rem 0;
 }
 
 .hamburger {
@@ -179,7 +182,6 @@
 
 	.mobile-lang {
 		display: inline-flex;
-		margin-right: 0.75rem;
 	}
 
 	/* Mostra il mobile menu wrapper */

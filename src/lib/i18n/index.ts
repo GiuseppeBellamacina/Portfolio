@@ -49,7 +49,7 @@ const translations = {
 			'Most of the time, I just end up doing weird stuff because, well... <strong>Sbaddu Supecchiu</strong>.',
 		about_p3:
 			"I'm a huge fan of Marvel and Star Wars universe, but I'm just as obsessed with anime and way too many other things to list here. I also have a deep love for video games.",
-		about_p4: "Oh, and I have a thing for cars. I drive. <em>(Yes, I'm Ryan Gosling)</em>.",
+		about_p4: "Oh, and I have a thing for cars.<br>I drive. <em>(Yes, I'm Ryan Gosling)</em>.",
 
 		// Skills
 		skills_title: 'Tech Stack',
@@ -174,7 +174,7 @@ const translations = {
 			'La maggior parte del tempo finisco per fare cose strane per via dello <strong>Sbaddu Supecchiu</strong>.',
 		about_p3:
 			"Sono un grande fan dell'universo Marvel e Star Wars, ma sono altrettanto ossessionato dagli anime e da troppe altre cose per elencarle tutte. Ho anche una profonda passione per i videogiochi.",
-		about_p4: 'Ah, e ho una cosa per le macchine. I Drive. <em>(Sì, sono Ryan Gosling)</em>.',
+		about_p4: 'Ah, e ho una cosa per le macchine.<br>I Drive. <em>(Sì, sono Ryan Gosling)</em>.',
 
 		// Skills
 		skills_title: 'Tech Stack',
