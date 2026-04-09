@@ -194,6 +194,24 @@ export const projects: Project[] = [
 			icon: 'fas fa-external-link-alt'
 		},
 		image: '/assets/projects/spazzapp.webp'
+	},
+	{
+		icon: '🐚',
+		title: 'Neuron Shell',
+		description:
+			'Interactive online SSH shell with dashboard and commands for interacting with and monitoring the training of various deep learning models.<br><strong>Key features:</strong><ul><li>Web-based SSH terminal for remote server interaction</li><li>Real-time training dashboard with live metrics</li><li>Commands to control and monitor deep learning experiments</li></ul>Built with <strong>SvelteKit</strong> and <strong>TypeScript</strong>. Currently in active development.',
+		techTags: ['SvelteKit', 'TypeScript', 'SSH', 'Deep Learning'],
+		githubUrl: 'https://github.com/GiuseppeBellamacina/NeuronShell',
+		image: '/assets/projects/neuron_shell.webp'
+	},
+	{
+		icon: '🔐',
+		title: 'TunneLLM',
+		description:
+			'Communication via SSH tunnel with a locally hosted LLM, enabling private and secure message exchange.<br><strong>Architecture:</strong><ul><li><strong>Remote GPU server</strong> — runs vLLM serving Qwen2.5-14B-Instruct-AWQ (~9GB 4-bit quantized)</li><li><strong>SSH tunnel</strong> — sshtunnel/paramiko bridge between local and remote</li><li><strong>FastAPI proxy</strong> — local OpenAI-compatible API endpoint</li></ul>Exposes the model as a standard <strong>OpenAI API</strong> for VS Code extensions (Continue, Copilot). Supports streaming chat completions, health checks, and fully configurable SSH/model parameters.',
+		techTags: ['Python', 'FastAPI', 'vLLM', 'SSH'],
+		githubUrl: 'https://github.com/GiuseppeBellamacina/TunneLLM',
+		image: '/assets/projects/tunnellm.webp'
 	}
 ];
 
@@ -227,7 +245,11 @@ const italianDescriptions: string[] = [
 	// EPUB Translator
 	"Strumento CLI che traduce interi e-book <strong>EPUB</strong> usando LLM, preservando ogni dettaglio strutturale dell'originale.<br><strong>Come funziona:</strong><ul><li>Analizza la spine dell'EPUB ed estrae il contenuto HTML per capitolo</li><li>Invia i capitoli all'LLM in batch, mantenendo intatti tutti i tag HTML, stili e formattazione</li><li>Usa sovrapposizione di contesto tra i chunk per mantenere la coerenza narrativa tra i confini dei batch</li><li>Riassembla i capitoli tradotti in un EPUB valido con metadati, copertina e indice originali</li></ul>Gestisce libri di qualsiasi lunghezza con eleganza. Utile per tradurre romanzi, manuali tecnici o articoli accademici senza perdere layout o struttura.",
 	// SpazzApp
-	"Web app <strong>Streamlit</strong> multi-pagina per la generazione automatica di turni di pulizia mensili tra coinquilini (v2.0, completamente riscritta con architettura OOP).<br><strong>L'algoritmo di scheduling assegna un punteggio a ogni candidato:</strong><ul><li>+400 pts — stanza mai pulita da questa persona (priorità di rotazione)</li><li>+600 pts — persona con il carico di lavoro corrente più basso (bilanciamento del carico)</li><li>+30/+10 pts — preferenza giorno feriale vs weekend</li><li>Ridistribuzione dinamica delle assenze — ricalcola automaticamente gli obiettivi settimanali</li></ul><strong>Funzionalità:</strong> esclusioni stanza nella prima settimana · cap di 3 assegnazioni/giorno · <strong>calendario PNG</strong> esportabile · statistiche di distribuzione per persona e per stanza."
+	"Web app <strong>Streamlit</strong> multi-pagina per la generazione automatica di turni di pulizia mensili tra coinquilini (v2.0, completamente riscritta con architettura OOP).<br><strong>L'algoritmo di scheduling assegna un punteggio a ogni candidato:</strong><ul><li>+400 pts — stanza mai pulita da questa persona (priorità di rotazione)</li><li>+600 pts — persona con il carico di lavoro corrente più basso (bilanciamento del carico)</li><li>+30/+10 pts — preferenza giorno feriale vs weekend</li><li>Ridistribuzione dinamica delle assenze — ricalcola automaticamente gli obiettivi settimanali</li></ul><strong>Funzionalità:</strong> esclusioni stanza nella prima settimana · cap di 3 assegnazioni/giorno · <strong>calendario PNG</strong> esportabile · statistiche di distribuzione per persona e per stanza.",
+	// Neuron Shell
+	"Shell SSH online interattiva con dashboard e comandi per interagire e monitorare l'addestramento di vari modelli di deep learning.<br><strong>Funzionalità chiave:</strong><ul><li>Terminale SSH web-based per interazione con server remoti</li><li>Dashboard di addestramento in tempo reale con metriche live</li><li>Comandi per controllare e monitorare esperimenti di deep learning</li></ul>Costruito con <strong>SvelteKit</strong> e <strong>TypeScript</strong>. Attualmente in fase di sviluppo attivo.",
+	// TunneLLM
+	'Comunicazione tramite tunnel SSH con un LLM hostato localmente, permettendo scambio di messaggi privato e sicuro.<br><strong>Architettura:</strong><ul><li><strong>Server GPU remoto</strong> — esegue vLLM servendo Qwen2.5-14B-Instruct-AWQ (~9GB 4-bit quantizzato)</li><li><strong>Tunnel SSH</strong> — bridge sshtunnel/paramiko tra locale e remoto</li><li><strong>Proxy FastAPI</strong> — endpoint API compatibile OpenAI in locale</li></ul>Espone il modello come <strong>API OpenAI</strong> standard per estensioni VS Code (Continue, Copilot). Supporta streaming delle chat completions, health check e parametri SSH/modello completamente configurabili.'
 ];
 
 export function getProjects(lang: Lang): Project[] {

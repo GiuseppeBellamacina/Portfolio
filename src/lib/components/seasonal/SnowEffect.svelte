@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { currentSeason, setSeason } from '$lib/stores/seasonStore';
 
+	let { forceShow = false }: { forceShow?: boolean } = $props();
 	let showSnow = $state(false);
 	let snowContainer = $state<HTMLDivElement>();
 	let snowInterval: ReturnType<typeof setInterval> | undefined;
@@ -85,8 +86,8 @@
 	}
 
 	onMount(() => {
-		if (isChristmasPeriod()) {
-			isDateBased = true;
+		if (forceShow || isChristmasPeriod()) {
+			isDateBased = !forceShow;
 			showSnow = true;
 			setSeason('snow');
 			startSnow();

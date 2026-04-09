@@ -27,7 +27,11 @@ export const projectEntries: HistoryEntry[] = [
 	},
 	{
 		type: 'html',
-		text: '<span class="file">trip-planner/</span>        <span class="cmt"># PWA for trip planning</span>'
+		text: '<span class="file">neuron-shell/</span>       <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/NeuronShell" target="_blank" rel="noopener noreferrer">Interactive SSH shell for DL training</a></span>'
+	},
+	{
+		type: 'html',
+		text: '<span class="file">tunnellm/</span>            <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/TunneLLM" target="_blank" rel="noopener noreferrer">Secure LLM via SSH tunnel</a></span>'
 	},
 	{
 		type: 'html',

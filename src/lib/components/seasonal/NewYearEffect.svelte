@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { currentSeason, setSeason } from '$lib/stores/seasonStore';
 
+	let { forceShow = false }: { forceShow?: boolean } = $props();
 	let showNewYear = $state(false);
 	let canvas = $state<HTMLCanvasElement>();
 	let effectCleanup: (() => void) | undefined;
@@ -252,8 +253,8 @@
 	}
 
 	onMount(() => {
-		if (isNewYearPeriod()) {
-			isDateBased = true;
+		if (forceShow || isNewYearPeriod()) {
+			isDateBased = !forceShow;
 			showNewYear = true;
 			setSeason('newyear');
 			startFireworks();

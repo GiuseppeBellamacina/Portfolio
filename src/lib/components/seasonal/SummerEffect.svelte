@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { currentSeason, setSeason } from '$lib/stores/seasonStore';
 
+	let { forceShow = false }: { forceShow?: boolean } = $props();
 	let showSummer = $state(false);
 	let canvas = $state<HTMLCanvasElement>();
 	let effectCleanup: (() => void) | undefined;
@@ -148,8 +149,8 @@
 	}
 
 	onMount(() => {
-		if (isSummerPeriod()) {
-			isDateBased = true;
+		if (forceShow || isSummerPeriod()) {
+			isDateBased = !forceShow;
 			showSummer = true;
 			setSeason('summer');
 			startFireflies();

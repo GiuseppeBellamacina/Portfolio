@@ -1,6 +1,6 @@
 /* Skills Section with Space Background */
 .skills {
-	padding: 100px 0;
+	padding: clamp(60px, 4rem + 2vw, 100px) 0;
 	background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 80%, var(--bg-dark) 100%);
 	position: relative;
 	overflow: hidden;
@@ -178,7 +178,7 @@
 }
 
 .skills-category {
-	margin-bottom: 3rem;
+	margin-bottom: clamp(1.5rem, 1rem + 1vw, 3rem);
 	position: relative;
 	z-index: 1;
 	opacity: 0;
@@ -194,8 +194,8 @@
 }
 
 .skills-category h3 {
-	font-size: 1.4rem;
-	margin-bottom: 2rem;
+	font-size: clamp(1.1rem, 0.9rem + 0.3vw, 1.4rem);
+	margin-bottom: clamp(1.2rem, 1rem + 0.5vw, 2rem);
 	color: var(--primary-color);
 	letter-spacing: -0.01em;
 	font-weight: 600;
@@ -220,7 +220,7 @@
 .skills-grid {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 2rem;
+	gap: clamp(1.2rem, 0.8rem + 0.6vw, 2rem);
 	padding: 1rem;
 	justify-content: flex-start;
 }
@@ -232,10 +232,10 @@
 
 .tech-icon {
 	position: relative;
-	min-width: 90px;
-	max-width: 120px;
+	min-width: clamp(75px, 4.5rem + 0.8vw, 90px);
+	max-width: clamp(95px, 6rem + 1vw, 120px);
 	width: fit-content;
-	height: 110px;
+	height: clamp(90px, 5.5rem + 1vw, 110px);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -308,8 +308,8 @@
 }
 
 .tech-icon img {
-	width: 50px;
-	height: 50px;
+	width: clamp(38px, 2.5rem + 0.5vw, 50px);
+	height: clamp(38px, 2.5rem + 0.5vw, 50px);
 	object-fit: contain;
 	transition: all 0.2s ease;
 	filter: drop-shadow(0 0 3px rgba(var(--primary-rgb), 0.15));

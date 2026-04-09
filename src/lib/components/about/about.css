@@ -1,7 +1,7 @@
 /* About Section */
 .about {
 	min-height: 100vh;
-	padding: 100px 0;
+	padding: clamp(60px, 4rem + 2vw, 100px) 0;
 	background: var(--bg-dark);
 	position: relative;
 	overflow: hidden;
@@ -130,7 +130,7 @@
 	-webkit-backdrop-filter: blur(12px);
 	border: 1px solid rgba(var(--primary-rgb), 0.08);
 	border-radius: 16px;
-	padding: 2rem 2.2rem;
+	padding: clamp(1.4rem, 1rem + 0.6vw, 2rem) clamp(1.5rem, 1rem + 0.8vw, 2.2rem);
 	margin-bottom: 2rem;
 	position: relative;
 	overflow: hidden;
@@ -178,7 +178,7 @@
 	}
 }
 .bio-card p {
-	font-size: 1.1rem;
+	font-size: clamp(0.95rem, 0.85rem + 0.2vw, 1.1rem);
 	line-height: 1.8;
 	color: var(--text-light);
 	margin-bottom: 1rem;

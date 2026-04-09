@@ -318,7 +318,7 @@ body::after {
 
 /* ── Shared Button Styles ── */
 .btn {
-	padding: 12px 30px;
+	padding: clamp(10px, 0.5rem + 0.2vw, 12px) clamp(22px, 1rem + 0.8vw, 30px);
 	border-radius: 50px;
 	text-decoration: none;
 	font-weight: bold;
@@ -412,9 +412,9 @@ body::after {
 
 /* ── Shared Section Title ── */
 .section-title {
-	font-size: 2.8rem;
+	font-size: clamp(2.2rem, 1.6rem + 1vw, 2.8rem);
 	text-align: center;
-	margin-bottom: 3rem;
+	margin-bottom: clamp(2rem, 1.5rem + 0.8vw, 3rem);
 	background: var(--gradient-1);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;

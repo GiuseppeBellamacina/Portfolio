@@ -1,12 +1,12 @@
 /* Contact Section */
 .contact {
-	padding: 100px 0;
+	padding: clamp(60px, 4rem + 2vw, 100px) 0;
 	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 40%, var(--bg-card) 100%);
 	text-align: center;
 }
 
 .contact-text {
-	font-size: 1.2rem;
+	font-size: clamp(1rem, 0.85rem + 0.2vw, 1.2rem);
 	color: var(--text-muted);
 	margin-bottom: 2rem;
 }
@@ -19,7 +19,7 @@
 }
 
 .contact-btn {
-	padding: 15px 35px;
+	padding: clamp(12px, 0.7rem + 0.2vw, 15px) clamp(25px, 1.5rem + 0.5vw, 35px);
 	background: rgba(var(--bg-card-rgb), 0.6);
 	color: var(--text-light);
 	text-decoration: none;
@@ -29,7 +29,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 10px;
-	font-size: 1.1rem;
+	font-size: clamp(0.95rem, 0.8rem + 0.2vw, 1.1rem);
 	backdrop-filter: blur(8px);
 }
 

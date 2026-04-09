@@ -52,7 +52,7 @@
 }
 
 .nav-brand {
-	font-size: 1.5rem;
+	font-size: clamp(1.2rem, 0.9rem + 0.4vw, 1.5rem);
 	font-weight: bold;
 	background: var(--gradient-3);
 	-webkit-background-clip: text;
@@ -69,7 +69,7 @@
 .nav-menu {
 	display: flex;
 	list-style: none;
-	gap: 2rem;
+	gap: clamp(1.2rem, 0.8rem + 0.6vw, 2rem);
 }
 
 .nav-menu a {
