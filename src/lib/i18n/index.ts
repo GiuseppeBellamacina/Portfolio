@@ -89,6 +89,8 @@ const translations = {
 		// Footer
 		footer_built: 'Built with ❤️ and lots of',
 		footer_tagline: '🚀 Always learning, always building.',
+		footer_nav: 'Navigation',
+		footer_social: 'Connect',
 
 		// Back to top
 		backToTop: 'Back to top',
@@ -220,6 +222,8 @@ const translations = {
 		// Footer
 		footer_built: 'Fatto con ❤️ e tanto',
 		footer_tagline: '🚀 Sempre al passo, sempre a costruire.',
+		footer_nav: 'Navigazione',
+		footer_social: 'Connettiti',
 
 		// Back to top
 		backToTop: 'Torna su',

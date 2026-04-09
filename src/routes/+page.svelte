@@ -25,8 +25,11 @@
 <main>
 	<Hero />
 	<About />
+	<div class="section-divider divider-to-card"></div>
 	<Experience />
+	<div class="section-divider divider-to-dark"></div>
 	<Projects />
+	<div class="section-divider divider-to-card"></div>
 	<Skills />
 	<Contact />
 </main>

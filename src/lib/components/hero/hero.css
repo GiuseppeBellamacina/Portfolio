@@ -300,7 +300,39 @@
 	);
 	padding: 2px;
 	animation: holoSpin 4s linear infinite;
-	filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.4));
+	filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.4))
+		drop-shadow(0 0 30px rgba(var(--secondary-rgb), 0.2));
+}
+
+/* Outer glow pulse ring */
+.holo-ring::before {
+	content: '';
+	position: absolute;
+	inset: -8px;
+	border-radius: 50%;
+	background: conic-gradient(
+		from 180deg,
+		transparent,
+		rgba(var(--primary-rgb), 0.15),
+		transparent,
+		rgba(var(--secondary-rgb), 0.1),
+		transparent
+	);
+	animation: holoGlowPulse 3s ease-in-out infinite;
+	filter: blur(6px);
+	z-index: -1;
+}
+
+@keyframes holoGlowPulse {
+	0%,
+	100% {
+		opacity: 0.5;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.08);
+	}
 }
 .holo-ring::after {
 	content: '';

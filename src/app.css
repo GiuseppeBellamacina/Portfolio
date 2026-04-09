@@ -299,6 +299,22 @@ body::after {
 	animation: sectionFadeIn 1s ease-out;
 }
 
+/* ── Section Dividers ── */
+.section-divider {
+	height: 80px;
+	position: relative;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.divider-to-card {
+	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-card) 100%);
+}
+
+.divider-to-dark {
+	background: linear-gradient(180deg, var(--bg-card) 0%, #050510 100%);
+}
+
 @keyframes sectionFadeIn {
 	from {
 		opacity: 0;
@@ -432,7 +448,7 @@ body::after {
 .section-title::after {
 	content: '';
 	display: block;
-	width: 60px;
+	width: 0;
 	height: 3px;
 	margin: 0.8rem auto 0;
 	border-radius: 2px;
@@ -443,7 +459,21 @@ body::after {
 		var(--neon-pink)
 	);
 	background-size: 200% 100%;
-	animation: lineShimmer 3s ease-in-out infinite;
+	animation:
+		lineShimmer 3s ease-in-out infinite,
+		lineExpand 1s 0.6s ease-out forwards;
+	box-shadow:
+		0 0 8px rgba(var(--primary-rgb), 0.4),
+		0 0 20px rgba(var(--secondary-rgb), 0.2);
+}
+
+@keyframes lineExpand {
+	from {
+		width: 0;
+	}
+	to {
+		width: 100px;
+	}
 }
 
 @keyframes lineShimmer {
