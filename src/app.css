@@ -443,6 +443,8 @@ body::after {
 	position: relative;
 	display: inline-block;
 	width: 100%;
+	will-change: transform;
+	transition: transform 0.1s linear;
 }
 
 .section-title::after {

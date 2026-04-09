@@ -88,6 +88,9 @@
 	height: 2px;
 	background: var(--primary-color);
 	transition: width 0.3s;
+	box-shadow:
+		0 0 8px rgba(var(--primary-rgb), 0.6),
+		0 0 16px rgba(var(--primary-rgb), 0.3);
 }
 
 .nav-menu a:hover {

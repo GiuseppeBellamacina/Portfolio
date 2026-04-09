@@ -32,6 +32,24 @@
 		background: linear-gradient(90deg, var(--primary-color), var(--neon-pink), var(--neon-green));
 		z-index: 10000;
 		transition: width 0.1s ease-out;
-		box-shadow: 0 0 10px var(--primary-color);
+		box-shadow:
+			0 0 8px var(--primary-color),
+			0 0 20px rgba(var(--primary-rgb), 0.3);
+	}
+
+	.scroll-progress-bar::after {
+		content: '';
+		position: absolute;
+		right: 0;
+		top: -1px;
+		width: 80px;
+		height: 5px;
+		background: radial-gradient(
+			ellipse at right,
+			rgba(var(--neon-green-rgb), 0.6) 0%,
+			transparent 80%
+		);
+		filter: blur(2px);
+		pointer-events: none;
 	}
 </style>

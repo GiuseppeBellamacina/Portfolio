@@ -60,6 +60,20 @@
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0) scale(1);
+		animation: btnPulseGlow 3s ease-in-out infinite;
+	}
+
+	@keyframes btnPulseGlow {
+		0%,
+		100% {
+			box-shadow: 0 4px 15px rgba(var(--indigo-rgb), 0.12);
+		}
+		50% {
+			box-shadow:
+				0 4px 15px rgba(var(--indigo-rgb), 0.2),
+				0 0 20px rgba(var(--primary-rgb), 0.15),
+				0 0 40px rgba(var(--primary-rgb), 0.06);
+		}
 	}
 
 	.back-to-top:hover {

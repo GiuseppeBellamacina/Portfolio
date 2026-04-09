@@ -35,7 +35,7 @@
 	<div class="container footer-grid">
 		<div class="footer-col footer-brand">
 			<span class="footer-logo">GB</span>
-			<p class="footer-copy">&copy; 2025 Giuseppe Bellamacina</p>
+			<p class="footer-copy">&copy; 2026 Giuseppe Bellamacina</p>
 			<p class="footer-tagline">{$t.footer_tagline}</p>
 		</div>
 

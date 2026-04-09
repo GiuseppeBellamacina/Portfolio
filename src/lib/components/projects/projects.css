@@ -179,6 +179,12 @@
 	padding: 2px 8px;
 	border-radius: 20px;
 	line-height: 1.7;
+	transition: all 0.2s ease;
+}
+.carousel-card-tag:hover {
+	background: rgba(var(--primary-rgb), 0.2);
+	box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+	transform: scale(1.08);
 }
 
 /* ── Navigation arrows ────────────────────────────────────────────────────── */
@@ -446,6 +452,12 @@
 	padding: 2px 8px;
 	border-radius: 20px;
 	line-height: 1.75;
+	transition: all 0.2s ease;
+}
+.exp-tag:hover {
+	background: rgba(var(--primary-rgb), 0.18);
+	box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+	transform: scale(1.08);
 }
 
 .exp-footer {
@@ -723,6 +735,12 @@
 	padding: 2px 8px;
 	border-radius: 20px;
 	line-height: 1.7;
+	transition: all 0.2s ease;
+}
+.pcard-tag:hover {
+	background: rgba(var(--primary-rgb), 0.2);
+	box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+	transform: scale(1.08);
 }
 
 @media (max-width: 768px) {

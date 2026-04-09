@@ -275,20 +275,26 @@
 }
 .tl-item.work .tl-card {
 	border-color: rgba(var(--indigo-rgb), 0.1);
+	box-shadow: 0 2px 20px rgba(var(--indigo-rgb), 0.04);
 }
 .tl-item.education .tl-card {
 	border-color: rgba(var(--secondary-rgb), 0.1);
+	box-shadow: 0 2px 20px rgba(var(--secondary-rgb), 0.04);
 }
 .tl-card:hover {
 	transform: translateY(-4px);
 }
 .tl-item.work .tl-card:hover {
 	border-color: rgba(var(--indigo-rgb), 0.35);
-	box-shadow: 0 8px 30px rgba(var(--indigo-rgb), 0.1);
+	box-shadow:
+		0 8px 30px rgba(var(--indigo-rgb), 0.1),
+		0 0 40px rgba(var(--indigo-rgb), 0.05);
 }
 .tl-item.education .tl-card:hover {
 	border-color: rgba(var(--secondary-rgb), 0.35);
-	box-shadow: 0 8px 30px rgba(var(--secondary-rgb), 0.1);
+	box-shadow:
+		0 8px 30px rgba(var(--secondary-rgb), 0.1),
+		0 0 40px rgba(var(--secondary-rgb), 0.05);
 }
 
 .tl-card-glow {

@@ -15,7 +15,31 @@
 
 	onMount(() => {
 		const cleanup = initSectionSnap();
-		return cleanup;
+
+		// Subtle parallax on section titles
+		const titles = document.querySelectorAll<HTMLElement>('.section-title');
+		let raf: number;
+		function updateParallax() {
+			const vh = window.innerHeight;
+			for (const el of titles) {
+				const rect = el.getBoundingClientRect();
+				const center = rect.top + rect.height / 2;
+				const offset = ((center - vh / 2) / vh) * -12; // max ±12px
+				el.style.transform = `translateY(${offset}px)`;
+			}
+		}
+		function onScroll() {
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(updateParallax);
+		}
+		window.addEventListener('scroll', onScroll, { passive: true });
+		updateParallax();
+
+		return () => {
+			cleanup();
+			window.removeEventListener('scroll', onScroll);
+			cancelAnimationFrame(raf);
+		};
 	});
 </script>
 
