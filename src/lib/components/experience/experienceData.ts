@@ -174,3 +174,29 @@ const timelineItemsIT: TimelineItem[] = [
 export function getTimelineItems(lang: Lang): TimelineItem[] {
 	return lang === 'it' ? timelineItemsIT : timelineItemsEN;
 }
+
+/** Machine-readable work periods for cumulative experience calculation */
+const workPeriods: { start: [number, number]; end?: [number, number] }[] = [
+	// [year, month(1-12)]
+	{ start: [2024, 6], end: [2024, 11] }, // Intellisync Internship
+	{ start: [2024, 12], end: [2025, 5] }, // Intellisync
+	{ start: [2025, 9] } // RICCA IT — ongoing
+];
+
+/** Returns total work experience as { years, months } computed against today */
+export function getTotalWorkExperience(): { years: number; months: number } {
+	const now = new Date();
+	const nowY = now.getFullYear();
+	const nowM = now.getMonth() + 1; // 1-based
+
+	let totalMonths = 0;
+	for (const p of workPeriods) {
+		const [sy, sm] = p.start;
+		const [ey, em] = p.end ?? [nowY, nowM];
+		totalMonths += (ey - sy) * 12 + (em - sm) + 1; // inclusive of both start and end month
+	}
+
+	const years = Math.floor(totalMonths / 12);
+	const months = totalMonths % 12;
+	return { years, months };
+}

@@ -73,7 +73,7 @@
 
 .cv-download {
 	text-align: center;
-	margin-bottom: 3rem;
+	margin-bottom: 1.5rem;
 }
 
 .cv-download .btn {
@@ -82,6 +82,57 @@
 	gap: 0.5rem;
 	display: inline-flex;
 	align-items: center;
+}
+
+/* ── Total work experience badge ── */
+.exp-total {
+	text-align: center;
+	margin-bottom: 3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
+}
+
+.exp-total-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.5rem 1.4rem;
+	border-radius: 50px;
+	background: rgba(15, 18, 35, 0.7);
+	backdrop-filter: blur(14px);
+	border: 1px solid rgba(var(--indigo-rgb), 0.2);
+	box-shadow:
+		0 2px 20px rgba(var(--indigo-rgb), 0.06),
+		0 0 15px rgba(var(--primary-rgb), 0.04);
+	font-size: clamp(0.85rem, 0.75rem + 0.15vw, 0.95rem);
+	font-weight: 600;
+	letter-spacing: 0.5px;
+	color: var(--text-muted);
+	transition:
+		border-color 0.35s ease,
+		box-shadow 0.35s ease;
+}
+
+.exp-total-badge:hover {
+	border-color: rgba(var(--indigo-rgb), 0.4);
+	box-shadow:
+		0 4px 25px rgba(var(--indigo-rgb), 0.12),
+		0 0 30px rgba(var(--primary-rgb), 0.06);
+}
+
+.exp-total-badge i {
+	background: var(--gradient-1);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	font-size: 1em;
+}
+
+.exp-total-badge .exp-value {
+	color: var(--text-light);
+	font-weight: 700;
 }
 
 /* ── Binary rain canvas ── */

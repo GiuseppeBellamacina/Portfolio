@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { t, lang } from '$lib/i18n';
-	import { getTimelineItems } from './experienceData';
+	import { getTimelineItems, getTotalWorkExperience } from './experienceData';
 	import { createBinaryRain } from './binaryRain';
 	import './experience.css';
 
@@ -12,6 +12,13 @@
 	let rafId = 0;
 
 	const timelineItems = $derived(getTimelineItems($lang));
+	const workExp = getTotalWorkExperience();
+
+	/** Pick singular|plural form from "singular | plural" pattern */
+	function plural(template: string, n: number): string {
+		const [singular, pluralForm] = template.split('|').map((s) => s.trim());
+		return (n === 1 ? singular : pluralForm).replace('{n}', String(n));
+	}
 
 	let itemDirs = $state<('up' | 'down')[]>([]);
 
@@ -107,6 +114,26 @@
 				{$t.exp_downloadCV}
 			</a>
 		</div>
+
+		<!-- TODO: re-enable when experience > 3 years
+		<div class="exp-total">
+			<span class="exp-total-badge">
+				<i class="fas fa-briefcase"></i>
+				<span>
+					{$t.exp_totalExperience}:
+					{#if workExp.years > 0}
+						<span class="exp-value">{plural($t.exp_years, workExp.years)}</span>
+					{/if}
+					{#if workExp.years > 0 && workExp.months > 0}
+						{$t.exp_and}
+					{/if}
+					{#if workExp.months > 0}
+						<span class="exp-value">{plural($t.exp_months, workExp.months)}</span>
+					{/if}
+				</span>
+			</span>
+		</div>
+		-->
 
 		<div class="tl">
 			<div class="tl-line"></div>

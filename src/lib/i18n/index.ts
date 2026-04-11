@@ -67,6 +67,10 @@ const translations = {
 		exp_downloadCV: 'Download CV',
 		exp_work: 'Work',
 		exp_education: 'Education',
+		exp_totalExperience: 'Professional Experience',
+		exp_years: '{n} year | {n} years',
+		exp_months: '{n} month | {n} months',
+		exp_and: 'and',
 
 		// Projects
 		proj_title: 'Personal Projects',
@@ -200,6 +204,10 @@ const translations = {
 		exp_downloadCV: 'Scarica CV',
 		exp_work: 'Lavoro',
 		exp_education: 'Formazione',
+		exp_totalExperience: 'Esperienza Professionale',
+		exp_years: '{n} anno | {n} anni',
+		exp_months: '{n} mese | {n} mesi',
+		exp_and: 'e',
 
 		// Projects
 		proj_title: 'Progetti Personali',
