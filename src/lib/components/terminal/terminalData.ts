@@ -15,19 +15,19 @@ export interface Song {
 export const projectEntries: HistoryEntry[] = [
 	{
 		type: 'html',
-		text: '<span class="file">grpo-strict-gen/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
+		text: '<span class="file">grpo-strict-gen/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">image-enhancement/</span>  <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank" rel="noopener noreferrer">Advanced image quality improvement</a></span>'
+		text: '<span class="file">image-enhancement/</span>   <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank" rel="noopener noreferrer">Advanced image quality improvement</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">warehouse-swarm/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System" target="_blank" rel="noopener noreferrer">Multi-agent warehouse optimization</a></span>'
+		text: '<span class="file">warehouse-swarm/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System" target="_blank" rel="noopener noreferrer">Multi-agent warehouse optimization</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">neuron-shell/</span>       <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/NeuronShell" target="_blank" rel="noopener noreferrer">Interactive SSH shell for DL training</a></span>'
+		text: '<span class="file">neuron-shell/</span>        <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/NeuronShell" target="_blank" rel="noopener noreferrer">Interactive SSH shell for DL training</a></span>'
 	},
 	{
 		type: 'html',
