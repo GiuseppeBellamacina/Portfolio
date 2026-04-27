@@ -221,6 +221,15 @@ export const projects: Project[] = [
 		techTags: ['Python', 'FastAPI', 'vLLM', 'SSH'],
 		githubUrl: 'https://github.com/GiuseppeBellamacina/TunneLLM',
 		image: '/assets/projects/tunnellm.webp'
+	},
+	{
+		icon: '⚡',
+		title: 'Fast Query Ranker',
+		description:
+			'Mini-project implementing a <strong>query ranker</strong> using <strong>TF-IDF</strong> and <strong>cosine similarity</strong> in both <strong>C++</strong> and <strong>Python</strong>, with comparative benchmarking.<br><strong>Features:</strong><ul><li>TF-IDF computation on a set of documents</li><li>Ranking via cosine similarity with respect to a query</li><li>Benchmark script to compare C++ and Python performance</li></ul><strong>Benchmark results:</strong> 3.3M documents → <strong>C++</strong>: 35.8s, <strong>Python</strong>: 560.9s (speedup 15.6x).',
+		techTags: ['C++', 'Python', 'TF-IDF', 'Cosine Similarity'],
+		githubUrl: 'https://github.com/GiuseppeBellamacina/fast-query-ranker',
+		image: '/assets/projects/ranker.webp'
 	}
 ];
 
@@ -260,7 +269,9 @@ const italianDescriptions: string[] = [
 	// Neuron Shell
 	"Shell SSH online interattiva con dashboard e comandi per interagire e monitorare l'addestramento di vari modelli di deep learning.<br><strong>Funzionalità chiave:</strong><ul><li>Terminale SSH web-based per interazione con server remoti</li><li>Dashboard di addestramento in tempo reale con metriche live</li><li>Comandi per controllare e monitorare esperimenti di deep learning</li></ul>Costruito con <strong>SvelteKit</strong> e <strong>TypeScript</strong>. Attualmente in fase di sviluppo attivo.",
 	// TunneLLM
-	'Comunicazione tramite tunnel SSH con un LLM hostato localmente, permettendo scambio di messaggi privato e sicuro.<br><strong>Architettura:</strong><ul><li><strong>Server GPU remoto</strong> — esegue vLLM servendo Qwen2.5-14B-Instruct-AWQ (~9GB 4-bit quantizzato)</li><li><strong>Tunnel SSH</strong> — bridge sshtunnel/paramiko tra locale e remoto</li><li><strong>Proxy FastAPI</strong> — endpoint API compatibile OpenAI in locale</li></ul>Espone il modello come <strong>API OpenAI</strong> standard per estensioni VS Code (Continue, Copilot). Supporta streaming delle chat completions, health check e parametri SSH/modello completamente configurabili.'
+	'Comunicazione tramite tunnel SSH con un LLM hostato localmente, permettendo scambio di messaggi privato e sicuro.<br><strong>Architettura:</strong><ul><li><strong>Server GPU remoto</strong> — esegue vLLM servendo Qwen2.5-14B-Instruct-AWQ (~9GB 4-bit quantizzato)</li><li><strong>Tunnel SSH</strong> — bridge sshtunnel/paramiko tra locale e remoto</li><li><strong>Proxy FastAPI</strong> — endpoint API compatibile OpenAI in locale</li></ul>Espone il modello come <strong>API OpenAI</strong> standard per estensioni VS Code (Continue, Copilot). Supporta streaming delle chat completions, health check e parametri SSH/modello completamente configurabili.',
+	// Fast Query Ranker
+	'Mini-progetto che implementa un <strong>query ranker</strong> usando <strong>TF-IDF</strong> e <strong>cosine similarity</strong> sia in <strong>C++</strong> che in <strong>Python</strong>, con benchmark comparativo.<br><strong>Features:</strong><ul><li>Calcolo TF-IDF su un set di documenti</li><li>Ranking tramite similarità coseno rispetto a una query</li><li>Script di benchmark per confrontare le performance tra C++ e Python</li></ul><strong>Risultati benchmark:</strong> 3.3M documenti → <strong>C++</strong>: 35.8s, <strong>Python</strong>: 560.9s (speedup 15.6x).'
 ];
 
 export function getProjects(lang: Lang): Project[] {

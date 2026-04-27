@@ -1,9 +1,5 @@
 # .github/copilot-instructions.md
 
-# Istruzioni per Copilot specifiche per questo progetto.
-
-# Vengono caricate automaticamente da GitHub Copilot in VS Code.
-
 ## Progetto
 
 Portfolio personale di Giuseppe Bellamacina — sito web single-page.
