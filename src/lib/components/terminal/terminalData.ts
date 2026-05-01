@@ -19,23 +19,23 @@ export const projectEntries: HistoryEntry[] = [
 	},
 	{
 		type: 'html',
-		text: '<span class="file">grpo-strict-generation/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
+		text: '<span class="file">grpo-strict-generation/</span>       <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">image-enhancement/</span>   <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank" rel="noopener noreferrer">Advanced image quality improvement</a></span>'
+		text: '<span class="file">image-enhancement/</span>            <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Image-Enhancement" target="_blank" rel="noopener noreferrer">Advanced image quality improvement</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">warehouse-swarm/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System" target="_blank" rel="noopener noreferrer">Multi-agent warehouse optimization</a></span>'
+		text: '<span class="file">warehouse-swarm/</span>              <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System" target="_blank" rel="noopener noreferrer">Multi-agent warehouse optimization</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">world-domination-ai/</span> <span class="cmt"># I\'m joking... maybe</span>'
+		text: '<span class="file">world-domination-ai/</span>          <span class="cmt"># I\'m joking... maybe</span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">survive.sh</span>           <span class="cmt"># chmod +x survive.sh && ./survive.sh</span>'
+		text: '<span class="file">survive.sh</span>                    <span class="cmt"># chmod +x survive.sh && ./survive.sh</span>'
 	}
 ];
 

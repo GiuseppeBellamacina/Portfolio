@@ -370,6 +370,13 @@
 }
 
 /* ── Card inner elements ── */
+.tl-date-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem;
+	margin-bottom: 0.75rem;
+}
 .tl-date {
 	display: inline-block;
 	padding: 0.25rem 0.75rem;
@@ -378,7 +385,6 @@
 	text-transform: uppercase;
 	letter-spacing: 1.2px;
 	border-radius: 6px;
-	margin-bottom: 0.75rem;
 }
 .tl-item.work .tl-date {
 	background: rgba(var(--indigo-rgb), 0.08);
@@ -389,6 +395,28 @@
 	background: rgba(var(--secondary-rgb), 0.08);
 	color: var(--secondary-color);
 	border: 1px solid rgba(var(--secondary-rgb), 0.2);
+}
+
+.tl-duration {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.15rem 0.6rem;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.5px;
+	border-radius: 20px;
+	background: rgba(var(--indigo-rgb), 0.1);
+	color: var(--primary-color);
+	border: 1px solid rgba(var(--indigo-rgb), 0.25);
+}
+.tl-duration--live {
+	background: rgba(var(--indigo-rgb), 0.15);
+	border-color: rgba(var(--indigo-rgb), 0.4);
+}
+.tl-duration i {
+	font-size: 0.65rem;
+	opacity: 0.8;
 }
 
 .tl-title {

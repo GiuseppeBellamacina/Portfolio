@@ -20,6 +20,19 @@
 		return (n === 1 ? singular : pluralForm).replace('{n}', String(n));
 	}
 
+	/** Compute duration label for ongoing work items (durationSince) */
+	function getDuration(since: [number, number], tr: typeof $t): string {
+		const [sy, sm] = since;
+		const now = new Date();
+		const totalMonths = (now.getFullYear() - sy) * 12 + (now.getMonth() + 1 - sm) + 1;
+		const years = Math.floor(totalMonths / 12);
+		const months = totalMonths % 12;
+		const parts: string[] = [];
+		if (years > 0) parts.push(plural(tr.exp_years, years));
+		if (months > 0) parts.push(plural(tr.exp_months, months));
+		return parts.join(` ${tr.exp_and} `);
+	}
+
 	let itemDirs = $state<('up' | 'down')[]>([]);
 
 	$effect(() => {
@@ -152,7 +165,18 @@
 					</div>
 					<div class="tl-card">
 						<div class="tl-card-glow"></div>
-						<span class="tl-date">{item.date}</span>
+						<div class="tl-date-row">
+							<span class="tl-date">{item.date}</span>
+							{#if item.durationFixed}
+								<span class="tl-duration">
+									<i class="fas fa-clock"></i>{item.durationFixed}
+								</span>
+							{:else if item.durationSince}
+								<span class="tl-duration tl-duration--live">
+									<i class="fas fa-clock"></i>{getDuration(item.durationSince, $t)}
+								</span>
+							{/if}
+						</div>
 						<h3 class="tl-title">{item.title}</h3>
 						<h4 class="tl-subtitle">{item.subtitle}</h4>
 						<p class="tl-desc">{item.description}</p>

@@ -8,6 +8,10 @@ export interface TimelineItem {
 	subtitle: string;
 	description: string;
 	highlights: string[];
+	/** Hardcoded localized label for completed experiences, e.g. "6 months" */
+	durationFixed?: string;
+	/** Start date [year, month 1-12] for ongoing experiences — duration auto-calculated */
+	durationSince?: [number, number];
 }
 
 const timelineItemsEN: TimelineItem[] = [
@@ -35,7 +39,8 @@ const timelineItemsEN: TimelineItem[] = [
 			'Design and implementation of AI-powered applications',
 			'Integration of machine learning models into production systems',
 			'Collaboration with cross-functional teams on AI projects'
-		]
+		],
+		durationSince: [2025, 9]
 	},
 	{
 		type: 'work',
@@ -52,7 +57,8 @@ const timelineItemsEN: TimelineItem[] = [
 			'Data Science & Predictive Analytics: Advanced analysis of wind turbine data',
 			'Development of predictive models for energy loss estimation and failure prediction',
 			'Pattern and anomaly identification using neural networks and machine learning'
-		]
+		],
+		durationFixed: '6 months'
 	},
 	{
 		type: 'work',
@@ -65,7 +71,8 @@ const timelineItemsEN: TimelineItem[] = [
 			'Chatbot development based on Retrieval-Augmented Generation (RAG) techniques',
 			'Analysis of customer needs to define system architecture',
 			'Definition of functional requirements and technical specifications'
-		]
+		],
+		durationFixed: '6 months'
 	},
 	{
 		type: 'education',
@@ -116,7 +123,8 @@ const timelineItemsIT: TimelineItem[] = [
 			'Progettazione e implementazione di applicazioni basate su AI',
 			'Integrazione di modelli di machine learning in sistemi di produzione',
 			'Collaborazione con team interfunzionali su progetti AI'
-		]
+		],
+		durationSince: [2025, 9]
 	},
 	{
 		type: 'work',
@@ -132,7 +140,8 @@ const timelineItemsIT: TimelineItem[] = [
 			'Data Science & Analisi Predittiva: Analisi avanzata di dati eolici',
 			'Sviluppo di modelli predittivi per stima delle perdite energetiche e previsione guasti',
 			'Identificazione di pattern e anomalie tramite reti neurali e machine learning'
-		]
+		],
+		durationFixed: '6 mesi'
 	},
 	{
 		type: 'work',
@@ -145,7 +154,8 @@ const timelineItemsIT: TimelineItem[] = [
 			'Sviluppo di chatbot basati su tecniche di Retrieval-Augmented Generation (RAG)',
 			"Analisi delle esigenze del cliente per definire l'architettura del sistema",
 			'Definizione dei requisiti funzionali e delle specifiche tecniche'
-		]
+		],
+		durationFixed: '6 mesi'
 	},
 	{
 		type: 'education',

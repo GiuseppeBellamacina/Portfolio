@@ -272,11 +272,15 @@
 	}
 
 	// ─── Expand state (grid view) ───────────────────────────────────────────────
-	let expandedProject: Project | null = $state.raw(null);
+	// Store the index so the panel reacts to language changes via $derived
+	let expandedProjectIndex = $state<number | null>(null);
+	let expandedProject = $derived(
+		expandedProjectIndex !== null ? projects[expandedProjectIndex] : null
+	);
 	let panelExpanded = $state(false);
 
 	function onGridCardClick(p: Project) {
-		expandedProject = p;
+		expandedProjectIndex = projects.indexOf(p);
 		panelExpanded = false;
 		tick().then(() => {
 			requestAnimationFrame(() =>
@@ -289,7 +293,7 @@
 	function closePanel() {
 		panelExpanded = false;
 		setTimeout(() => {
-			expandedProject = null;
+			expandedProjectIndex = null;
 		}, 380);
 	}
 
