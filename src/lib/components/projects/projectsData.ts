@@ -45,6 +45,20 @@ export const projects: Project[] = [
 		image: '/assets/projects/guardian.webp'
 	},
 	{
+		icon: '🕹️',
+		title: 'Videogame Semantic Search',
+		description:
+			'Semantic web app that builds and queries an <strong>OWL 2 ontology</strong> on video games (2015–today) via an NL-to-SPARQL pipeline powered by <strong>GPT-4.1 mini</strong>.<br><strong>Architecture:</strong><ul><li><strong>Frontend (React + Tailwind + react-force-graph-2d)</strong> — interactive knowledge graph, search bar, node detail panels</li><li><strong>Backend (FastAPI)</strong> — SPARQL agent with auto-retry (max 3 attempts), OntologyService with rdflib, graph builder</li><li><strong>Ontology (OWL 2)</strong> — classes: VideoGame, Developer, Publisher, Genre, Platform, Character, Franchise, Award; data from Wikidata</li></ul><strong>SPARQL agent:</strong> converts natural language → SPARQL, validates syntax, retries on error, shows generated query.<br><strong>Knowledge graph:</strong> physics-based 2D force graph, colored nodes by type, click → detail panel, hover → highlights connections.',
+		techTags: ['OWL 2', 'SPARQL', 'FastAPI', 'React', 'LLM'],
+		githubUrl: 'https://github.com/GiuseppeBellamacina/Videogame-Semantic-Search',
+		externalLink: {
+			url: 'https://videogame-semantic-search.vercel.app',
+			type: 'demo',
+			icon: 'fas fa-external-link-alt'
+		},
+		image: '/assets/projects/videogame-semantic-search.webp'
+	},
+	{
 		icon: '🧬',
 		title: 'GRPO Strict Generation',
 		description:
@@ -236,6 +250,8 @@ export const projects: Project[] = [
 const italianDescriptions: string[] = [
 	// Guardian
 	"🏆 Vincitore della <strong>NeoData Hackatania 2.0</strong> — Catania, Novembre 2024.<br>Chatbot AI multimodale per le Forze dell'Ordine: elabora query testuali e <strong>immagini di targhe</strong> per recuperare dati sensibili in tempo reale.<br><strong>Funzionalità chiave:</strong><ul><li>Accesso istantaneo a casellari giudiziali e precedenti penali</li><li>Dati del veicolo da immagini di targhe tramite LLM vision</li><li>Navigazione basata su grafi con <strong>GraphRAG</strong> su Neo4j (scuole, datori di lavoro, associati)</li><li>Pseudo <strong>coefficiente di rischio</strong> calcolato dalla gravità dei reati personali e degli associati</li></ul>Orchestrazione agentica degli strumenti tramite <strong>LangChain + LangGraph</strong>. Sviluppato con Salvatore Iurato.",
+	// Videogame Semantic Search
+	"App di semantic web che costruisce e interroga un'<strong>ontologia OWL 2</strong> sui videogiochi (dal 2015 ad oggi) tramite una pipeline NL-to-SPARQL alimentata da <strong>GPT-4.1 mini</strong>.<br><strong>Architettura:</strong><ul><li><strong>Frontend (React + Tailwind + react-force-graph-2d)</strong> — grafo di conoscenza interattivo, search bar, pannelli di dettaglio dei nodi</li><li><strong>Backend (FastAPI)</strong> — agente SPARQL con retry automatico (max 3 tentativi), OntologyService con rdflib, graph builder</li><li><strong>Ontologia (OWL 2)</strong> — classi: VideoGame, Developer, Publisher, Genre, Platform, Character, Franchise, Award; dati da Wikidata</li></ul><strong>Agente SPARQL:</strong> converte linguaggio naturale → SPARQL, valida la sintassi, effettua retry su errore, mostra la query generata.<br><strong>Grafo di conoscenza:</strong> force graph 2D physics-based, nodi colorati per tipo, click → pannello dettaglio, hover → evidenzia connessioni.",
 	// GRPO Strict Generation
 	"Progetto di Reinforcement Learning per il modulo universitario di RL.<br>Applica <strong>Group Relative Policy Optimization (GRPO)</strong> per il fine-tuning di un piccolo LLM open-weight (~0.5B–1.5B parametri) affinché generi <strong>JSON e codice Python sintatticamente validi</strong>.<br><strong>Scelte progettuali chiave:</strong><ul><li>Funzioni di reward programmatiche tramite <code>json.loads</code> e <code>ast.parse</code> — segnale binario rigoroso, nessun modello di reward neurale</li><li><strong>LoRA / PEFT</strong> per addestramento efficiente in memoria</li><li><strong>Unsloth</strong> per fine-tuning veloce, <strong>vLLM</strong> per inferenza ad alto throughput</li><li>Valutazione su metriche <strong>Pass@k</strong> che confrontano l'aderenza sintattica pre e post addestramento</li></ul>Dataset sintetico generato programmaticamente. Architettura completa e risultati nel report formale.",
 	// Image Enhancement
