@@ -521,7 +521,7 @@ export async function initGpgpuParticles(
 			: new Vector2(-9, -9);
 
 		simMaterial.uniforms.uPosition.value = everRendered ? rt1.texture : posTex;
-		simMaterial.uniforms.uTime.value = elapsed;
+		simMaterial.uniforms.uTime.value = time;
 		simMaterial.uniforms.uDeltaTime.value = dt;
 		simMaterial.uniforms.uMousePos.value = mouseUV;
 		simMaterial.uniforms.uIsHovering.value = hoverProgress;
@@ -536,7 +536,7 @@ export async function initGpgpuParticles(
 		renderer.setRenderTarget(null);
 
 		renderMaterial.uniforms.uPosition.value = everRendered ? rt2.texture : posTex;
-		renderMaterial.uniforms.uTime.value = elapsed;
+		renderMaterial.uniforms.uTime.value = time;
 		renderMaterial.uniforms.uIsHovering.value = hoverProgress;
 
 		renderer.autoClear = true;
