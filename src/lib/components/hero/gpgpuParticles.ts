@@ -27,7 +27,7 @@ export async function initGpgpuParticles(
 		Raycaster,
 		Vector2,
 		Vector3,
-		Clock,
+		Timer,
 		Color,
 		AdditiveBlending
 	} = THREE;
@@ -483,9 +483,8 @@ export async function initGpgpuParticles(
 	}
 
 	// ── Animazione ──
-	const clock = new Clock();
+	const clock = new Timer();
 	let time = 0;
-	let lastTime = 0;
 	let hoverProgress = 0;
 	let everRendered = false;
 	let raf: number;
@@ -494,9 +493,8 @@ export async function initGpgpuParticles(
 	function animate() {
 		raf = requestAnimationFrame(animate);
 
-		const elapsed = clock.getElapsedTime();
-		const dt = elapsed - lastTime;
-		lastTime = elapsed;
+		clock.update();
+		const dt = clock.getDelta();
 		time += dt;
 
 		const targetHover = mouseIsOver ? 1 : 0;

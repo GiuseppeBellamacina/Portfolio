@@ -56,7 +56,7 @@ export const projects: Project[] = [
 			type: 'demo',
 			icon: 'fas fa-external-link-alt'
 		},
-		image: '/assets/projects/videogame-semantic-search.webp'
+		image: '/assets/projects/semantic-search.webp'
 	},
 	{
 		icon: '🧬',

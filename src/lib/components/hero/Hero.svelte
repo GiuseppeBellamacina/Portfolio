@@ -78,14 +78,17 @@
 			<div class="holo-ring">
 				<div class="holo-ring-inner"></div>
 			</div>
-			<img
-				src="/assets/profile.webp"
-				alt="Giuseppe Bellamacina"
-				class="profile-image"
-				fetchpriority="high"
-				width="192"
-				height="192"
-			/>
+			<picture>
+				<source srcset="/assets/profile.avif" type="image/avif" />
+				<img
+					src="/assets/profile.webp"
+					alt="Giuseppe Bellamacina"
+					class="profile-image"
+					fetchpriority="high"
+					width="192"
+					height="192"
+				/>
+			</picture>
 		</div>
 
 		<h1 class="glitch hero-stagger s2" data-text="Giuseppe Bellamacina">Giuseppe Bellamacina</h1>
