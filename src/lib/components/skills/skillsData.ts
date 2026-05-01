@@ -199,7 +199,9 @@ export const skillCategories: SkillCategory[] = [
 				name: 'SQLAlchemy',
 				icon: 'white_bg_sqlalchemy-original-wordmark.png',
 				url: 'https://www.sqlalchemy.org/'
-			}
+			},
+			{ name: 'Redis', icon: 'redis-icon.png', url: 'https://redis.io/' },
+			{ name: 'Upstash', icon: 'upstash.png', url: 'https://upstash.com/' }
 		]
 	},
 	{
