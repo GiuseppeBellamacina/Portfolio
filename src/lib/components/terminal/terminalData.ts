@@ -15,11 +15,11 @@ export interface Song {
 export const projectEntries: HistoryEntry[] = [
 	{
 		type: 'html',
-		text: '<span class="file">videogame-search/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Videogame-Semantic-Search" target="_blank" rel="noopener noreferrer">NL-to-SPARQL semantic search on OWL 2 ontology</a></span>'
+		text: '<span class="file">videogame-semantic-search/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Videogame-Semantic-Search" target="_blank" rel="noopener noreferrer">NL-to-SPARQL semantic search on OWL 2 ontology</a></span>'
 	},
 	{
 		type: 'html',
-		text: '<span class="file">grpo-strict-gen/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
+		text: '<span class="file">grpo-strict-generation/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/GRPO-strict-generation" target="_blank" rel="noopener noreferrer">RL-based LLM alignment for strict JSON/code</a></span>'
 	},
 	{
 		type: 'html',
