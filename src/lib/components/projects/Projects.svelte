@@ -395,7 +395,6 @@
 								<span class="carousel-stars">⭐ {project.stars}</span>
 							{/if}
 							<div class="carousel-card-body">
-								<span class="carousel-card-icon">{project.icon}</span>
 								<h3 class="carousel-card-title">{project.title}</h3>
 								<div class="carousel-card-tags">
 									{#each project.techTags.slice(0, 4) as t}
@@ -438,7 +437,6 @@
 							<span class="pcard-stars">⭐ {project.stars}</span>
 						{/if}
 						<div class="pcard-body">
-							<span class="pcard-icon">{project.icon}</span>
 							<h3 class="pcard-title">{project.title}</h3>
 							<div class="pcard-tags">
 								{#each project.techTags.slice(0, 3) as t}
@@ -479,7 +477,6 @@
 							<span class="pcard-stars">⭐ {project.stars}</span>
 						{/if}
 						<div class="pcard-body">
-							<span class="pcard-icon">{project.icon}</span>
 							<h3 class="pcard-title">{project.title}</h3>
 							<div class="pcard-tags">
 								{#each project.techTags.slice(0, 3) as t}
@@ -513,7 +510,6 @@
 					<span class="exp-trophy">{$t.proj_hackathonWinner}</span>
 				{/if}
 				<div class="exp-title-area">
-					<span class="exp-icon">{expandedProject.icon}</span>
 					<h3 class="exp-title">{expandedProject.title}</h3>
 				</div>
 			</div>

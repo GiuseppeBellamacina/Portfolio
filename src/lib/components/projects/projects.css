@@ -607,6 +607,8 @@
 		opacity 0.25s ease,
 		filter 0.25s ease;
 	will-change: transform;
+	-webkit-mask-image: -webkit-radial-gradient(white, black);
+	mask-image: radial-gradient(white, black);
 }
 .pcard.is-hovered {
 	transform: perspective(800px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg))
