@@ -99,7 +99,7 @@
 
 		{#each skillCategories as category}
 			<div class="skills-category">
-				<h3>{category.emoji} {$t[category.key as keyof Translations]}</h3>
+				<h3>{$t[category.key as keyof Translations]}</h3>
 				<div class="skills-grid">
 					{#each category.icons as icon}
 						<a href={icon.url} target="_blank" rel="noopener noreferrer" class="tech-icon-link">

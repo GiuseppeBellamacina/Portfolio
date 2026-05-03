@@ -7,7 +7,6 @@ export interface TechIcon {
 export interface SkillCategory {
 	key: string;
 	title: string;
-	emoji: string;
 	icons: TechIcon[];
 }
 
@@ -15,7 +14,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_languages',
 		title: 'Languages',
-		emoji: '🔤',
 		icons: [
 			{ name: 'Python', icon: 'python-original.svg', url: 'https://www.python.org/' },
 			{
@@ -62,7 +60,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_aiml',
 		title: 'AI/ML & Data Science',
-		emoji: '🤖',
 		icons: [
 			{ name: 'PyTorch', icon: 'pytorch-original.svg', url: 'https://pytorch.org/' },
 			{ name: 'PyTorch Lightning', icon: 'lightning.png', url: 'https://lightning.ai/' },
@@ -139,7 +136,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_frameworks',
 		title: 'Frameworks & Libraries',
-		emoji: '🌐',
 		icons: [
 			{ name: 'Svelte', icon: 'svelte.png', url: 'https://svelte.dev/' },
 			{ name: 'React', icon: 'react.png', url: 'https://react.dev/' },
@@ -173,7 +169,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_databases',
 		title: 'Databases',
-		emoji: '🗃️',
 		icons: [
 			{
 				name: 'MySQL',
@@ -207,7 +202,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_devops',
 		title: 'DevOps & Tools',
-		emoji: '🛠️',
 		icons: [
 			{
 				name: 'Git',
@@ -250,7 +244,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_ides',
 		title: 'IDEs & Editors',
-		emoji: '🖥️',
 		icons: [
 			{
 				name: 'VSCode',
@@ -289,7 +282,6 @@ export const skillCategories: SkillCategory[] = [
 	{
 		key: 'skills_os',
 		title: 'Operating Systems & Security',
-		emoji: '💻',
 		icons: [
 			{
 				name: 'Windows',
