@@ -52,7 +52,7 @@
 			]
 		},
 		{
-			"source": "/assets/profile\\.(?:avif|webp|png|jpg)",
+			"source": "/assets/profile.(avif|webp|png|jpg)",
 			"headers": [
 				{
 					"key": "Cache-Control",
