@@ -1,7 +1,7 @@
 export const prerender = true;
 
 export function GET() {
-	const site = 'https://giuseppebellamacina.vercel.app';
+	const site = 'https://giuseppebellamacina.com';
 	const lastmod = new Date().toISOString().split('T')[0];
 
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>

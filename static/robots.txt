@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://giuseppebellamacina.vercel.app/sitemap.xml
+Sitemap: https://giuseppebellamacina.com/sitemap.xml
