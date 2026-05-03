@@ -56,7 +56,7 @@ export const projects: Project[] = [
 			type: 'demo',
 			icon: 'fas fa-external-link-alt'
 		},
-		image: '/assets/projects/semantic-search.webp'
+		image: '/assets/projects/videogame-semantic.webp'
 	},
 	{
 		icon: '🧬',
@@ -97,7 +97,7 @@ export const projects: Project[] = [
 			type: 'demo',
 			icon: 'fas fa-external-link-alt'
 		},
-		image: '/assets/projects/warehouse.webp'
+		image: '/assets/projects/warehouse-swarm.webp'
 	},
 	{
 		icon: '🖼️',
@@ -225,7 +225,7 @@ export const projects: Project[] = [
 			'Interactive online SSH shell with dashboard and commands for interacting with and monitoring the training of various deep learning models.<br><strong>Key features:</strong><ul><li>Web-based SSH terminal for remote server interaction</li><li>Real-time training dashboard with live metrics</li><li>Commands to control and monitor deep learning experiments</li></ul>Built with <strong>SvelteKit</strong> and <strong>TypeScript</strong>. Currently in active development.',
 		techTags: ['SvelteKit', 'TypeScript', 'SSH', 'Deep Learning'],
 		githubUrl: 'https://github.com/GiuseppeBellamacina/NeuronShell',
-		image: '/assets/projects/neuron_shell.webp'
+		image: '/assets/projects/neuronshell.webp'
 	},
 	{
 		icon: '🔐',
