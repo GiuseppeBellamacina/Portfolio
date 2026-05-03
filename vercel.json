@@ -43,6 +43,24 @@
 			]
 		},
 		{
+			"source": "/assets/projects/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=3600, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/assets/profile\\.(?:avif|webp|png|jpg)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=3600, must-revalidate"
+				}
+			]
+		},
+		{
 			"source": "/_app/(.*)",
 			"headers": [
 				{
