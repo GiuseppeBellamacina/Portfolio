@@ -84,7 +84,7 @@
 			<div class="holo-ring">
 				<div class="holo-ring-inner"></div>
 			</div>
-			<picture>
+			<picture class="profile-picture">
 				<source srcset="/assets/profile.avif" type="image/avif" />
 				<img
 					src="/assets/profile.webp"

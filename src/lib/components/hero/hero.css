@@ -54,28 +54,29 @@
 }
 
 /* Profile Image */
-.profile-image {
-	width: 224px;
-	height: 224px;
+.profile-picture {
+	position: absolute;
+	inset: 0;
 	border-radius: 50%;
-	border: 3px solid rgba(var(--primary-rgb), 0.5);
-	box-shadow:
-		0 0 20px rgba(var(--primary-rgb), 0.2),
-		0 0 40px rgba(var(--secondary-rgb), 0.1);
+	overflow: hidden;
+	z-index: 1;
+	display: block;
+}
+
+.profile-image {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	border: none;
 	object-fit: cover;
 	object-position: center center;
 	display: block;
 	filter: brightness(1.05) contrast(1.05);
-	transition:
-		box-shadow 0.4s ease,
-		border-color 0.4s ease;
+	transition: filter 0.4s ease;
 }
 
 .profile-image:hover {
-	border-color: rgba(var(--primary-rgb), 0.8);
-	box-shadow:
-		0 0 30px rgba(var(--primary-rgb), 0.3),
-		0 0 60px rgba(var(--secondary-rgb), 0.15);
+	filter: brightness(1.1) contrast(1.05);
 }
 
 .subtitle {
@@ -209,9 +210,10 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-	.profile-image {
-		width: 150px;
-		height: 150px;
+	.profile-container {
+		width: 160px;
+		height: 160px;
+		align-self: center;
 	}
 
 	.glitch {
@@ -226,9 +228,10 @@
 }
 
 @media (max-width: 480px) {
-	.profile-image {
-		width: 120px;
-		height: 120px;
+	.profile-container {
+		width: 128px;
+		height: 128px;
+		align-self: center;
 	}
 
 	.glitch {
@@ -280,17 +283,21 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin: 0;
+	margin: 0 auto;
+	width: 240px;
+	height: 240px;
+	flex-shrink: 0;
 }
 
 .holo-ring {
 	position: absolute;
-	width: 240px;
-	height: 240px;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
 	border-radius: 50%;
+	padding: 5px;
+	box-sizing: border-box;
 	background: conic-gradient(
 		from 0deg,
 		var(--primary-color),
@@ -301,10 +308,18 @@
 		var(--neon-green),
 		var(--primary-color)
 	);
-	padding: 2px;
+	-webkit-mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
 	animation: holoSpin 4s linear infinite;
 	filter: drop-shadow(0 0 12px rgba(var(--primary-rgb), 0.4))
 		drop-shadow(0 0 30px rgba(var(--secondary-rgb), 0.2));
+	z-index: 2;
 }
 
 /* Outer glow pulse ring */
@@ -338,11 +353,7 @@
 	}
 }
 .holo-ring::after {
-	content: '';
-	position: absolute;
-	inset: 2px;
-	border-radius: 50%;
-	background: var(--bg-dark);
+	display: none;
 }
 .holo-ring-inner {
 	position: absolute;
@@ -354,7 +365,7 @@
 }
 @keyframes holoSpin {
 	to {
-		transform: translate(-50%, -50%) rotate(360deg);
+		transform: rotate(360deg);
 	}
 }
 @keyframes holoSpinInner {
@@ -447,13 +458,16 @@
 		display: none;
 	}
 	.holo-ring {
-		width: 190px;
-		height: 190px;
+		width: 100%;
+		height: 100%;
 	}
 }
 @media (max-width: 480px) {
 	.holo-ring {
-		width: 160px;
-		height: 160px;
+		width: 100%;
+		height: 100%;
+	}
+	.holo-ring::before {
+		inset: -4px;
 	}
 }
