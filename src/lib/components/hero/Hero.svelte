@@ -6,6 +6,9 @@
 	import { getBaseTexts, getSeasonalGreetings } from './heroData';
 	import { initGpgpuParticles } from './gpgpuParticles';
 	import { startTypingEffect } from './typingEffect';
+	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
+	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
+	import NewYearEffect from '$lib/components/seasonal/NewYearEffect.svelte';
 	import './hero.css';
 
 	let typingText = $state('');
@@ -66,6 +69,9 @@
 	}}
 >
 	<div class="hero-canvas" bind:this={heroContainer}></div>
+	<SnowEffect />
+	<NewYearEffect />
+	<SummerEffect />
 	<div
 		class="hero-spotlight"
 		style="--spot-x: {spotlightX}%; --spot-y: {spotlightY}%"

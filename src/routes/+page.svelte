@@ -10,7 +10,7 @@
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import ScrollProgress from '$lib/components/ScrollProgress.svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
-	import CursorTrail from '$lib/components/CursorTrail.svelte';
+	// import CursorTrail from '$lib/components/CursorTrail.svelte';
 	import { initSectionSnap } from '$lib/components/sectionSnap';
 
 	onMount(() => {
@@ -44,7 +44,6 @@
 </script>
 
 <ScrollProgress />
-<CursorTrail />
 <Navbar />
 <main>
 	<Hero />

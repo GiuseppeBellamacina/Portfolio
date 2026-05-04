@@ -185,7 +185,7 @@
 
 <style>
 	.fireflies-canvas {
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
@@ -196,7 +196,7 @@
 
 	/* Subtle warm ambient glow at the bottom — like a summer twilight */
 	.summer-ambience {
-		position: fixed;
+		position: absolute;
 		bottom: 0;
 		left: 0;
 		width: 100%;

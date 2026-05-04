@@ -150,6 +150,35 @@ body.season-snow .glitch {
 }
 
 body.season-summer {
+	--primary-color: #38bdf8;
+	--secondary-color: #fbbf24;
+	--accent-color: #fb923c;
+	--neon-pink: #f97316;
+	--neon-blue: #22d3ee;
+	--neon-green: #34d399;
+	--neon-purple: #fbbf24;
+	--bg-dark: #0a0f14;
+	--bg-card: #111a22;
+	--bg-main: #0a0f14;
+	--text-light: #f0f4f8;
+	--text-muted: #94a3b8;
+	--primary-rgb: 56, 189, 248;
+	--secondary-rgb: 251, 191, 36;
+	--indigo-rgb: 14, 165, 233;
+	--neon-pink-rgb: 249, 115, 22;
+	--neon-blue-rgb: 34, 211, 238;
+	--neon-green-rgb: 52, 211, 153;
+	--bg-dark-rgb: 10, 15, 20;
+	--bg-card-rgb: 17, 26, 34;
+	--hero-bg-1: #0a0f14;
+	--hero-bg-2: #0c1a2a;
+	--hero-bg-3: #141e0e;
+	--hero-glow-1: rgba(56, 189, 248, 0.1);
+	--hero-glow-2: rgba(251, 191, 36, 0.08);
+	--hero-glow-3: rgba(249, 115, 22, 0.06);
+	--gradient-1: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+	--gradient-2: linear-gradient(135deg, #fbbf24 0%, #38bdf8 100%);
+	--gradient-3: linear-gradient(135deg, #38bdf8 0%, #fbbf24 100%);
 	--galaxy-c1: #ffffff;
 	--galaxy-c2: #e0f7fa;
 	--galaxy-c3: #67e8f9;
