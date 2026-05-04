@@ -55,14 +55,16 @@
 
 /* Profile Image */
 .profile-image {
-	width: clamp(160px, 10rem + 2vw, 200px);
-	height: clamp(160px, 10rem + 2vw, 200px);
+	width: 224px;
+	height: 224px;
 	border-radius: 50%;
 	border: 3px solid rgba(var(--primary-rgb), 0.5);
 	box-shadow:
 		0 0 20px rgba(var(--primary-rgb), 0.2),
 		0 0 40px rgba(var(--secondary-rgb), 0.1);
 	object-fit: cover;
+	object-position: center center;
+	display: block;
 	filter: brightness(1.05) contrast(1.05);
 	transition:
 		box-shadow 0.4s ease,
@@ -277,6 +279,7 @@
 	position: relative;
 	display: flex;
 	justify-content: center;
+	align-items: center;
 	margin: 0;
 }
 
