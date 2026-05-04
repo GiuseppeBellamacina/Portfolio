@@ -32,13 +32,17 @@ const timelineItemsEN: TimelineItem[] = [
 		type: 'work',
 		icon: 'fas fa-laptop-code',
 		date: 'September 2025 - Present',
-		title: 'AI Developer',
+		title: 'AI Software Engineer',
 		subtitle: 'RICCA IT',
-		description: 'Developing innovative AI solutions and intelligent systems',
+		description:
+			'Building LLM-based systems, multi-agent architectures, and RAG pipelines for production environments',
 		highlights: [
-			'Design and implementation of AI-powered applications',
-			'Integration of machine learning models into production systems',
-			'Collaboration with cross-functional teams on AI projects'
+			'Designed and deployed LLM-based systems for real-world applications, including solutions used by ASP (Azienda Sanitaria Provinciale)',
+			'Built multi-agent architectures for complex reasoning tasks, separating planning, execution, and validation into coordinated components',
+			'Developed end-to-end RAG pipelines (data ingestion, indexing, retrieval, reranking, generation) with focus on scalability and latency',
+			'Integrated heterogeneous AI modules into cohesive, production-ready systems, improving reliability and maintainability',
+			'Applied model adaptation techniques including fine-tuning, reinforcement learning (GRPO), knowledge distillation, and domain adaptation',
+			'Evaluated LLM systems beyond standard benchmarks, focusing on robustness, consistency, and behavior under real-world constraints'
 		],
 		durationSince: [2025, 9]
 	},
@@ -49,14 +53,14 @@ const timelineItemsEN: TimelineItem[] = [
 		title: 'Artificial Intelligence Engineer & Data Scientist',
 		subtitle: 'Intellisync',
 		description:
-			'AI Research and Development with focus on multi-agent systems and predictive analytics',
+			'AI Research and Development with focus on multi-agent systems, RAG architectures, and predictive analytics',
 		highlights: [
-			'Development and optimization of multi-agent architectures',
-			'Analysis and research of new application fields for innovative AI technologies',
-			'Design and implementation of functional prototypes to validate technical approaches',
-			'Data Science & Predictive Analytics: Advanced analysis of wind turbine data',
-			'Development of predictive models for energy loss estimation and failure prediction',
-			'Pattern and anomaly identification using neural networks and machine learning'
+			'Developed LLM-based and multi-agent solutions, including systems used by the Italian Air Force Academy (Accademia Aeronautica Militare Italiana)',
+			'Designed and implemented RAG architectures, from requirement analysis to system design and deployment',
+			'Built agentic pipelines translating natural language into executable queries across SQL, graph databases (Cypher), semantic systems (SPARQL), and vector search',
+			'Developed predictive models on large-scale wind turbine datasets, including anomaly detection and energy loss forecasting',
+			'Contributed to solutions later integrated into Yokogawa products through collaboration with BaxEnergy and Farsight',
+			'Performed advanced data analysis to support operational decision-making'
 		],
 		durationFixed: '6 months'
 	},
@@ -116,13 +120,17 @@ const timelineItemsIT: TimelineItem[] = [
 		type: 'work',
 		icon: 'fas fa-laptop-code',
 		date: 'Settembre 2025 - Presente',
-		title: 'AI Developer',
+		title: 'AI Software Engineer',
 		subtitle: 'RICCA IT',
-		description: 'Sviluppo di soluzioni AI innovative e sistemi intelligenti',
+		description:
+			'Sviluppo di sistemi basati su LLM, architetture multi-agente e pipeline RAG per ambienti di produzione',
 		highlights: [
-			'Progettazione e implementazione di applicazioni basate su AI',
-			'Integrazione di modelli di machine learning in sistemi di produzione',
-			'Collaborazione con team interfunzionali su progetti AI'
+			"Progettazione e deploy di sistemi LLM per applicazioni reali, incluse soluzioni utilizzate dall'ASP (Azienda Sanitaria Provinciale)",
+			'Sviluppo di architetture multi-agente per ragionamento complesso, separando pianificazione, esecuzione e validazione in componenti coordinati',
+			'Implementazione di pipeline RAG end-to-end (ingestione, indicizzazione, retrieval, reranking, generazione) con focus su scalabilità e latenza',
+			'Integrazione di moduli AI eterogenei in sistemi coesi e production-ready, migliorando affidabilità e manutenibilità',
+			'Applicazione di tecniche di adattamento del modello: fine-tuning, reinforcement learning (GRPO), knowledge distillation e domain adaptation',
+			'Valutazione di sistemi LLM oltre i benchmark standard, con focus su robustezza, consistenza e comportamento in scenari reali'
 		],
 		durationSince: [2025, 9]
 	},
@@ -132,14 +140,15 @@ const timelineItemsIT: TimelineItem[] = [
 		date: 'Dicembre 2024 - Maggio 2025',
 		title: 'Artificial Intelligence Engineer & Data Scientist',
 		subtitle: 'Intellisync',
-		description: 'Ricerca e Sviluppo AI con focus su sistemi multi-agente e analisi predittiva',
+		description:
+			'Ricerca e Sviluppo AI con focus su sistemi multi-agente, architetture RAG e analisi predittiva',
 		highlights: [
-			'Sviluppo e ottimizzazione di architetture multi-agente',
-			'Analisi e ricerca di nuovi campi applicativi per tecnologie AI innovative',
-			'Progettazione e implementazione di prototipi funzionali per validare approcci tecnici',
-			'Data Science & Analisi Predittiva: Analisi avanzata di dati eolici',
-			'Sviluppo di modelli predittivi per stima delle perdite energetiche e previsione guasti',
-			'Identificazione di pattern e anomalie tramite reti neurali e machine learning'
+			"Sviluppo di soluzioni LLM-based e multi-agente, inclusi sistemi in uso presso l'Accademia Aeronautica Militare Italiana",
+			"Progettazione e implementazione di architetture RAG, dall'analisi dei requisiti fino al design di sistema e al deploy",
+			'Sviluppo di pipeline agentiche per la traduzione del linguaggio naturale in query eseguibili su SQL, grafi (Cypher), sistemi semantici (SPARQL) e vector search',
+			'Sviluppo di modelli predittivi su dataset di turbine eoliche su larga scala, inclusi rilevamento anomalie e previsione perdite energetiche',
+			'Contributo a soluzioni successivamente integrate nei prodotti Yokogawa tramite collaborazione con BaxEnergy e Farsight',
+			'Analisi avanzata dei dati a supporto delle decisioni operative'
 		],
 		durationFixed: '6 mesi'
 	},
