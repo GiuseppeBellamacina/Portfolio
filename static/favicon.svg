@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f0c29"/>
+      <stop offset="100%" stop-color="#1a1f3a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+  <!-- Neural network connections -->
+  <line x1="8" y1="14" x2="22" y2="26" stroke="#818cf8" stroke-width="0.8" opacity="0.5"/>
+  <line x1="56" y1="12" x2="42" y2="24" stroke="#a78bfa" stroke-width="0.8" opacity="0.5"/>
+  <line x1="8" y1="50" x2="20" y2="40" stroke="#a78bfa" stroke-width="0.8" opacity="0.4"/>
+  <line x1="56" y1="52" x2="44" y2="40" stroke="#818cf8" stroke-width="0.8" opacity="0.4"/>
+  <line x1="32" y1="6" x2="32" y2="18" stroke="#818cf8" stroke-width="0.8" opacity="0.45"/>
+  <line x1="32" y1="58" x2="32" y2="48" stroke="#a78bfa" stroke-width="0.8" opacity="0.45"/>
+  <!-- Neural nodes -->
+  <circle cx="8" cy="14" r="2" fill="#818cf8"/>
+  <circle cx="56" cy="12" r="1.8" fill="#a78bfa"/>
+  <circle cx="32" cy="6" r="1.5" fill="#818cf8"/>
+  <circle cx="8" cy="50" r="1.8" fill="#a78bfa"/>
+  <circle cx="56" cy="52" r="2" fill="#818cf8"/>
+  <circle cx="32" cy="58" r="1.5" fill="#a78bfa"/>
+  <!-- GB Text -->
+  <text x="32" y="40" font-family="monospace" font-weight="bold" font-size="22" fill="url(#accent)" text-anchor="middle" letter-spacing="-1">GB</text>
+  <!-- Subtle circuit traces around text -->
+  <path d="M12 32 L18 32" stroke="#818cf8" stroke-width="0.7" opacity="0.4"/>
+  <path d="M46 32 L52 32" stroke="#a78bfa" stroke-width="0.7" opacity="0.4"/>
+  <circle cx="12" cy="32" r="1.2" fill="#818cf8"/>
+  <circle cx="52" cy="32" r="1.2" fill="#a78bfa"/>
+</svg>
