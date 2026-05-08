@@ -123,8 +123,9 @@
 
 		<div class="cv-download">
 			<a
-				href="https://github.com/GiuseppeBellamacina/CurriculumVitae/blob/main/cv.pdf"
-				download="Giuseppe_Bellamacina_CV.pdf"
+				href="https://github.com/GiuseppeBellamacina/CurriculumVitae/raw/main/cv.pdf"
+				target="_blank"
+				rel="noopener noreferrer"
 				class="btn btn-primary"
 			>
 				<i class="fas fa-download"></i>
