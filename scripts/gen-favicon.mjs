@@ -5,7 +5,7 @@ const sizes = [16, 32, 48];
 const pngs = [];
 
 for (const size of sizes) {
-	const buf = await sharp('static/favicon.svg').resize(size, size).png().toBuffer();
+	const buf = await sharp('static/favicons/favicon.svg').resize(size, size).png().toBuffer();
 	pngs.push({ size, buf });
 	console.log(`Rendered ${size}x${size}: ${buf.length} bytes`);
 }
