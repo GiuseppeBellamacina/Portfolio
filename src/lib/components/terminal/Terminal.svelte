@@ -33,6 +33,20 @@
 		return arr[Math.floor(Math.random() * arr.length)];
 	}
 
+	// Simple HTML sanitizer (allow only safe tags used in terminal)
+	function sanitizeHtml(html: string): string {
+		// Remove script tags and event handlers
+		let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+		// Remove on* attributes
+		clean = clean.replace(/\s+on\w+="[^"]*"/gi, '');
+		clean = clean.replace(/\s+on\w+='[^']*'/gi, '');
+		// Allow only specific tags: a, span, b, i, em, strong, code, br
+		const allowedTags = ['a', 'span', 'b', 'i', 'em', 'strong', 'code', 'br', 'div', 'p', 'ul', 'ol', 'li'];
+		const tagPattern = new RegExp(`<(?!\/?(${allowedTags.join('|')})(?:\s|>))\\/?[^>]*>`, 'gi');
+		clean = clean.replace(tagPattern, '');
+		return clean;
+	}
+
 	/* ── Smart pick: no repeats until all used, then prefer least shown ── */
 	const pickCounts = new Map<string, Map<number, number>>();
 
@@ -49,7 +63,15 @@
 	}
 
 	async function pushLine(entry: HistoryEntry) {
+		// Sanitize HTML if needed
+		if (entry.type === 'html' || entry.type === 'ascii') {
+			entry.text = sanitizeHtml(entry.text);
+		}
 		history.push(entry);
+		// Limit history to 1000 entries to prevent memory issues
+		if (history.length > 1000) {
+			history = history.slice(-1000);
+		}
 		await tick();
 		if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
 	}

@@ -6,6 +6,7 @@
 
 	let isVisible = false;
 	let projects = $state<Project[]>([...getProjects('en')]);
+	let starsLoading = $state(false);
 
 	// Keep projects in sync with language
 	$effect(() => {
@@ -47,6 +48,8 @@
 	}
 
 	async function fetchGitHubStars() {
+		if (starsLoading) return;
+		starsLoading = true;
 		const fetchPromises = projects.map(async (project) => {
 			try {
 				const cacheKey = `github_stars_${project.githubUrl}`;
@@ -84,6 +87,7 @@
 			}
 		});
 		await Promise.all(fetchPromises);
+		starsLoading = false;
 	}
 
 	// ─── 3D Carousel ────────────────────────────────────────────────────────────
@@ -340,9 +344,12 @@
 					if (e.isIntersecting && !isVisible) {
 						isVisible = true;
 						fetchGitHubStars();
+						if (viewMode === 'carousel') startAutoPlay();
+					} else if (!e.isIntersecting && isVisible) {
+						isVisible = false;
+						stopAutoPlay();
+						stopSnapAnimation();
 					}
-					if (e.isIntersecting && viewMode === 'carousel') startAutoPlay();
-					else if (!e.isIntersecting) stopAutoPlay();
 				}),
 			{ threshold: 0.05, rootMargin: '100px' }
 		);
@@ -393,6 +400,8 @@
 							{/if}
 							{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
 								<span class="carousel-stars">⭐ {project.stars}</span>
+							{:else if starsLoading}
+								<span class="carousel-stars loading">...</span>
 							{/if}
 							<div class="carousel-card-body">
 								<h3 class="carousel-card-title">{project.title}</h3>

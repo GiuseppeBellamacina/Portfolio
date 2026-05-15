@@ -46,15 +46,18 @@
 <ScrollProgress />
 <Navbar />
 <main>
-	<Hero />
-	<About />
-	<div class="section-divider divider-to-card"></div>
-	<Experience />
-	<div class="section-divider divider-to-dark"></div>
-	<Projects />
-	<div class="section-divider divider-to-card"></div>
-	<Skills />
-	<Contact />
+	<a href="#main-content" class="skip-link">Skip to main content</a>
+	<div id="main-content" tabindex="-1">
+		<Hero />
+		<About />
+		<div class="section-divider divider-to-card"></div>
+		<Experience />
+		<div class="section-divider divider-to-dark"></div>
+		<Projects />
+		<div class="section-divider divider-to-card"></div>
+		<Skills />
+		<Contact />
+	</div>
 </main>
 <Footer />
 <BackToTop />

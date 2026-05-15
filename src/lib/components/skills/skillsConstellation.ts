@@ -19,6 +19,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	let raf = 0;
 
 	interface Node {
+		index: number;
 		x: number;
 		y: number;
 		vx: number;
@@ -30,10 +31,10 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	}
 
 	const nodes: Node[] = [];
-	// Scale particle count to section area (reference: 80 particles for one viewport)
+	// Scale particle count to section area (reduced: 50 particles for one viewport)
 	const viewportArea = window.innerWidth * window.innerHeight;
 	const sectionArea = W * H;
-	const COUNT = Math.min(Math.max(Math.round(80 * (sectionArea / viewportArea)), 80), 200);
+	const COUNT = Math.min(Math.max(Math.round(50 * (sectionArea / viewportArea)), 50), 120);
 	const CONNECT_DIST = 150;
 	const CONNECT_DIST_SQ = CONNECT_DIST * CONNECT_DIST;
 	const REPULSE_DIST = 70;
@@ -45,8 +46,44 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	const DAMPING = 0.997;
 	let mouse = { x: -9999, y: -9999 };
 
+	// Spatial grid for O(n) neighbor queries
+	const CELL_SIZE = CONNECT_DIST;
+	let grid: Map<string, Node[]> = new Map();
+
+	function getCellKey(x: number, y: number): string {
+		const cx = Math.floor(x / CELL_SIZE);
+		const cy = Math.floor(y / CELL_SIZE);
+		return `${cx},${cy}`;
+	}
+
+	function updateGrid() {
+		grid.clear();
+		for (const n of nodes) {
+			const key = getCellKey(n.x, n.y);
+			if (!grid.has(key)) grid.set(key, []);
+			grid.get(key)!.push(n);
+		}
+	}
+
+	function getNeighbors(node: Node): Node[] {
+		const cx = Math.floor(node.x / CELL_SIZE);
+		const cy = Math.floor(node.y / CELL_SIZE);
+		const neighbors: Node[] = [];
+		for (let dx = -1; dx <= 1; dx++) {
+			for (let dy = -1; dy <= 1; dy++) {
+				const key = `${cx + dx},${cy + dy}`;
+				const cell = grid.get(key);
+				if (cell) {
+					neighbors.push(...cell);
+				}
+			}
+		}
+		return neighbors;
+	}
+
 	for (let i = 0; i < COUNT; i++) {
 		nodes.push({
+			index: i,
 			x: Math.random() * W,
 			y: Math.random() * H,
 			vx: (Math.random() - 0.5) * 0.4,
@@ -87,12 +124,23 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 
 		ctx!.clearRect(0, 0, W, H);
 
-		// Connections + inter-particle repulsion
+		// Update spatial grid
+		updateGrid();
+
+		// Connections + inter-particle repulsion using spatial grid
 		ctx!.lineWidth = 0.6;
 		for (let i = 0; i < nodes.length; i++) {
-			for (let j = i + 1; j < nodes.length; j++) {
-				const dx = nodes[j].x - nodes[i].x;
-				const dy = nodes[j].y - nodes[i].y;
+			const nodeA = nodes[i];
+			const neighbors = getNeighbors(nodeA);
+
+			for (let j = 0; j < neighbors.length; j++) {
+				const nodeB = neighbors[j];
+				if (nodeA === nodeB) continue;
+				// Ensure we only process each pair once (by index ordering)
+				if (nodeB.index <= i) continue;
+
+				const dx = nodeB.x - nodeA.x;
+				const dy = nodeB.y - nodeA.y;
 				const distSq = dx * dx + dy * dy;
 
 				if (distSq < REPULSE_DIST_SQ && distSq > 0) {
@@ -100,25 +148,25 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 					const force = (1 - dist / REPULSE_DIST) * REPULSE_FORCE;
 					const fx = (dx / dist) * force;
 					const fy = (dy / dist) * force;
-					nodes[i].vx -= fx;
-					nodes[i].vy -= fy;
-					nodes[j].vx += fx;
-					nodes[j].vy += fy;
+					nodeA.vx -= fx;
+					nodeA.vy -= fy;
+					nodeB.vx += fx;
+					nodeB.vy += fy;
 				}
 
 				if (distSq < CONNECT_DIST_SQ) {
 					const dist = Math.sqrt(distSq);
 					const alpha = (1 - dist / CONNECT_DIST) * 0.25;
-					ctx!.strokeStyle = `hsla(${(nodes[i].hue + nodes[j].hue) >> 1}, 60%, 60%, ${alpha})`;
+					ctx!.strokeStyle = `hsla(${(nodeA.hue + nodeB.hue) >> 1}, 60%, 60%, ${alpha})`;
 					ctx!.beginPath();
-					ctx!.moveTo(nodes[i].x, nodes[i].y);
-					ctx!.lineTo(nodes[j].x, nodes[j].y);
+					ctx!.moveTo(nodeA.x, nodeA.y);
+					ctx!.lineTo(nodeB.x, nodeB.y);
 					ctx!.stroke();
 				}
 			}
 		}
 
-		// Mouse connections
+		// Mouse connections (keep as-is, only ~120 nodes max)
 		ctx!.lineWidth = 0.8;
 		for (const n of nodes) {
 			const dx = n.x - mouse.x;
@@ -153,7 +201,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 			n.x += n.vx;
 			n.y += n.vy;
 
-			// Mouse repulsion
+			// Mouse repulsion (only when mouse is close)
 			const mdx = n.x - mouse.x;
 			const mdy = n.y - mouse.y;
 			const mdSq = mdx * mdx + mdy * mdy;
