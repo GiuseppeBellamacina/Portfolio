@@ -41,16 +41,18 @@
 		// Skip heavy GPGPU particles on mobile/low-end devices
 		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		if (!isMobile) {
-			idle =
-				'requestIdleCallback' in window
-					? requestIdleCallback(async () => {
-							const { initGpgpuParticles } = await import('./gpgpuParticles');
-							cleanup = await initGpgpuParticles(heroContainer, heroSection);
-						})
-					: (setTimeout(async () => {
-							const { initGpgpuParticles } = await import('./gpgpuParticles');
-							cleanup = await initGpgpuParticles(heroContainer, heroSection);
-						}, 50) as unknown as number);
+			// Delay particle init to avoid blocking main thread during TBT window
+			idle = setTimeout(async () => {
+				if ('requestIdleCallback' in window) {
+					requestIdleCallback(async () => {
+						const { initGpgpuParticles } = await import('./gpgpuParticles');
+						cleanup = await initGpgpuParticles(heroContainer, heroSection);
+					});
+				} else {
+					const { initGpgpuParticles } = await import('./gpgpuParticles');
+					cleanup = await initGpgpuParticles(heroContainer, heroSection);
+				}
+			}, 3000) as unknown as number;
 		}
 
 		requestAnimationFrame(() => (mounted = true));
@@ -58,8 +60,7 @@
 			unsubSeason();
 			unsubLang();
 			if (idle !== undefined) {
-				if ('cancelIdleCallback' in window) cancelIdleCallback(idle);
-				else clearTimeout(idle);
+				clearTimeout(idle);
 			}
 			cleanup?.();
 		};

@@ -435,9 +435,15 @@
 		transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
 		filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* LCP element: visible immediately via CSS animation (no JS dependency) */
+/* Critical hero elements: visible via CSS animation (no JS dependency for LCP) */
+.hero-stagger:not(.s4):not(.s5):not(.s6) {
+	animation: heroLcpReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 .hero-stagger.s2 {
-	animation: heroLcpReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+	animation-delay: 0.1s;
+}
+.hero-stagger.s3 {
+	animation-delay: 0.2s;
 }
 @keyframes heroLcpReveal {
 	from {
@@ -456,12 +462,6 @@
 	opacity: 1;
 	transform: translateY(0) scale(1);
 	filter: blur(0);
-}
-.hero-stagger.s2 {
-	transition-delay: 0.15s;
-}
-.hero-stagger.s3 {
-	transition-delay: 0.3s;
 }
 .hero-stagger.s4 {
 	transition-delay: 0.45s;
