@@ -491,10 +491,7 @@ body::after {
 		var(--secondary-color),
 		var(--neon-pink)
 	);
-	background-size: 200% 100%;
-	animation:
-		lineShimmer 3s ease-in-out infinite,
-		lineExpand 1s 0.6s ease-out forwards;
+	animation: lineExpand 1s 0.6s ease-out forwards;
 	transform: scaleX(0);
 	transform-origin: center;
 	will-change: transform;
@@ -509,16 +506,6 @@ body::after {
 	}
 	to {
 		transform: scaleX(1);
-	}
-}
-
-@keyframes lineShimmer {
-	0%,
-	100% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
 	}
 }
 

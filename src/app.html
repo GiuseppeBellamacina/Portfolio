@@ -35,7 +35,7 @@
 		<link
 			rel="preload"
 			as="style"
-			href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Sora:wght@400;600;700&display=swap"
 			onload="
 				this.onload = null;
 				this.rel = 'stylesheet';
@@ -44,7 +44,7 @@
 		<noscript>
 			<link
 				rel="stylesheet"
-				href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap"
+				href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Sora:wght@400;600;700&display=swap"
 			/>
 		</noscript>
 		<!-- Preconnect BEFORE using the CDN -->
@@ -66,19 +66,14 @@
 				href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 			/>
 		</noscript>
-		<!-- Preload optimized hero image -->
+		<!-- Preload hero image (desktop only — on mobile it's smaller priority) -->
 		<link
 			rel="preload"
 			href="https://giuseppebellamacina.com/assets/profile.avif"
 			as="image"
 			type="image/avif"
 			fetchpriority="high"
-		/>
-		<link
-			rel="preload"
-			href="https://giuseppebellamacina.com/assets/profile.webp"
-			as="image"
-			type="image/webp"
+			media="(min-width: 769px)"
 		/>
 		<link rel="manifest" href="https://giuseppebellamacina.com/site.webmanifest" />
 		<meta property="og:title" content="Giuseppe Bellamacina | AI Engineer & Developer" />

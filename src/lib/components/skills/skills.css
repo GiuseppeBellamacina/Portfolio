@@ -142,9 +142,7 @@
 		22% 38%,
 		42% 58%,
 		62% 78%;
-	animation:
-		twinkleStars 8s ease-in-out infinite,
-		floatStars 40s linear infinite;
+	animation: twinkleStars 8s ease-in-out infinite;
 	opacity: 0.8;
 	pointer-events: none;
 	z-index: 1;

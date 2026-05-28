@@ -171,10 +171,10 @@
 @keyframes borderGlow {
 	0%,
 	100% {
-		background-position: 0% 0%;
+		opacity: 0.5;
 	}
 	50% {
-		background-position: 100% 100%;
+		opacity: 1;
 	}
 }
 .bio-card p {
