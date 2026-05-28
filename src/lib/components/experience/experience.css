@@ -311,6 +311,10 @@
 	opacity: 0;
 	transition: opacity 0.4s ease;
 	animation: borderGlowExp 5s ease-in-out infinite;
+	animation-play-state: paused;
+}
+.tl-item.visible .tl-card::after {
+	animation-play-state: running;
 }
 .tl-card:hover::after {
 	opacity: 1;

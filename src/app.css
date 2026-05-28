@@ -409,7 +409,7 @@ body::after {
 	content: '';
 	position: absolute;
 	top: 0;
-	left: -100%;
+	left: 0;
 	width: 60%;
 	height: 100%;
 	background: linear-gradient(
@@ -420,16 +420,18 @@ body::after {
 		rgba(255, 255, 255, 0.15) 60%,
 		transparent 100%
 	);
+	transform: translateX(-100%);
 	animation: btnShimmer 3s ease-in-out infinite;
 	pointer-events: none;
+	will-change: transform;
 }
 
 @keyframes btnShimmer {
 	0% {
-		left: -100%;
+		transform: translateX(-100%);
 	}
 	100% {
-		left: 200%;
+		transform: translateX(500%);
 	}
 }
 
@@ -479,7 +481,7 @@ body::after {
 .section-title::after {
 	content: '';
 	display: block;
-	width: 0;
+	width: 100px;
 	height: 3px;
 	margin: 0.8rem auto 0;
 	border-radius: 2px;
@@ -493,6 +495,9 @@ body::after {
 	animation:
 		lineShimmer 3s ease-in-out infinite,
 		lineExpand 1s 0.6s ease-out forwards;
+	transform: scaleX(0);
+	transform-origin: center;
+	will-change: transform;
 	box-shadow:
 		0 0 8px rgba(var(--primary-rgb), 0.4),
 		0 0 20px rgba(var(--secondary-rgb), 0.2);
@@ -500,10 +505,10 @@ body::after {
 
 @keyframes lineExpand {
 	from {
-		width: 0;
+		transform: scaleX(0);
 	}
 	to {
-		width: 100px;
+		transform: scaleX(1);
 	}
 }
 

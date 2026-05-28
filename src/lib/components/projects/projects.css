@@ -782,9 +782,9 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════ */
-/* ── Mobile 2-row swipe ──────────────────────────────────────────────────── */
+/* ── Mobile flat carousel ────────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════════════════ */
-.mobile-rows {
+.mobile-carousel {
 	display: none;
 }
 
@@ -799,29 +799,66 @@
 	.projects-buttons .btn-secondary {
 		display: none;
 	}
-	.mobile-rows {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		z-index: 1;
+	.mobile-carousel {
+		display: block;
 		position: relative;
+		overflow: hidden;
+		padding: 1.5rem 0;
+		touch-action: pan-y;
+		cursor: grab;
 	}
-	.mobile-scroll-row {
+	.mobile-carousel:active {
+		cursor: grabbing;
+	}
+	.mobile-carousel-track {
 		display: flex;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		-webkit-overflow-scrolling: touch;
-		gap: 0.75rem;
-		padding: 0 1rem;
-		scrollbar-width: none;
+		gap: 16px;
+		transition: none;
+		will-change: transform;
 	}
-	.mobile-scroll-row::-webkit-scrollbar {
-		display: none;
+	.mobile-card {
+		flex: 0 0 280px;
+		height: 360px;
+		position: relative;
+		border-radius: 16px;
+		overflow: hidden;
+		border: 1px solid rgba(var(--primary-rgb), 0.1);
+		background: var(--bg-card);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		transition:
+			transform 0.3s ease,
+			box-shadow 0.3s ease;
 	}
-	.mobile-scroll-row .pcard {
-		flex: 0 0 70vw;
-		max-width: 300px;
-		scroll-snap-align: center;
-		aspect-ratio: 10 / 13;
+	.mobile-card.is-active {
+		transform: scale(1.04);
+		box-shadow:
+			0 8px 32px rgba(0, 0, 0, 0.4),
+			0 0 20px rgba(var(--primary-rgb), 0.15);
+		border-color: rgba(var(--primary-rgb), 0.25);
+	}
+	.mobile-carousel-dots {
+		display: flex;
+		justify-content: center;
+		gap: 6px;
+		margin-top: 1.2rem;
+		flex-wrap: wrap;
+		max-width: 80%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.mobile-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		border: none;
+		background: rgba(var(--primary-rgb), 0.25);
+		padding: 0;
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+	.mobile-dot.active {
+		background: var(--primary-color);
+		box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.5);
+		transform: scale(1.3);
 	}
 }

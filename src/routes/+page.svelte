@@ -2,15 +2,10 @@
 	import { onMount } from 'svelte';
 	import Navbar from '$lib/components/navbar/Navbar.svelte';
 	import Hero from '$lib/components/hero/Hero.svelte';
-	import About from '$lib/components/about/About.svelte';
-	import Experience from '$lib/components/experience/Experience.svelte';
-	import Projects from '$lib/components/projects/Projects.svelte';
-	import Skills from '$lib/components/skills/Skills.svelte';
-	import Contact from '$lib/components/contact/Contact.svelte';
+	import LazySection from '$lib/components/LazySection.svelte';
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import ScrollProgress from '$lib/components/ScrollProgress.svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
-	// import CursorTrail from '$lib/components/CursorTrail.svelte';
 	import { initSectionSnap } from '$lib/components/sectionSnap';
 
 	onMount(() => {
@@ -49,14 +44,14 @@
 	<a href="#main-content" class="skip-link">Skip to main content</a>
 	<div id="main-content" tabindex="-1">
 		<Hero />
-		<About />
+		<LazySection loader={() => import('$lib/components/about/About.svelte')} />
 		<div class="section-divider divider-to-card"></div>
-		<Experience />
+		<LazySection loader={() => import('$lib/components/experience/Experience.svelte')} />
 		<div class="section-divider divider-to-dark"></div>
-		<Projects />
+		<LazySection loader={() => import('$lib/components/projects/Projects.svelte')} />
 		<div class="section-divider divider-to-card"></div>
-		<Skills />
-		<Contact />
+		<LazySection loader={() => import('$lib/components/skills/Skills.svelte')} />
+		<LazySection loader={() => import('$lib/components/contact/Contact.svelte')} />
 	</div>
 </main>
 <Footer />

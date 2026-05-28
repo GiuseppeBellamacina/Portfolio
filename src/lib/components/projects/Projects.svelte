@@ -253,6 +253,101 @@
 		autoLastTime = 0;
 	}
 
+	// ─── Mobile flat carousel ───────────────────────────────────────────────────
+	let mobileActiveIndex = $state(0);
+	let mobileOffset = $state(0);
+	let mobileDragStartX = 0;
+	let mobileDragStartOffset = 0;
+	let mobileDragging = false;
+	let mobileDragMoved = $state(false);
+
+	const MOBILE_CARD_WIDTH = 280;
+	const MOBILE_GAP = 16;
+	const MOBILE_STEP = MOBILE_CARD_WIDTH + MOBILE_GAP;
+
+	function getMobileTargetOffset(index: number): number {
+		if (typeof window === 'undefined') return 0;
+		const viewportW = window.innerWidth;
+		return viewportW / 2 - MOBILE_CARD_WIDTH / 2 - index * MOBILE_STEP;
+	}
+
+	function goToMobileSlide(index: number) {
+		mobileActiveIndex = Math.max(0, Math.min(projects.length - 1, index));
+		animateMobileToTarget();
+	}
+
+	let mobileSnapRaf: number | null = null;
+	function animateMobileToTarget() {
+		if (mobileSnapRaf) cancelAnimationFrame(mobileSnapRaf);
+		const target = getMobileTargetOffset(mobileActiveIndex);
+		let vel = 0;
+		let lastT = 0;
+		function tick(time: number) {
+			if (!lastT) {
+				lastT = time;
+				mobileSnapRaf = requestAnimationFrame(tick);
+				return;
+			}
+			const dt = Math.min((time - lastT) / 1000, 0.05);
+			lastT = time;
+			const disp = mobileOffset - target;
+			const force = -160 * disp - 18 * vel;
+			vel += force * dt;
+			mobileOffset += vel * dt;
+			if (Math.abs(disp) < 0.5 && Math.abs(vel) < 0.5) {
+				mobileOffset = target;
+				mobileSnapRaf = null;
+				return;
+			}
+			mobileSnapRaf = requestAnimationFrame(tick);
+		}
+		mobileSnapRaf = requestAnimationFrame(tick);
+	}
+
+	function onMobilePointerDown(e: PointerEvent) {
+		if (e.button !== 0) return;
+		mobileDragStartX = e.clientX;
+		mobileDragStartOffset = mobileOffset;
+		mobileDragging = false;
+		mobileDragMoved = false;
+		if (mobileSnapRaf) {
+			cancelAnimationFrame(mobileSnapRaf);
+			mobileSnapRaf = null;
+		}
+		window.addEventListener('pointermove', onMobilePointerMove);
+		window.addEventListener('pointerup', onMobilePointerUp);
+		window.addEventListener('pointercancel', onMobilePointerUp);
+	}
+	function onMobilePointerMove(e: PointerEvent) {
+		const dx = e.clientX - mobileDragStartX;
+		if (!mobileDragging && Math.abs(dx) < 8) return;
+		mobileDragging = true;
+		mobileDragMoved = true;
+		mobileOffset = mobileDragStartOffset + dx;
+	}
+	function onMobilePointerUp(e: PointerEvent) {
+		window.removeEventListener('pointermove', onMobilePointerMove);
+		window.removeEventListener('pointerup', onMobilePointerUp);
+		window.removeEventListener('pointercancel', onMobilePointerUp);
+		if (!mobileDragging) return;
+		mobileDragging = false;
+		const dx = e.clientX - mobileDragStartX;
+		if (Math.abs(dx) > 50) {
+			mobileActiveIndex =
+				dx < 0
+					? Math.min(projects.length - 1, mobileActiveIndex + 1)
+					: Math.max(0, mobileActiveIndex - 1);
+		}
+		animateMobileToTarget();
+	}
+
+	// Initialize mobile offset on mount
+	$effect(() => {
+		if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+			mobileOffset = getMobileTargetOffset(mobileActiveIndex);
+		}
+	});
+
 	// ─── Grid view: parallax 3D tilt ────────────────────────────────────────────
 	let hoveredProject: Project | null = $state(null);
 	let tiltStyle = $state('');
@@ -459,44 +554,60 @@
 		{/if}
 	</div>
 
-	<!-- Mobile: 2-row swipe -->
-	<div class="mobile-rows">
-		{#each [0, 1] as row}
-			<div class="mobile-scroll-row">
-				{#each projects.filter((_, idx) => idx % 2 === row) as project}
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<article
-						class="pcard"
-						style={!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}
-						onclick={() => onGridCardClick(project)}
-					>
-						<div class="pcard-bg">
-							{#if project.image}
-								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-							{:else}
-								<div class="pcard-grad"></div>
-							{/if}
-						</div>
-						<div class="pcard-overlay"></div>
-						{#if project.isHackathonWinner}
-							<span class="pcard-badge">🏆 Winner</span>
+	<!-- Mobile: flat carousel -->
+	<div class="mobile-carousel">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="mobile-carousel-track"
+			onpointerdown={onMobilePointerDown}
+			style="transform: translateX({mobileOffset}px)"
+		>
+			{#each projects as project, i}
+				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<article
+					class="mobile-card"
+					class:is-active={mobileActiveIndex === i}
+					style={!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}
+					onclick={() => {
+						if (!mobileDragMoved) onGridCardClick(project);
+					}}
+				>
+					<div class="pcard-bg">
+						{#if project.image}
+							<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+						{:else}
+							<div class="pcard-grad"></div>
 						{/if}
-						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-							<span class="pcard-stars">⭐ {project.stars}</span>
-						{/if}
-						<div class="pcard-body">
-							<h3 class="pcard-title">{project.title}</h3>
-							<div class="pcard-tags">
-								{#each project.techTags.slice(0, 3) as t}
-									<span class="pcard-tag">{t}</span>
-								{/each}
-							</div>
+					</div>
+					<div class="pcard-overlay"></div>
+					{#if project.isHackathonWinner}
+						<span class="pcard-badge">🏆 Winner</span>
+					{/if}
+					{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
+						<span class="pcard-stars">⭐ {project.stars}</span>
+					{/if}
+					<div class="pcard-body">
+						<h3 class="pcard-title">{project.title}</h3>
+						<div class="pcard-tags">
+							{#each project.techTags.slice(0, 3) as t}
+								<span class="pcard-tag">{t}</span>
+							{/each}
 						</div>
-					</article>
-				{/each}
-			</div>
-		{/each}
+					</div>
+				</article>
+			{/each}
+		</div>
+		<div class="mobile-carousel-dots">
+			{#each projects as _, i}
+				<button
+					class="mobile-dot"
+					class:active={mobileActiveIndex === i}
+					onclick={() => goToMobileSlide(i)}
+					aria-label="Go to project {i + 1}"
+				></button>
+			{/each}
+		</div>
 	</div>
 
 	<!-- Expanded card panel -->

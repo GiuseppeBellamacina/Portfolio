@@ -64,12 +64,15 @@
 
 	onMount(() => {
 		let cleanupCanvas: (() => void) | undefined;
+		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting && !isVisible) {
 						isVisible = true;
-						cleanupCanvas = createCanvasConstellation(skillsSection);
+						if (!isMobile) {
+							cleanupCanvas = createCanvasConstellation(skillsSection);
+						}
 						setTimeout(() => {
 							addParallaxEffect();
 							setupSkillsAnimations();

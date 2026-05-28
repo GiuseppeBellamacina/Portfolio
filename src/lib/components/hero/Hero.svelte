@@ -4,7 +4,6 @@
 	import { currentSeason } from '$lib/stores/seasonStore';
 	import { t, lang } from '$lib/i18n';
 	import { getBaseTexts, getSeasonalGreetings } from './heroData';
-	import { initGpgpuParticles } from './gpgpuParticles';
 	import { startTypingEffect } from './typingEffect';
 	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
 	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
@@ -37,21 +36,31 @@
 		startTypingEffect(getTexts, (t) => (typingText = t));
 
 		let cleanup: (() => void) | undefined;
-		const idle =
-			'requestIdleCallback' in window
-				? requestIdleCallback(async () => {
-						cleanup = await initGpgpuParticles(heroContainer, heroSection);
-					})
-				: setTimeout(async () => {
-						cleanup = await initGpgpuParticles(heroContainer, heroSection);
-					}, 50);
+		let idle: number | undefined;
+
+		// Skip heavy GPGPU particles on mobile/low-end devices
+		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+		if (!isMobile) {
+			idle =
+				'requestIdleCallback' in window
+					? requestIdleCallback(async () => {
+							const { initGpgpuParticles } = await import('./gpgpuParticles');
+							cleanup = await initGpgpuParticles(heroContainer, heroSection);
+						})
+					: (setTimeout(async () => {
+							const { initGpgpuParticles } = await import('./gpgpuParticles');
+							cleanup = await initGpgpuParticles(heroContainer, heroSection);
+						}, 50) as unknown as number);
+		}
 
 		requestAnimationFrame(() => (mounted = true));
 		return () => {
 			unsubSeason();
 			unsubLang();
-			if ('cancelIdleCallback' in window) cancelIdleCallback(idle as number);
-			else clearTimeout(idle as number);
+			if (idle !== undefined) {
+				if ('cancelIdleCallback' in window) cancelIdleCallback(idle);
+				else clearTimeout(idle);
+			}
 			cleanup?.();
 		};
 	});
