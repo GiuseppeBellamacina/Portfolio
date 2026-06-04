@@ -397,6 +397,72 @@ body::after {
 	height: 300px;
 }
 
+/* ── CV download button states ── */
+.cv-btn {
+	min-width: 11.5rem;
+	justify-content: center;
+}
+.cv-btn.is-loading,
+.cv-btn.is-done {
+	pointer-events: none;
+}
+/* Animated download icon during loading: gently slides down and repeats */
+.cv-btn.is-loading .fa-download {
+	animation: cvArrow 0.9s ease-in-out infinite;
+}
+/* Thin progress bar that sweeps across the button while fetching */
+.cv-btn.is-loading::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	height: 2px;
+	width: 100%;
+	background: linear-gradient(90deg, transparent, currentColor, transparent);
+	opacity: 0.7;
+	animation: cvSweep 0.9s ease-in-out infinite;
+}
+/* Done: keep the button's own color, just a soft fade-in of the check */
+.cv-btn.is-done .fa-check {
+	animation: cvCheck 0.35s ease-out;
+}
+@keyframes cvArrow {
+	0%,
+	100% {
+		transform: translateY(-2px);
+		opacity: 0.7;
+	}
+	50% {
+		transform: translateY(2px);
+		opacity: 1;
+	}
+}
+@keyframes cvSweep {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+@keyframes cvCheck {
+	0% {
+		transform: scale(0.6);
+		opacity: 0;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.cv-btn.is-loading .fa-download,
+	.cv-btn.is-loading::after,
+	.cv-btn.is-done .fa-check {
+		animation: none;
+	}
+}
+
 .btn-primary {
 	background: var(--gradient-1);
 	color: white;

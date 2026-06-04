@@ -5,6 +5,7 @@
 	import { t, lang } from '$lib/i18n';
 	import { getBaseTexts, getSeasonalGreetings } from './heroData';
 	import { startTypingEffect } from './typingEffect';
+	import { downloadCV, type CvDownloadState } from '$lib/cvDownload';
 	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
 	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
 	import NewYearEffect from '$lib/components/seasonal/NewYearEffect.svelte';
@@ -16,6 +17,16 @@
 	let heroSection: HTMLElement;
 	let spotlightX = $state(50);
 	let spotlightY = $state(50);
+
+	let cvState = $state<CvDownloadState>('idle');
+	async function handleCvDownload(e: MouseEvent) {
+		e.preventDefault();
+		if (cvState === 'loading') return;
+		cvState = 'loading';
+		await downloadCV();
+		cvState = 'done';
+		setTimeout(() => (cvState = 'idle'), 2200);
+	}
 
 	function getTexts(): string[] {
 		const season = get(currentSeason);
@@ -127,13 +138,24 @@
 				}}>{$t.hero_viewExperience}</a
 			>
 			<a
-				href="https://github.com/GiuseppeBellamacina/CurriculumVitae/raw/main/cv.pdf"
-				target="_blank"
+				href="https://raw.githubusercontent.com/GiuseppeBellamacina/CurriculumVitae/main/cv.pdf"
+				download="Giuseppe_Bellamacina_CV.pdf"
 				rel="noopener noreferrer"
-				class="btn btn-secondary"
+				class="btn btn-secondary cv-btn"
+				class:is-loading={cvState === 'loading'}
+				class:is-done={cvState === 'done'}
+				onclick={handleCvDownload}
 			>
-				<i class="fas fa-download"></i>
-				{$t.hero_downloadCV}
+				{#if cvState === 'loading'}
+					<i class="fas fa-download"></i>
+					{$t.cv_downloading}
+				{:else if cvState === 'done'}
+					<i class="fas fa-check"></i>
+					{$t.cv_downloaded}
+				{:else}
+					<i class="fas fa-download"></i>
+					{$t.hero_downloadCV}
+				{/if}
 			</a>
 			<a href="https://github.com/GiuseppeBellamacina" target="_blank" class="btn btn-secondary">
 				<i class="fab fa-github"></i> GitHub

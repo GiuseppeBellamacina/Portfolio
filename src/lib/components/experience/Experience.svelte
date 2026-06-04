@@ -3,6 +3,7 @@
 	import { t, lang } from '$lib/i18n';
 	import { getTimelineItems, getTotalWorkExperience } from './experienceData';
 	import { createBinaryRain } from './binaryRain';
+	import { downloadCV, type CvDownloadState } from '$lib/cvDownload';
 	import './experience.css';
 
 	let experienceSection: HTMLElement;
@@ -10,6 +11,16 @@
 	let visibleItems = $state<boolean[]>([]);
 	let canvasEl: HTMLCanvasElement;
 	let rafId = 0;
+
+	let cvState = $state<CvDownloadState>('idle');
+	async function handleCvDownload(e: MouseEvent) {
+		e.preventDefault();
+		if (cvState === 'loading') return;
+		cvState = 'loading';
+		await downloadCV();
+		cvState = 'done';
+		setTimeout(() => (cvState = 'idle'), 2200);
+	}
 
 	const timelineItems = $derived(getTimelineItems($lang));
 	const workExp = getTotalWorkExperience();
@@ -123,13 +134,24 @@
 
 		<div class="cv-download">
 			<a
-				href="https://github.com/GiuseppeBellamacina/CurriculumVitae/raw/main/cv.pdf"
-				target="_blank"
+				href="https://raw.githubusercontent.com/GiuseppeBellamacina/CurriculumVitae/main/cv.pdf"
+				download="Giuseppe_Bellamacina_CV.pdf"
 				rel="noopener noreferrer"
-				class="btn btn-primary"
+				class="btn btn-primary cv-btn"
+				class:is-loading={cvState === 'loading'}
+				class:is-done={cvState === 'done'}
+				onclick={handleCvDownload}
 			>
-				<i class="fas fa-download"></i>
-				{$t.exp_downloadCV}
+				{#if cvState === 'loading'}
+					<i class="fas fa-download"></i>
+					{$t.cv_downloading}
+				{:else if cvState === 'done'}
+					<i class="fas fa-check"></i>
+					{$t.cv_downloaded}
+				{:else}
+					<i class="fas fa-download"></i>
+					{$t.exp_downloadCV}
+				{/if}
 			</a>
 		</div>
 

@@ -41,6 +41,8 @@ const translations = {
 		// Hero
 		hero_viewExperience: 'View Experience',
 		hero_downloadCV: 'Download CV',
+		cv_downloading: 'Downloading…',
+		cv_downloaded: 'Downloaded!',
 
 		// About
 		about_title: 'About Me',
@@ -183,6 +185,8 @@ const translations = {
 		// Hero
 		hero_viewExperience: 'Vedi Esperienze',
 		hero_downloadCV: 'Scarica CV',
+		cv_downloading: 'Download in corso…',
+		cv_downloaded: 'Scaricato!',
 
 		// About
 		about_title: 'Chi Sono',
