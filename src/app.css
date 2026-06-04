@@ -2,6 +2,7 @@
 	--primary-color: #818cf8;
 	--secondary-color: #a78bfa;
 	--accent-color: #f0abfc;
+	--warm-accent: #fbbf24;
 	--neon-pink: #e879f9;
 	--neon-blue: #60a5fa;
 	--neon-green: #34d399;
@@ -21,6 +22,7 @@
 	--neon-pink-rgb: 232, 121, 249;
 	--neon-blue-rgb: 96, 165, 250;
 	--neon-green-rgb: 52, 211, 153;
+	--warm-accent-rgb: 251, 191, 36;
 	--bg-dark-rgb: 7, 9, 15;
 	--bg-card-rgb: 14, 17, 33;
 	/* Hero gradient stops */
@@ -30,7 +32,7 @@
 	/* Hero radial glow tints */
 	--hero-glow-1: rgba(var(--indigo-rgb), 0.12);
 	--hero-glow-2: rgba(var(--secondary-rgb), 0.1);
-	--hero-glow-3: rgba(var(--neon-pink-rgb), 0.06);
+	--hero-glow-3: rgba(var(--warm-accent-rgb), 0.06);
 	/* Galaxy particle gradient (center → edge) — 12-stop violet/indigo */
 	--galaxy-c1: #ffffff;
 	--galaxy-c2: #f5f0ff;
@@ -40,10 +42,10 @@
 	--galaxy-c6: #a78bfa;
 	--galaxy-c7: #8b5cf6;
 	--galaxy-c8: #7c3aed;
-	--galaxy-c9: #7e5cdb;
-	--galaxy-c10: #8a7ace;
-	--galaxy-c11: #9d9ad4;
-	--galaxy-c12: #b8b8e0;
+	--galaxy-c9: #8a6fd0;
+	--galaxy-c10: #b08acc;
+	--galaxy-c11: #d4a679;
+	--galaxy-c12: #fbbf24;
 }
 
 /* ── Seasonal Theme Overrides ─────────────────────────────────────────────── */
@@ -270,7 +272,7 @@ h6,
 body > .noise-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 9999;
+	z-index: 1;
 	pointer-events: none;
 	opacity: 0.03;
 	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -439,7 +441,7 @@ body::after {
 	transform: translateY(-3px);
 	box-shadow:
 		0 8px 30px rgba(var(--indigo-rgb), 0.4),
-		0 0 20px rgba(var(--primary-rgb), 0.2);
+		0 0 20px rgba(var(--warm-accent-rgb), 0.18);
 }
 
 .btn-secondary {
@@ -489,7 +491,7 @@ body::after {
 		90deg,
 		var(--primary-color),
 		var(--secondary-color),
-		var(--neon-pink)
+		var(--warm-accent)
 	);
 	animation: lineExpand 1s 0.6s ease-out forwards;
 	transform: scaleX(0);
@@ -497,7 +499,7 @@ body::after {
 	will-change: transform;
 	box-shadow:
 		0 0 8px rgba(var(--primary-rgb), 0.4),
-		0 0 20px rgba(var(--secondary-rgb), 0.2);
+		0 0 20px rgba(var(--warm-accent-rgb), 0.2);
 }
 
 @keyframes lineExpand {

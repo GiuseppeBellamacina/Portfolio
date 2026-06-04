@@ -4,6 +4,8 @@
  * Optimized: no shadowBlur, batched draw calls, typed arrays for grid.
  */
 export function createCanvasConstellation(section: HTMLElement): (() => void) | undefined {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
 	const canvas = document.createElement('canvas');
 	canvas.style.cssText = `
 		position: absolute; inset: 0; width: 100%; height: 100%;

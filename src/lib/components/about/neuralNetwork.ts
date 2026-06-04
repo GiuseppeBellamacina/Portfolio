@@ -7,6 +7,8 @@ export function createNeuralNetworkViz(
 	section: HTMLElement,
 	getVisible: () => boolean
 ): (() => void) | undefined {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
@@ -218,7 +220,7 @@ export function createNeuralNetworkViz(
 
 			if (neuron.glow > 0) {
 				ctx.fillStyle = color + neuron.glow + ')';
-				ctx.shadowBlur = 20;
+				ctx.shadowBlur = 10;
 				ctx.shadowColor = color + '1)';
 				ctx.beginPath();
 				ctx.arc(neuron.x, neuron.y, neuron.radius + 4, 0, Math.PI * 2);
@@ -254,6 +256,8 @@ export function createMobileParticles(
 	section: HTMLElement,
 	getVisible: () => boolean
 ): (() => void) | undefined {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 

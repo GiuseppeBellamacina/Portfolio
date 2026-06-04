@@ -6,6 +6,8 @@ export function createBinaryRain(
 	canvas: HTMLCanvasElement,
 	getVisible: () => boolean
 ): (() => void) | undefined {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
@@ -49,6 +51,11 @@ export function createBinaryRain(
 	}
 
 	function frame() {
+		// Skip all rendering while off-screen or in a background tab.
+		if (!getVisible() || document.hidden) {
+			rafId = requestAnimationFrame(frame);
+			return;
+		}
 		const w = canvas.width;
 		const h = canvas.height;
 		ctx!.clearRect(0, 0, w, h);

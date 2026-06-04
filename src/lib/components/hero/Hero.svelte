@@ -41,7 +41,8 @@
 		// Skip heavy GPGPU particles on mobile/low-end devices
 		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		if (!isMobile) {
-			// Delay particle init to avoid blocking main thread during TBT window
+			// Small delay so the galaxy appears promptly without blocking the TBT window;
+			// the system itself fades in gradually once initialized.
 			idle = setTimeout(async () => {
 				if ('requestIdleCallback' in window) {
 					requestIdleCallback(async () => {
@@ -52,7 +53,7 @@
 					const { initGpgpuParticles } = await import('./gpgpuParticles');
 					cleanup = await initGpgpuParticles(heroContainer, heroSection);
 				}
-			}, 3000) as unknown as number;
+			}, 600) as unknown as number;
 		}
 
 		requestAnimationFrame(() => (mounted = true));

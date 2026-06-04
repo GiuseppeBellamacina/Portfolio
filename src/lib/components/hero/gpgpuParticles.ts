@@ -6,6 +6,11 @@ export async function initGpgpuParticles(
 	container: HTMLElement,
 	interactionTarget: HTMLElement
 ): Promise<(() => void) | undefined> {
+	// Respect users who prefer reduced motion — skip the heavy particle system.
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		return;
+	}
+
 	const THREE = await import('three');
 	const {
 		Scene,
@@ -487,8 +492,12 @@ export async function initGpgpuParticles(
 	let time = 0;
 	let hoverProgress = 0;
 	let everRendered = false;
-	let raf: number;
+	let raf = 0;
 	let skipFrame = false;
+	let isOnScreen = true;
+	let pageVisible = !document.hidden;
+	const FADE_MS = 1400;
+	let fadeStart = 0;
 
 	function animate() {
 		raf = requestAnimationFrame(animate);
@@ -539,6 +548,11 @@ export async function initGpgpuParticles(
 		renderMaterial.uniforms.uTime.value = time;
 		renderMaterial.uniforms.uIsHovering.value = hoverProgress;
 
+		// Gradual fade-in so the galaxy materializes smoothly instead of popping in.
+		if (fadeStart === 0) fadeStart = performance.now();
+		const fadeT = Math.min(1, (performance.now() - fadeStart) / FADE_MS);
+		renderMaterial.uniforms.uAlpha.value = fadeT * fadeT;
+
 		renderer.autoClear = true;
 		renderer.render(scene, camera);
 
@@ -548,7 +562,39 @@ export async function initGpgpuParticles(
 		everRendered = true;
 	}
 
-	animate();
+	function start() {
+		if (raf) return;
+		clock.update(); // reset delta to avoid a time jump after a pause
+		raf = requestAnimationFrame(animate);
+	}
+	function stop() {
+		if (!raf) return;
+		cancelAnimationFrame(raf);
+		raf = 0;
+	}
+	function updateRunState() {
+		if (isOnScreen && pageVisible) start();
+		else stop();
+	}
+
+	// Pause the whole simulation when the Hero scrolls out of view…
+	const visObs = new IntersectionObserver(
+		(entries) => {
+			isOnScreen = entries[0].isIntersecting;
+			updateRunState();
+		},
+		{ threshold: 0 }
+	);
+	visObs.observe(container);
+
+	// …or when the tab is hidden.
+	function onVisibility() {
+		pageVisible = !document.hidden;
+		updateRunState();
+	}
+	document.addEventListener('visibilitychange', onVisibility);
+
+	start();
 
 	// ── Eventi ──
 	function onMouseMove(e: MouseEvent) {
@@ -584,6 +630,8 @@ export async function initGpgpuParticles(
 
 	return () => {
 		cancelAnimationFrame(raf);
+		visObs.disconnect();
+		document.removeEventListener('visibilitychange', onVisibility);
 		seasonObserver.disconnect();
 		interactionTarget.removeEventListener('mousemove', onMouseMove);
 		interactionTarget.removeEventListener('mouseleave', onMouseLeave);

@@ -159,6 +159,11 @@
 	padding: 0;
 	line-height: 1.6;
 }
+.term-input:focus,
+.term-input:focus-visible {
+	outline: none;
+	box-shadow: none;
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

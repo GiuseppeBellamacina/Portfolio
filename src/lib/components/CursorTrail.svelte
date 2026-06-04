@@ -101,13 +101,27 @@
 	}
 
 	onMount(() => {
+		// Honor reduced-motion: no cursor trail at all.
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			return;
+		}
+
 		window.addEventListener('mousemove', handleMouseMove);
 
-		const interval = setInterval(updateParticles, 30);
+		let raf = 0;
+		let lastUpdate = 0;
+		function loop(ts: number) {
+			raf = requestAnimationFrame(loop);
+			// Throttle physics to ~30ms and skip while the tab is hidden.
+			if (document.hidden || ts - lastUpdate < 30) return;
+			lastUpdate = ts;
+			updateParticles();
+		}
+		raf = requestAnimationFrame(loop);
 
 		return () => {
 			window.removeEventListener('mousemove', handleMouseMove);
-			clearInterval(interval);
+			cancelAnimationFrame(raf);
 		};
 	});
 </script>
