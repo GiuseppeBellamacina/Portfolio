@@ -124,6 +124,7 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://modelcontextprotocol.io/'
 			},
 			{ name: 'Claude', icon: 'claude.png', url: 'https://claude.com/product/claude-code' },
+			{ name: 'OpenCode', icon: 'opencode.webp', url: 'https://opencode.ai/' },
 			{
 				name: 'GitHub Copilot',
 				icon: 'githubcopilot.webp',
@@ -163,7 +164,7 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://www.crummy.com/software/BeautifulSoup/'
 			},
 			{ name: 'Selenium', icon: 'selenium-original.svg', url: 'https://www.selenium.dev/' },
-			{ name: 'Pytest', icon: 'pytest.png', url: 'https://pytest.org/' }
+			{ name: 'Pytest', icon: 'pytest.webp', url: 'https://pytest.org/' }
 		]
 	},
 	{
@@ -196,7 +197,8 @@ export const skillCategories: SkillCategory[] = [
 				url: 'https://www.sqlalchemy.org/'
 			},
 			{ name: 'Redis', icon: 'redis-icon.png', url: 'https://redis.io/' },
-			{ name: 'Upstash', icon: 'upstash.png', url: 'https://upstash.com/' }
+			{ name: 'Upstash', icon: 'upstash.png', url: 'https://upstash.com/' },
+			{ name: 'SPARQL', icon: 'sparql-128.png', url: 'https://www.w3.org/TR/rdf-sparql-query/' }
 		]
 	},
 	{
@@ -222,6 +224,7 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'Vite', icon: 'vite.svg', url: 'https://vite.dev/' },
 			{ name: 'Vercel', icon: 'Vercel_favicon.svg', url: 'https://vercel.com/' },
 			{ name: 'Render', icon: 'render.jpeg', url: 'https://render.com/' },
+			{ name: 'Railway', icon: 'railway.svg', url: 'https://railway.app/' },
 			{ name: 'VirtualBox', icon: 'virtualbox.png', url: 'https://www.virtualbox.org/' },
 			{ name: 'AWS', icon: 'aws.webp', url: 'https://aws.amazon.com/' },
 			{
