@@ -15,18 +15,29 @@
 	onMount(() => {
 		const cleanup = initSectionSnap();
 
-		// Subtle parallax on section titles
+		// Enhanced parallax on section titles and dividers
 		const titles = document.querySelectorAll<HTMLElement>('.section-title');
+		const dividers = document.querySelectorAll<HTMLElement>('.section-divider');
 		let raf: number;
+
 		function updateParallax() {
 			const vh = window.innerHeight;
+			// Section titles parallax
 			for (const el of titles) {
 				const rect = el.getBoundingClientRect();
 				const center = rect.top + rect.height / 2;
-				const offset = ((center - vh / 2) / vh) * -12; // max ±12px
-				el.style.transform = `translateY(${offset}px)`;
+				const offset = ((center - vh / 2) / vh) * -15;
+				el.style.transform = `translateY(${offset}px) translateZ(0)`;
+			}
+			// Divider parallax
+			for (const el of dividers) {
+				const rect = el.getBoundingClientRect();
+				const center = rect.top + rect.height / 2;
+				const offset = ((center - vh / 2) / vh) * -20;
+				el.style.setProperty('--parallax-offset', `${offset}px`);
 			}
 		}
+
 		function onScroll() {
 			cancelAnimationFrame(raf);
 			raf = requestAnimationFrame(updateParallax);

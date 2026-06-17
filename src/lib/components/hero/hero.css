@@ -164,6 +164,68 @@
 	opacity: 0.6;
 }
 
+/* Occasional glitch distortion — triggered via JS class toggle.
+   Uses ::before/::after pseudo-elements for RGB split + clip slices. */
+.glitch.is-glitching {
+	animation:
+		nameGradientFlow 6s ease-in-out infinite,
+		glitchSkew 0.6s ease-in-out 2;
+}
+
+/* Red ghost (offset left) during glitch */
+.glitch.is-glitching::before {
+	content: attr(data-text);
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	-webkit-text-fill-color: transparent;
+	background: #ff0055;
+	-webkit-background-clip: text;
+	background-clip: text;
+	filter: none;
+	opacity: 0.7;
+	animation: glitchRed 0.6s ease-in-out 2;
+}
+
+/* Cyan ghost (offset right) during glitch */
+.glitch.is-glitching::after {
+	content: attr(data-text);
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	-webkit-text-fill-color: transparent;
+	background: #00f0ff;
+	-webkit-background-clip: text;
+	background-clip: text;
+	filter: none;
+	opacity: 0.7;
+	animation: glitchCyan 0.6s ease-in-out 2;
+}
+
+@keyframes glitchSkew {
+	0%, 20%, 100% { transform: translate(0); }
+	10% { transform: translate(-2px, 1px) skew(1deg); }
+	30% { transform: translate(2px, -1px) skew(-1deg); }
+	50% { transform: translate(-3px, 0) skew(0.5deg); }
+	70% { transform: translate(1px, -2px) skew(-0.5deg); }
+}
+
+@keyframes glitchRed {
+	0%, 20%, 100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+	10% { transform: translate(-3px, 1px); clip-path: inset(20% 0 60% 0); }
+	30% { transform: translate(2px, -1px); clip-path: inset(60% 0 10% 0); }
+	50% { transform: translate(-4px, 0); clip-path: inset(40% 0 40% 0); }
+	70% { transform: translate(1px, 2px); clip-path: inset(10% 0 70% 0); }
+}
+
+@keyframes glitchCyan {
+	0%, 20%, 100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+	10% { transform: translate(3px, -1px); clip-path: inset(60% 0 10% 0); }
+	30% { transform: translate(-2px, 1px); clip-path: inset(10% 0 70% 0); }
+	50% { transform: translate(4px, 0); clip-path: inset(30% 0 50% 0); }
+	70% { transform: translate(-1px, -2px); clip-path: inset(50% 0 20% 0); }
+}
+
 @keyframes nameGradientFlow {
 	0%,
 	100% {

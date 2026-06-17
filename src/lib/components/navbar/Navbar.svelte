@@ -28,39 +28,104 @@
 		closeMenu();
 	}
 
-	// Matrix rain effect — capped to MAX_RAIN to keep DOM small
-	const MAX_RAIN = 12;
-	let rainCount = 0;
 	let isNavbarVisible = true;
-	function createMatrixRain() {
-		if (!navbarElement) return;
 
-		const characters =
-			'01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+	// Canvas-based matrix rain effect — no DOM manipulation, single paint
+	let rainCanvas: HTMLCanvasElement;
+	let rainRaf = 0;
 
-		setInterval(() => {
-			if (!isNavbarVisible) return;
-			if (rainCount >= MAX_RAIN) return;
-			if (Math.random() > 0.3) {
-				const rain = document.createElement('span');
-				rain.textContent = characters[Math.floor(Math.random() * characters.length)];
-				rain.style.position = 'absolute';
-				rain.style.left = Math.random() * 100 + '%';
-				rain.style.top = '0';
-				rain.style.color = 'var(--primary-color)';
-				rain.style.fontSize = Math.random() * 6 + 10 + 'px';
-				rain.style.opacity = (Math.random() * 0.3 + 0.2).toString();
-				rain.style.pointerEvents = 'none';
-				rain.style.animation = `matrixFall ${Math.random() * 1 + 1.5}s linear forwards`;
-				navbarElement.appendChild(rain);
-				rainCount++;
+	function initMatrixRain() {
+		if (!rainCanvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-				setTimeout(() => {
-					rain.remove();
-					rainCount--;
-				}, 2500);
-			}
+		const ctx = rainCanvas.getContext('2d');
+		if (!ctx) return;
+
+		const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+
+		interface RainDrop {
+			x: number;
+			y: number;
+			ch: string;
+			speed: number;
+			alpha: number;
+			size: number;
+		}
+
+		const MAX_DROPS = 14;
+		const drops: RainDrop[] = [];
+		const colors = ['#818cf8', '#a78bfa', '#6366f1'];
+
+		function resize() {
+			rainCanvas.width = navbarElement?.offsetWidth || window.innerWidth;
+			rainCanvas.height = 60;
+		}
+		resize();
+
+		function spawnDrop() {
+			if (drops.length >= MAX_DROPS) return;
+			drops.push({
+				x: Math.random() * rainCanvas.width,
+				y: Math.random() * 30,
+				ch: characters[Math.floor(Math.random() * characters.length)],
+				speed: 0.6 + Math.random() * 1.8,
+				alpha: 0.02,
+				size: 10 + Math.random() * 6
+			});
+		}
+
+		const resizeObs = new ResizeObserver(() => resize());
+		resizeObs.observe(navbarElement);
+
+		const spawnInterval = setInterval(() => {
+			if (!isNavbarVisible || document.hidden) return;
+			if (Math.random() > 0.35) spawnDrop();
 		}, 80);
+
+		function tick() {
+			if (!isNavbarVisible || document.hidden) {
+				rainRaf = requestAnimationFrame(tick);
+				return;
+			}
+
+			ctx!.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+
+			for (let i = drops.length - 1; i >= 0; i--) {
+				const d = drops[i];
+				d.y += d.speed * 0.016;
+				d.alpha += 0.0008;
+
+				if (d.alpha > 0.28) d.alpha = 0.28;
+
+				if (d.y > rainCanvas.height + 10) {
+					drops.splice(i, 1);
+					continue;
+				}
+
+				ctx!.globalAlpha = d.alpha;
+				ctx!.font = `bold ${d.size}px 'Courier New', monospace`;
+				ctx!.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+				ctx!.shadowColor = 'rgba(129, 140, 248, 0.3)';
+				ctx!.shadowBlur = 4;
+				ctx!.fillText(d.ch, d.x, d.y);
+			}
+
+			ctx!.globalAlpha = 1;
+			ctx!.shadowBlur = 0;
+
+			if (drops.length < MAX_DROPS && Math.random() < 0.25) {
+				spawnDrop();
+			}
+
+			rainRaf = requestAnimationFrame(tick);
+		}
+
+		rainRaf = requestAnimationFrame(tick);
+
+		return () => {
+			clearInterval(spawnInterval);
+			cancelAnimationFrame(rainRaf);
+			resizeObs.disconnect();
+		};
 	}
 
 	onMount(() => {
@@ -70,15 +135,17 @@
 		};
 
 		window.addEventListener('scroll', handleScrollEffect);
-		createMatrixRain();
+		const rainCleanup = initMatrixRain();
 
 		return () => {
 			window.removeEventListener('scroll', handleScrollEffect);
+			rainCleanup?.();
 		};
 	});
 </script>
 
 <nav class="navbar" class:navbar-solid={scrollY > 100} bind:this={navbarElement}>
+	<canvas class="rain-canvas" bind:this={rainCanvas}></canvas>
 	<div class="container" style="position: relative;">
 		<div class="nav-brand">Giuseppe Bellamacina</div>
 		<ul class="nav-menu desktop-menu">

@@ -255,6 +255,31 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(var(--primary-rgb), 0.25);
+	border-radius: 4px;
+	transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(var(--primary-rgb), 0.45);
+}
+
+/* Firefox */
+html {
+	scrollbar-color: rgba(var(--primary-rgb), 0.25) var(--bg-dark);
+	scrollbar-width: thin;
+}
+
 /* Heading font — Outfit for all display/title elements */
 h1,
 h2,
@@ -321,7 +346,13 @@ body::after {
 	}
 }
 
-/* Section Entrance Animations */
+/* Pause lava animation when tab is hidden */
+body.tab-hidden::before,
+body.tab-hidden::after {
+	animation-play-state: paused;
+}
+
+/* ── Section Entrance Animations ── */
 .about,
 .experience,
 .projects,
@@ -332,10 +363,13 @@ body::after {
 
 /* ── Section Dividers ── */
 .section-divider {
-	height: 80px;
+	height: clamp(60px, 4rem + 1vw, 100px);
 	position: relative;
 	z-index: 1;
 	pointer-events: none;
+	overflow: hidden;
+	transform: translateY(var(--parallax-offset, 0px));
+	transition: transform 0.1s linear;
 }
 
 .divider-to-card {

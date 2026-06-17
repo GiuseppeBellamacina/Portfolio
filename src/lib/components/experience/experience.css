@@ -275,15 +275,16 @@
 	position: relative;
 	padding: clamp(1.2rem, 0.8rem + 0.5vw, 1.6rem) clamp(1.3rem, 0.9rem + 0.5vw, 1.8rem);
 	border-radius: 16px;
-	background: rgba(15, 18, 35, 0.7);
+	background: rgba(var(--bg-card-rgb), 0.5);
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
-	border: 1px solid rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(var(--primary-rgb), 0.08);
 	transition:
 		transform 0.35s ease,
 		border-color 0.35s ease,
 		box-shadow 0.35s ease;
 	overflow: hidden;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 .tl-card::after {
 	content: '';

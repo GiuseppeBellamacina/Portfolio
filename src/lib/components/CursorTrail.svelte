@@ -15,14 +15,16 @@
 		rotationSpeed: number;
 	}
 
+	let canvas: HTMLCanvasElement;
 	let particles: Particle[] = [];
-	let cursorX = 0;
-	let cursorY = 0;
-	let lastTime = Date.now();
+	let cursorX = -100;
+	let cursorY = -100;
+	let lastTime = 0;
 	let hueBase = 0;
 	let season: Season = 'default';
+	let raf = 0;
+	let isMobile = false;
 
-	// Subscribe to season changes
 	currentSeason.subscribe((value) => {
 		season = value;
 	});
@@ -30,26 +32,25 @@
 	function getSeasonalColors(season: Season): { hues: number[]; count: number } {
 		switch (season) {
 			case 'newyear':
-				return { hues: [0, 45, 200, 280, 320], count: 3 }; // Confetti colors
+				return { hues: [0, 45, 200, 280, 320], count: 3 };
 			case 'snow':
-				return { hues: [180, 200, 220], count: 2 }; // Ice blue/white
+				return { hues: [180, 200, 220], count: 2 };
 			case 'halloween':
-				return { hues: [25, 30, 280], count: 2 }; // Orange and purple
+				return { hues: [25, 30, 280], count: 2 };
 			case 'summer':
-				return { hues: [45, 60, 160, 180], count: 2 }; // Yellow/green firefly
+				return { hues: [45, 60, 160, 180], count: 2 };
 			case 'spring':
-				return { hues: [300, 320, 340], count: 2 }; // Pink sakura
+				return { hues: [300, 320, 340], count: 2 };
 			case 'autumn':
-				return { hues: [15, 25, 35], count: 2 }; // Orange/red leaves
+				return { hues: [15, 25, 35], count: 2 };
 			default:
-				return { hues: [180, 200, 280, 320, 45], count: 2 }; // Rainbow
+				return { hues: [180, 200, 280, 320, 45], count: 2 };
 		}
 	}
 
-	function createParticle(x: number, y: number) {
+	function spawnParticles(x: number, y: number) {
 		const seasonalConfig = getSeasonalColors(season);
 		const particleCount = seasonalConfig.count;
-		const newParticles = [];
 
 		for (let i = 0; i < particleCount; i++) {
 			const angle = Math.random() * Math.PI * 2;
@@ -59,7 +60,7 @@
 				seasonalConfig.hues[Math.floor(Math.random() * seasonalConfig.hues.length)] +
 				(Math.random() - 0.5) * 20;
 
-			newParticles.push({
+			particles.push({
 				x: x + (Math.random() - 0.5) * 10,
 				y: y + (Math.random() - 0.5) * 10,
 				opacity: 0.9,
@@ -72,81 +73,106 @@
 			});
 		}
 
-		particles = [...particles.slice(-25), ...newParticles];
+		// Cap at 30 particles to prevent memory growth
+		if (particles.length > 30) {
+			particles = particles.slice(-30);
+		}
 	}
 
-	function updateParticles() {
-		particles = particles
-			.map((p) => ({
-				...p,
-				x: p.x + p.velocityX,
-				y: p.y + p.velocityY,
-				opacity: p.opacity - 0.025,
-				rotation: p.rotation + p.rotationSpeed,
-				size: p.size * 0.98
-			}))
-			.filter((p) => p.opacity > 0 && p.size > 0.5);
+	function draw(timestamp: number) {
+		raf = requestAnimationFrame(draw);
+		if (document.hidden) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+		lastTime = timestamp;
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		// Update & draw particles
+		for (let i = particles.length - 1; i >= 0; i--) {
+			const p = particles[i];
+			p.x += p.velocityX;
+			p.y += p.velocityY;
+			p.opacity -= 0.025;
+			p.rotation += p.rotationSpeed;
+			p.size *= 0.98;
+
+			if (p.opacity <= 0 || p.size <= 0.5) {
+				particles.splice(i, 1);
+				continue;
+			}
+
+			// Outer glow
+			const glowAlpha = p.opacity * 0.25;
+			ctx.save();
+			ctx.translate(p.x, p.y);
+			ctx.rotate((p.rotation * Math.PI) / 180);
+			ctx.beginPath();
+			const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.size * 2);
+			grad.addColorStop(0, `hsla(${p.hue}, 100%, 70%, ${glowAlpha})`);
+			grad.addColorStop(0.5, `hsla(${p.hue}, 100%, 60%, ${glowAlpha * 0.6})`);
+			grad.addColorStop(1, 'transparent');
+			ctx.fillStyle = grad;
+			ctx.rect(-p.size * 2, -p.size * 2, p.size * 4, p.size * 4);
+			ctx.fill();
+
+			// Core
+			const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.size);
+			coreGrad.addColorStop(0, `hsla(${p.hue}, 100%, 85%, ${p.opacity})`);
+			coreGrad.addColorStop(0.4, `hsla(${p.hue}, 100%, 55%, ${p.opacity * 0.7})`);
+			coreGrad.addColorStop(1, 'transparent');
+			ctx.fillStyle = coreGrad;
+			ctx.beginPath();
+			ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.restore();
+		}
 	}
 
 	function handleMouseMove(e: MouseEvent) {
 		cursorX = e.clientX;
 		cursorY = e.clientY;
 
-		const now = Date.now();
+		const now = performance.now();
 		if (now - lastTime > 30) {
-			createParticle(e.clientX, e.clientY);
-			lastTime = now;
+			spawnParticles(e.clientX, e.clientY);
 			hueBase = (hueBase + 1) % 360;
+			if (lastTime === 0) lastTime = now;
 		}
 	}
 
 	onMount(() => {
-		// Honor reduced-motion: no cursor trail at all.
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			return;
 		}
 
+		isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+		if (isMobile) return;
+
+		// Size canvas to viewport
+		function resize() {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+		resize();
+		window.addEventListener('resize', resize);
 		window.addEventListener('mousemove', handleMouseMove);
 
-		let raf = 0;
-		let lastUpdate = 0;
-		function loop(ts: number) {
-			raf = requestAnimationFrame(loop);
-			// Throttle physics to ~30ms and skip while the tab is hidden.
-			if (document.hidden || ts - lastUpdate < 30) return;
-			lastUpdate = ts;
-			updateParticles();
-		}
-		raf = requestAnimationFrame(loop);
+		lastTime = performance.now();
+		raf = requestAnimationFrame(draw);
 
 		return () => {
-			window.removeEventListener('mousemove', handleMouseMove);
 			cancelAnimationFrame(raf);
+			window.removeEventListener('resize', resize);
+			window.removeEventListener('mousemove', handleMouseMove);
 		};
 	});
 </script>
 
-<div class="cursor-trail">
-	{#each particles as particle, i (i)}
-		<div
-			class="particle"
-			style="
-				left: {particle.x}px;
-				top: {particle.y}px;
-				opacity: {particle.opacity};
-				width: {particle.size}px;
-				height: {particle.size}px;
-				transform: translate(-50%, -50%) rotate({particle.rotation}deg);
-				background: radial-gradient(circle, 
-					hsla({particle.hue}, 100%, 70%, {particle.opacity}), 
-					hsla({particle.hue}, 100%, 50%, {particle.opacity * 0.6}) 40%,
-					transparent 70%
-				);
-				box-shadow: 0 0 {particle.size * 2}px hsla({particle.hue}, 100%, 60%, {particle.opacity * 0.8});
-			"
-		></div>
-	{/each}
-</div>
+<canvas class="cursor-trail" bind:this={canvas}></canvas>
 
 <style>
 	.cursor-trail {
@@ -157,24 +183,6 @@
 		height: 100%;
 		pointer-events: none;
 		z-index: 9999;
-	}
-
-	.particle {
-		position: absolute;
-		border-radius: 50%;
-		pointer-events: none;
-		filter: blur(0.5px);
-		animation: particleTwinkle 0.6s ease-in-out infinite;
-	}
-
-	@keyframes particleTwinkle {
-		0%,
-		100% {
-			filter: blur(0.5px) brightness(1);
-		}
-		50% {
-			filter: blur(1px) brightness(1.3);
-		}
 	}
 
 	@media (max-width: 768px) {

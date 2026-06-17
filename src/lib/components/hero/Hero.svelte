@@ -17,6 +17,20 @@
 	let heroSection: HTMLElement;
 	let spotlightX = $state(50);
 	let spotlightY = $state(50);
+	let isGlitching = $state(false);
+
+	// Occasional glitch effect on the name (~every 8 seconds, random interval)
+	let glitchTimeout: ReturnType<typeof setTimeout>;
+	function scheduleGlitch() {
+		function tick() {
+			if (!document.hidden) {
+				isGlitching = true;
+				setTimeout(() => (isGlitching = false), 700);
+			}
+			glitchTimeout = setTimeout(tick, 7000 + Math.random() * 4000);
+		}
+		glitchTimeout = setTimeout(tick, 7000 + Math.random() * 4000);
+	}
 
 	let cvState = $state<CvDownloadState>('idle');
 	async function handleCvDownload(e: MouseEvent) {
@@ -39,12 +53,11 @@
 			texts.splice(pos, 0, greetings[i]);
 		}
 		return texts;
-	}
-
-	onMount(() => {
+	}		onMount(() => {
 		const unsubSeason = currentSeason.subscribe(() => {});
 		const unsubLang = lang.subscribe(() => {});
 		startTypingEffect(getTexts, (t) => (typingText = t));
+		scheduleGlitch();
 
 		let cleanup: (() => void) | undefined;
 		let idle: number | undefined;
@@ -71,6 +84,7 @@
 		return () => {
 			unsubSeason();
 			unsubLang();
+			clearTimeout(glitchTimeout);
 			if (idle !== undefined) {
 				clearTimeout(idle);
 			}
@@ -119,7 +133,7 @@
 			</picture>
 		</div>
 
-		<h1 class="glitch hero-stagger s2" data-text="Giuseppe Bellamacina">Giuseppe Bellamacina</h1>
+		<h1 class="glitch hero-stagger s2" class:is-glitching={isGlitching} data-text="Giuseppe Bellamacina">Giuseppe Bellamacina</h1>
 
 		<p class="subtitle hero-stagger s3">
 			<span class="typing-prefix">&gt;&nbsp;</span>

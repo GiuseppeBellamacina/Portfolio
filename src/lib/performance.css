@@ -1,6 +1,8 @@
-/* Performance Optimizations */
+/* ═══════════════════════════════════════════════════════════════════════
+   Performance Optimizations
+   ═══════════════════════════════════════════════════════════════════════ */
 
-/* Isola rendering delle sezioni per migliori performance */
+/* ── Layout isolation for independent paint/composite ── */
 .hero,
 .about,
 .experience,
@@ -10,7 +12,17 @@
 	contain: layout style;
 }
 
-/* Hint al browser per animazioni smooth — solo per elementi attivamente animati */
+/* ── content-visibility: skip rendering for off-screen sections ── */
+.about,
+.experience,
+.projects,
+.skills,
+.contact {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 600px;
+}
+
+/* ── Hint al browser per animazioni smooth ── */
 .profile-image {
 	will-change: transform;
 }
@@ -21,12 +33,14 @@
 	will-change: transform;
 }
 
-/* Ottimizza canvas neural network */
 .neural-network-canvas {
 	will-change: contents;
 }
 
-/* GPU acceleration per animazioni */
+/* ── Pause always-running CSS animations when tab is hidden ── */
+/* Animations on body pseudo-elements are paused via JS (tab-hidden class in app.css) */
+
+/* ── GPU acceleration per animazioni ── */
 @keyframes codeFloat {
 	0% {
 		transform: translate(0, 0) translateZ(0);
@@ -44,17 +58,18 @@
 	}
 }
 
-/* Riduci repaint per elementi fissi */
+/* ── Riduci repaint per elementi fissi ── */
 .navbar {
 	will-change: background-color;
 	transform: translateZ(0);
 }
 
-/* Ottimizza scroll */
+/* ── Ottimizza scroll ── */
 html {
 	scroll-behavior: smooth;
 }
 
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

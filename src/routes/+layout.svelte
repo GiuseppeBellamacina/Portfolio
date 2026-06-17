@@ -15,6 +15,13 @@
 
 	onMount(() => {
 		initLang();
+
+		// Pause heavy CSS animations when the tab is hidden to save GPU/CPU
+		const onVis = () => document.body.classList.toggle('tab-hidden', document.hidden);
+		document.addEventListener('visibilitychange', onVis);
+		onVis();
+
+		return () => document.removeEventListener('visibilitychange', onVis);
 	});
 
 	// Apply seasonal CSS class on <body>

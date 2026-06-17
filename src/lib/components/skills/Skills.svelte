@@ -13,15 +13,18 @@
 		const icons = document.querySelectorAll('.tech-icon') as NodeListOf<HTMLElement>;
 
 		icons.forEach((icon) => {
+			// Magnetic hover: icon follows cursor within bounds
 			icon.addEventListener('mouseleave', () => {
 				icon.style.transform = '';
+				icon.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
 			});
 
 			icon.addEventListener('mousemove', (e) => {
 				const rect = icon.getBoundingClientRect();
 				const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
 				const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
-				icon.style.transform = `scale(1.18) translateY(-3px) translate(${x * 4}px, ${y * 4}px)`;
+				icon.style.transition = 'transform 0.1s ease-out';
+				icon.style.transform = `scale(1.15) translateY(-4px) translate(${x * 6}px, ${y * 6}px)`;
 			});
 		});
 	}

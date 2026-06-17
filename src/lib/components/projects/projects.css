@@ -577,7 +577,6 @@
 	}
 }
 
-/* ══════════════════════════════════════════════════════════════════════════ */
 /* ── Grid View ───────────────────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════════════════ */
 .grid-container {
@@ -598,7 +597,11 @@
 	border-radius: 16px;
 	overflow: hidden;
 	cursor: pointer;
-	border: 1px solid rgba(255, 255, 255, 0.07);
+	background: rgba(var(--bg-card-rgb), 0.6);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(var(--primary-rgb), 0.08);
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 	transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1);
 	transition:
 		transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
