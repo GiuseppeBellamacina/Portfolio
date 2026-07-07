@@ -231,6 +231,14 @@ export const projects: Project[] = [
 		techTags: ['C++', 'Python', 'TF-IDF', 'Cosine Similarity'],
 		githubUrl: 'https://github.com/GiuseppeBellamacina/fast-query-ranker',
 		image: '/assets/projects/ranker.webp'
+	},
+	{
+		title: 'CVRP Solver',
+		description:
+			'High-performance interactive solver for the <strong>Capacitated Vehicle Routing Problem (CVRP)</strong> using a <strong>Hybrid Genetic Algorithm (HGA)</strong> that achieves state-of-the-art results on CVRPLIB benchmarks.<br><strong>Core algorithm:</strong><ul><li>Evolutionary optimization enhanced by <strong>local search operators</strong> — 4-opt, Or-opt, Relocate, and Exchange — with Granular Local Search (GLS)</li><li><strong>Prins\' Split Algorithm</strong> for optimal chromosome-to-routes decoding under strict capacity constraints</li><li><strong>Numba JIT compilation</strong> for extreme performance — up to <strong>6,900+ evaluations/sec per core</strong></li></ul><strong>Full-stack dashboard:</strong> React + TypeScript frontend with HTML5 Canvas for real-time route visualization, convergence charts, and statistical progress. FastAPI + WebSocket backend.<br><strong>Automated tuning:</strong> integrated <strong>Optuna</strong> hyperparameter optimization for finding best configuration parameters.<br><strong>HPC-ready:</strong> SLURM and Apptainer scripts for large-scale cluster experiments.',
+		techTags: ['Python', 'Numba', 'Genetic Algorithm', 'Optimization', 'FastAPI', 'React'],
+		githubUrl: 'https://github.com/GiuseppeBellamacina/capacitated-vehicle-routing-problem',
+		image: '/assets/projects/cvrp.webp'
 	}
 ];
 
@@ -276,7 +284,9 @@ const italianDescriptions: string[] = [
 	// TunneLLM
 	'Comunicazione tramite tunnel SSH con un LLM hostato localmente, permettendo scambio di messaggi privato e sicuro.<br><strong>Architettura:</strong><ul><li><strong>Server GPU remoto</strong> — esegue vLLM servendo Qwen2.5-14B-Instruct-AWQ (~9GB 4-bit quantizzato)</li><li><strong>Tunnel SSH</strong> — bridge sshtunnel/paramiko tra locale e remoto</li><li><strong>Proxy FastAPI</strong> — endpoint API compatibile OpenAI in locale</li></ul>Espone il modello come <strong>API OpenAI</strong> standard per estensioni VS Code (Continue, Copilot). Supporta streaming delle chat completions, health check e parametri SSH/modello completamente configurabili.',
 	// Fast Query Ranker
-	'Mini-progetto che implementa un <strong>query ranker</strong> usando <strong>TF-IDF</strong> e <strong>cosine similarity</strong> sia in <strong>C++</strong> che in <strong>Python</strong>, con benchmark comparativo.<br><strong>Features:</strong><ul><li>Calcolo TF-IDF su un set di documenti</li><li>Ranking tramite similarità coseno rispetto a una query</li><li>Script di benchmark per confrontare le performance tra C++ e Python</li></ul><strong>Risultati benchmark:</strong> 3.3M documenti → <strong>C++</strong>: 35.8s, <strong>Python</strong>: 560.9s (speedup 15.6x).'
+	'Mini-progetto che implementa un <strong>query ranker</strong> usando <strong>TF-IDF</strong> e <strong>cosine similarity</strong> sia in <strong>C++</strong> che in <strong>Python</strong>, con benchmark comparativo.<br><strong>Features:</strong><ul><li>Calcolo TF-IDF su un set di documenti</li><li>Ranking tramite similarità coseno rispetto a una query</li><li>Script di benchmark per confrontare le performance tra C++ e Python</li></ul><strong>Risultati benchmark:</strong> 3.3M documenti → <strong>C++</strong>: 35.8s, <strong>Python</strong>: 560.9s (speedup 15.6x).',
+	// CVRP Solver
+	'Risolutore interattivo ad alte prestazioni per il <strong>Problema di Instradamento di Veicoli con Capacità (CVRP)</strong> basato su un <strong>Algoritmo Genetico Ibrido (HGA)</strong> che raggiunge risultati allo stato dell\'arte sui benchmark CVRPLIB.<br><strong>Algoritmo principale:</strong><ul><li>Ottimizzazione evolutiva potenziata da <strong>operatori di ricerca locale</strong> — 4-opt, Or-opt, Relocate ed Exchange — con Granular Local Search (GLS)</li><li><strong>Split Algorithm di Prins</strong> per il decoding ottimale cromosoma-percorsi nel rispetto dei vincoli di capacità</li><li><strong>Compilazione JIT con Numba</strong> per performance estreme — fino a <strong>6.900+ valutazioni/sec per core</strong></li></ul><strong>Dashboard full-stack:</strong> frontend React + TypeScript con Canvas HTML5 per visualizzazione in tempo reale dei percorsi, grafici di convergenza e statistiche di avanzamento. Backend FastAPI + WebSocket.<br><strong>Tuning automatico:</strong> ottimizzazione degli iperparametri integrata con <strong>Optuna</strong> per trovare la configurazione migliore.<br><strong>Pronto per HPC:</strong> script SLURM e Apptainer per esperimenti su larga scala su cluster.'
 ];
 
 export function getProjects(lang: Lang): Project[] {
