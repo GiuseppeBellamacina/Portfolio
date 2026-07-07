@@ -134,6 +134,16 @@
 	color: var(--neon-green);
 	font-style: italic;
 }
+.rich .wip-tag {
+	color: #febc2e;
+	font-size: 0.75em;
+	font-style: italic;
+	animation: wipPulse 2s ease-in-out infinite;
+}
+@keyframes wipPulse {
+	0%, 100% { opacity: 0.5; }
+	50% { opacity: 1; }
+}
 
 /* ── Input line ── */
 .input-line {

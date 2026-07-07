@@ -15,7 +15,11 @@ export interface Song {
 export const projectEntries: HistoryEntry[] = [
 	{
 		type: 'html',
-		text: '<span class="file">videogame-semantic-search/</span>    <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/Videogame-Semantic-Search" target="_blank" rel="noopener noreferrer">NL-to-SPARQL semantic search on OWL 2 ontology</a></span>'
+		text: '<span class="file">cvrp-solver/</span>                  <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/capacitated-vehicle-routing-problem" target="_blank" rel="noopener noreferrer">Hybrid GA for CVRP — Numba + React dashboard</a></span>  <span class="wip-tag">[working]</span>'
+	},
+	{
+		type: 'html',
+		text: '<span class="file">constrained-decoding-vlm/</span>     <span class="cmt"># Constrained decoding with grammars &amp; VLMs (research)</span>  <span class="wip-tag">[working]</span>'
 	},
 	{
 		type: 'html',
