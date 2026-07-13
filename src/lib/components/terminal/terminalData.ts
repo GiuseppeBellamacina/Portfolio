@@ -19,7 +19,7 @@ export const projectEntries: HistoryEntry[] = [
 	},
 	{
 		type: 'html',
-		text: '<span class="file">constrained-decoding-vlm/</span>     <span class="cmt"># Constrained decoding with grammars &amp; VLMs (research)</span>  <span class="wip-tag">[working]</span>'
+		text: '<span class="file">constrained-decoding-vlm/</span>     <span class="cmt"># <a href="https://github.com/GiuseppeBellamacina/neuro_symbolic_t2g" target="_blank" rel="noopener noreferrer">Constrained decoding with grammars &amp; VLMs (research)</span>  <span class="wip-tag">[working]</span>'
 	},
 	{
 		type: 'html',
