@@ -12,13 +12,6 @@ export function createNeuralNetworkViz(
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
-	function resizeCanvas() {
-		canvas.width = section.offsetWidth;
-		canvas.height = section.offsetHeight;
-	}
-	resizeCanvas();
-	window.addEventListener('resize', resizeCanvas);
-
 	interface Neuron {
 		x: number;
 		y: number;
@@ -49,45 +42,60 @@ export function createNeuralNetworkViz(
 
 	const neurons: Neuron[] = [];
 	const connections: Connection[] = [];
+	const layerNeurons: Neuron[][] = layers.map(() => []);
 
-	layers.forEach((layer, layerIndex) => {
-		const layerNeurons: Neuron[] = [];
-		const spacing = canvas.height / (layer.nodes + 1);
+	function layoutNetwork() {
+		neurons.length = 0;
+		connections.length = 0;
+		layerNeurons.forEach((layer) => (layer.length = 0));
+		layers.forEach((layer, layerIndex) => {
+			const spacing = canvas.height / (layer.nodes + 1);
 
-		for (let i = 0; i < layer.nodes; i++) {
-			const neuron: Neuron = {
-				x: layer.x * canvas.width,
-				y: (i + 1) * spacing,
-				layer: layerIndex,
-				radius: 6,
-				glow: 0
-			};
-			neurons.push(neuron);
-			layerNeurons.push(neuron);
-		}
+			for (let i = 0; i < layer.nodes; i++) {
+				const neuron: Neuron = {
+					x: layer.x * canvas.width,
+					y: (i + 1) * spacing,
+					layer: layerIndex,
+					radius: 6,
+					glow: 0
+				};
+				neurons.push(neuron);
+				layerNeurons[layerIndex].push(neuron);
+			}
 
-		if (layerIndex > 0) {
-			const prevLayerNeurons = neurons.filter((n) => n.layer === layerIndex - 1);
-			layerNeurons.forEach((neuron) => {
-				prevLayerNeurons.forEach((prevNeuron) => {
-					connections.push({
-						from: prevNeuron,
-						to: neuron,
-						weight: Math.random() * 0.5 + 0.3
+			if (layerIndex > 0) {
+				const prevLayerNeurons = layerNeurons[layerIndex - 1];
+				layerNeurons[layerIndex].forEach((neuron) => {
+					prevLayerNeurons.forEach((prevNeuron) => {
+						connections.push({
+							from: prevNeuron,
+							to: neuron,
+							weight: Math.random() * 0.5 + 0.3
+						});
 					});
 				});
-			});
-		}
-	});
+			}
+		});
+	}
+	function resizeCanvas() {
+		canvas.width = section.offsetWidth;
+		canvas.height = section.offsetHeight;
+		layoutNetwork();
+	}
+	// Size the canvas BEFORE the first layout: without this, neurons are placed
+	// in the default 300x150 backing store and the CSS stretch pixelates/zooms everything
+	resizeCanvas();
+	window.addEventListener('resize', resizeCanvas);
 
 	let time = 0;
 	const impulses: Impulse[] = [];
+	const timeoutIds: number[] = [];
 	const maxImpulses = 25;
 
 	const impulseInterval = setInterval(() => {
 		if (!getVisible() || impulses.length > maxImpulses) return;
 
-		const inputNeurons = neurons.filter((n) => n.layer === 0);
+		const inputNeurons = layerNeurons[0];
 		const selectedNeurons = inputNeurons
 			.sort(() => Math.random() - 0.5)
 			.slice(0, Math.random() > 0.7 ? 2 : 1);
@@ -112,9 +120,10 @@ export function createNeuralNetworkViz(
 		});
 	}, 800);
 
+	let rafId = 0;
 	function animate() {
+		rafId = 0;
 		if (!getVisible()) {
-			requestAnimationFrame(animate);
 			return;
 		}
 
@@ -180,7 +189,7 @@ export function createNeuralNetworkViz(
 						.slice(0, numToPropagate);
 
 					selectedConnections.forEach((conn, idx) => {
-						setTimeout(() => {
+						const timeoutId = window.setTimeout(() => {
 							if (impulses.length < maxImpulses) {
 								impulses.push({
 									from: conn.from,
@@ -191,6 +200,7 @@ export function createNeuralNetworkViz(
 								});
 							}
 						}, idx * 50);
+						timeoutIds.push(timeoutId);
 					});
 				}
 
@@ -235,15 +245,21 @@ export function createNeuralNetworkViz(
 			ctx.stroke();
 		});
 
-		if (getVisible()) {
-			requestAnimationFrame(animate);
-		}
+		rafId = requestAnimationFrame(animate);
 	}
 
-	animate();
+	function resume() {
+		if (getVisible() && !rafId) rafId = requestAnimationFrame(animate);
+	}
+	const visibilityObserver = new IntersectionObserver(resume);
+	visibilityObserver.observe(section);
+	resume();
 
 	return () => {
 		clearInterval(impulseInterval);
+		cancelAnimationFrame(rafId);
+		timeoutIds.forEach((id) => clearTimeout(id));
+		visibilityObserver.disconnect();
 		window.removeEventListener('resize', resizeCanvas);
 	};
 }
@@ -291,9 +307,10 @@ export function createMobileParticles(
 		});
 	}
 
+	let rafId = 0;
 	function animate() {
+		rafId = 0;
 		if (!getVisible()) {
-			requestAnimationFrame(animate);
 			return;
 		}
 
@@ -338,14 +355,19 @@ export function createMobileParticles(
 			ctx.shadowBlur = 0;
 		});
 
-		if (getVisible()) {
-			requestAnimationFrame(animate);
-		}
+		rafId = requestAnimationFrame(animate);
 	}
 
-	animate();
+	function resume() {
+		if (getVisible() && !rafId) rafId = requestAnimationFrame(animate);
+	}
+	const visibilityObserver = new IntersectionObserver(resume);
+	visibilityObserver.observe(section);
+	resume();
 
 	return () => {
+		cancelAnimationFrame(rafId);
+		visibilityObserver.disconnect();
 		window.removeEventListener('resize', resizeCanvas);
 	};
 }

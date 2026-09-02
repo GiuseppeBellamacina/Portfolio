@@ -121,6 +121,9 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 
 	// Pre-compute alpha buckets for batched line drawing (5 levels)
 	const ALPHA_LEVELS = 5;
+	const MAX_LINES = (COUNT * (COUNT - 1)) / 2;
+	const lineBatches = Array.from({ length: ALPHA_LEVELS }, () => new Float32Array(MAX_LINES * 4));
+	const lineBatchLengths = new Uint32Array(ALPHA_LEVELS);
 
 	function tick() {
 		if (!canvasRunning) return;
@@ -130,8 +133,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 
 		// --- Connections (batched by alpha level) + physics ---
 		// We batch lines into alpha groups to reduce strokeStyle changes
-		const lineBatches: { ax: number; ay: number; bx: number; by: number }[][] = [];
-		for (let l = 0; l < ALPHA_LEVELS; l++) lineBatches.push([]);
+		lineBatchLengths.fill(0);
 
 		for (let i = 0; i < COUNT; i++) {
 			const nax = px[i];
@@ -175,7 +177,13 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 							const alpha = (1 - dist / CONNECT_DIST) * 0.25;
 							const level = (alpha * ALPHA_LEVELS * 4) | 0; // 0-4
 							const clamped = level >= ALPHA_LEVELS ? ALPHA_LEVELS - 1 : level;
-							lineBatches[clamped].push({ ax: nax, ay: nay, bx: px[j], by: py[j] });
+							const lineOffset = lineBatchLengths[clamped] * 4;
+							const batch = lineBatches[clamped];
+							batch[lineOffset] = nax;
+							batch[lineOffset + 1] = nay;
+							batch[lineOffset + 2] = px[j];
+							batch[lineOffset + 3] = py[j];
+							lineBatchLengths[clamped]++;
 						}
 					}
 				}
@@ -186,13 +194,15 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 		ctx!.lineWidth = 0.6;
 		for (let l = 0; l < ALPHA_LEVELS; l++) {
 			const batch = lineBatches[l];
-			if (batch.length === 0) continue;
+			const lineCount = lineBatchLengths[l];
+			if (lineCount === 0) continue;
 			const alpha = ((l + 0.5) / ALPHA_LEVELS) * 0.25;
 			ctx!.strokeStyle = `hsla(252, 60%, 60%, ${alpha.toFixed(3)})`;
 			ctx!.beginPath();
-			for (let k = 0; k < batch.length; k++) {
-				ctx!.moveTo(batch[k].ax, batch[k].ay);
-				ctx!.lineTo(batch[k].bx, batch[k].by);
+			for (let k = 0; k < lineCount; k++) {
+				const lineOffset = k * 4;
+				ctx!.moveTo(batch[lineOffset], batch[lineOffset + 1]);
+				ctx!.lineTo(batch[lineOffset + 2], batch[lineOffset + 3]);
 			}
 			ctx!.stroke();
 		}

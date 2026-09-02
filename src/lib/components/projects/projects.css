@@ -613,6 +613,23 @@
 	-webkit-mask-image: -webkit-radial-gradient(white, black);
 	mask-image: radial-gradient(white, black);
 }
+
+.carousel-viewport:focus-visible,
+.pcard-title-button:focus-visible,
+.pcard:has(.pcard-title-button:focus-visible) {
+	outline: 2px solid var(--accent, #8be9fd);
+	outline-offset: 4px;
+	box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #8be9fd) 45%, transparent);
+}
+
+.pcard-title-button {
+	background: none;
+	border: 0;
+	color: inherit;
+	font: inherit;
+	text-align: inherit;
+	cursor: pointer;
+}
 .pcard.is-hovered {
 	transform: perspective(800px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg))
 		translateY(-14px) scale(1.06);

@@ -9,10 +9,11 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
 ### 🎨 Visual Effects
 
 - **Matrix Rain Animation** - Dynamic character rain effect on the navigation bar
-- **Seasonal Effects System** - Automatic themed animations based on calendar periods
-  - 🎄 **Christmas Snow** (Dec 1 - Jan 6) - Falling snowflakes with natural physics
-  - 🌟 **Summer Fireflies** (Jun-Aug) - Glowing fireflies with smooth fade animations
-  - 🎆 **New Year** (Dec 31 - Jan 2) - Confetti and firework explosions with rotation
+- **Seasonal Effects System** - Automatic themed animations based on calendar periods:
+  - 🎄 **Snow** (Dec 1-30 and Jan 3-6)
+  - 🌟 **Summer** (Jun-Aug)
+  - 🎆 **New Year** (Dec 31-Jan 2)
+- **Terminal Theme Control** - Seasonal themes can also be selected with the terminal `theme` command
 - **Neural Network Visualization** - Interactive canvas-based feedforward network with animated impulse propagation
 - **Binary Particle System** - Animated binary digits with neon glow effects
 - **Shooting Stars & Constellations** - Space-themed background animations
@@ -20,26 +21,28 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
 
 ### 🚀 Performance
 
-- **Lazy Loading** - All heavy visual effects use IntersectionObserver for viewport-based rendering
-- **GPU Acceleration** - CSS animations optimized with `will-change` and hardware acceleration
-- **Pause When Offscreen** - Animations automatically pause when not visible to conserve resources
-- **Optimized Rendering** - Canvas effects capped at optimal frame rates
+- **Lazy Loading** - Heavy visual effects use IntersectionObserver for viewport-based rendering
+- **GPU Acceleration** - CSS animations use `will-change` and hardware acceleration where appropriate
+- **Pause When Offscreen** - Animations automatically pause when not visible
+- **Optimized Rendering** - Canvas effects are capped at suitable frame rates
 
 ### 📱 Responsive Design
 
-- **Mobile-First Approach** - Fully responsive across all devices
-- **Futuristic Hamburger Menu** - Cyberpunk-styled mobile navigation with gradient effects
+- **Mobile-First Approach** - Responsive across devices
+- **Futuristic Hamburger Menu** - Cyberpunk-styled mobile navigation
 - **Touch-Optimized** - Smooth interactions on mobile devices
 - **Accessibility** - ARIA labels, keyboard navigation support, and semantic HTML
 
 ## 🛠️ Tech Stack
 
-- **[Svelte 5](https://svelte.dev/)** - Next-generation reactive framework with latest runes API
-- **[SvelteKit](https://kit.svelte.dev/)** - Full-stack framework with SSR capabilities
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
-- **[Bun](https://bun.sh/)** - Ultra-fast JavaScript runtime and package manager
-- **[Vite](https://vitejs.dev/)** - Lightning-fast build tool
-- **GitHub Actions** - Automated deployment pipeline
+- **[Svelte 5](https://svelte.dev/)** - Reactive UI with the runes API
+- **[SvelteKit](https://kit.svelte.dev/)** - Application framework
+- **TypeScript** - Type-safe development
+- **Bun** - JavaScript runtime and package manager
+- **[Vite 7](https://vitejs.dev/)** - Build tool
+- **Static prerendering (SSG)** - The portfolio is prerendered for deployment as static output
+- **Self-hosted Font Awesome subset** - Only the used icons are included in generated WOFF2 assets
+- **Vercel** - Hosting and deployment from pushes to `main`
 
 ## 🚀 Getting Started
 
@@ -50,194 +53,142 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/GiuseppeBellamacina/Portfolio.git
-
-# Navigate to project directory
 cd Portfolio
-
-# Install dependencies
 bun install
 ```
 
 ### Development
 
 ```bash
-# Start development server
 bun run dev
-
-# Open http://localhost:5173 in your browser
+# Open http://localhost:5173
 ```
 
 ### Build
 
 ```bash
-# Create production build
 bun run build
-
-# Preview production build
 bun run preview
 ```
 
 ### Code Quality
 
 ```bash
-# Type checking
 bun run check
-
-# Type checking in watch mode
 bun run check:watch
-
-# Format code
 bun run format
-
-# Check formatting
 bun run format:check
 ```
+
+### Asset Scripts
+
+```bash
+# Dry-run report (default)
+bun scripts/optimize-assets.mjs
+bun scripts/optimize-assets.mjs --apply
+bun scripts/optimize-assets.mjs --apply --icons
+bun scripts/optimize-assets.mjs --apply --projects
+bun scripts/optimize-assets.mjs --apply --profile
+bun scripts/optimize-assets.mjs --apply --max-size 256
+bun scripts/optimize-assets.mjs --apply --to-webp
+bun scripts/optimize-assets.mjs --apply --to-webp --projects
+
+# Generate static/favicon.ico from the SVG favicon
+bun scripts/gen-favicon.mjs
+
+# Generate the self-hosted Font Awesome subset
+bun scripts/subset-fontawesome.mjs
+```
+
+Dopo aver aggiunto icone Font Awesome, ri-esegui `bun scripts/subset-fontawesome.mjs`.
 
 ## 📂 Project Structure
 
 ```text
-├── 📁 src
-│   ├── 📁 lib
-│   │   ├── 📁 assets
-│   │   │   └── 🖼️ favicon.svg
-│   │   ├── 📁 components
-│   │   │   ├── 📁 seasonal
-│   │   │   │   ├── 📄 AutumnEffect.svelte
-│   │   │   │   ├── 📄 HalloweenEffect.svelte
-│   │   │   │   ├── 📄 NewYearEffect.svelte
-│   │   │   │   ├── 📄 SakuraEffect.svelte
-│   │   │   │   ├── 📄 SeasonalEffectsDebug.svelte
-│   │   │   │   ├── 📄 SnowEffect.svelte
-│   │   │   │   └── 📄 SummerEffect.svelte
-│   │   │   ├── 📄 About.svelte
-│   │   │   ├── 📄 BackToTop.svelte
-│   │   │   ├── 📄 Contact.svelte
-│   │   │   ├── 📄 CursorTrail.svelte
-│   │   │   ├── 📄 Experience.svelte
-│   │   │   ├── 📄 Footer.svelte
-│   │   │   ├── 📄 Hero.svelte
-│   │   │   ├── 📄 Navbar.svelte
-│   │   │   ├── 📄 Projects.svelte
-│   │   │   ├── 📄 ScrollProgress.svelte
-│   │   │   ├── 📄 SectionSnap.svelte
-│   │   │   ├── 📄 Skills.svelte
-│   │   │   └── 📄 Terminal.svelte
-│   │   ├── 📁 stores
-│   │   │   └── 📄 seasonStore.ts
-│   │   ├── 📄 index.ts
-│   │   └── 🎨 performance.css
-│   ├── 📁 routes
-│   │   ├── 📄 +error.svelte
-│   │   ├── 📄 +layout.svelte
-│   │   └── 📄 +page.svelte
-│   ├── 🎨 app.css
-│   ├── 📄 app.d.ts
-│   └── 🌐 app.html
-├── 📁 static
-│   ├── 📁 assets
-│   │   ├── 📁 icons
-│   │   │   ├── 🖼️ ...
-│   │   ├── 📁 projects
-│   │   │   ├── 🖼️ ...
-│   │   ├── 📄 profile.avif
-│   │   ├── 🖼️ profile.png
-│   │   └── 🖼️ profile.webp
-│   ├── ⚙️ .nojekyll
-│   ├── 🖼️ android-chrome-192x192.png
-│   ├── 🖼️ android-chrome-512x512.png
-│   ├── 🖼️ apple-touch-icon.png
-│   ├── 🖼️ favicon-16x16.png
-│   ├── 🖼️ favicon-32x32.png
-│   ├── 📄 favicon.ico
-│   ├── 🌐 googledf0a28917ac8e779.html
-│   ├── 📄 robots.txt
-│   ├── 📄 site.webmanifest
-│   └── ⚙️ sitemap.xml
-├── ⚙️ .gitignore
-├── ⚙️ .npmrc
-├── ⚙️ .prettierignore
-├── ⚙️ .prettierrc
-├── 📝 README.md
-├── 📄 bun.lock
-├── ⚙️ package.json
-├── 📄 svelte.config.js
-├── ⚙️ tsconfig.json
-├── ⚙️ vercel.json
-└── 📄 vite.config.ts
+├── .github/
+│   ├── copilot-instructions.md
+│   └── workflows/check.yml
+├── src/
+│   ├── app.css, app.d.ts, app.html
+│   ├── lib/
+│   │   ├── components/
+│   │   │   ├── hero/        # Hero, typing effect, GPGPU particles
+│   │   │   ├── about/       # About and neural network
+│   │   │   ├── experience/  # Experience and binary rain
+│   │   │   ├── skills/      # Skills and constellation effects
+│   │   │   ├── projects/    # Projects and GitHub integration
+│   │   │   ├── navbar/      # Navigation and matrix effect
+│   │   │   ├── terminal/    # Interactive terminal and command data
+│   │   │   ├── contact/
+│   │   │   ├── footer/
+│   │   │   ├── seasonal/    # SnowEffect, SummerEffect, NewYearEffect
+│   │   │   ├── sectionSnap.ts
+│   │   │   ├── LazySection.svelte
+│   │   │   ├── ScrollProgress.svelte
+│   │   │   └── BackToTop.svelte
+│   │   ├── stores/seasonStore.ts
+│   │   └── performance.css, index.ts, cvDownload.ts
+│   └── routes/
+│       ├── +page.svelte, +layout.svelte, +layout.ts, +error.svelte
+│       └── sitemap.xml/+server.ts
+├── static/
+│   ├── assets/icons/ and projects/
+│   ├── favicons/
+│   ├── fonts/ and fa-subset.css
+│   └── robots.txt, site.webmanifest, sitemap.xml
+├── scripts/
+│   ├── optimize-assets.mjs
+│   ├── gen-favicon.mjs
+│   └── subset-fontawesome.mjs
+└── svelte.config.js, vite.config.ts, tsconfig.json, vercel.json
 ```
 
 ## 🎯 Key Components
 
 ### Seasonal Effects
 
-Automatic themed animations that activate based on the current date:
-
-- **Snow Effect**: Falling snowflakes with adjustable density based on screen size
-- **Halloween Effect**: Falling pumpkins, ghosts, and spiders during Halloween period
-- **Summer Fireflies**: Smart population control system maintaining 25-55 fireflies with smooth fade-in/out animations
-- **New Year Effect**: Confetti with spin variations and firework explosions using Web Animations API
-
-All effects use:
-
-- Date-based activation (no manual switching required)
-- Screen-responsive particle density
-- Web Animations API for smooth, conflict-free animations
-- Automatic cleanup and resource management
+`SnowEffect`, `SummerEffect`, and `NewYearEffect` activate according to their calendar periods and can be controlled through `seasonStore.ts` and the terminal `theme` command. They manage their particles and animations with responsive density and cleanup.
 
 ### Navbar
 
-- Dynamic matrix rain effect with customizable character pool
-- Smooth scroll navigation with active section highlighting
-- Responsive hamburger menu with futuristic animations
-- Backdrop blur and gradient effects
+Matrix rain, smooth section navigation, active-section highlighting, responsive menu, and backdrop effects.
 
 ### Hero
 
-- Animated typing effect with multiple text variations
-- Glitch-style title animation
-- CSS-based cursor blink
-- Profile image with hover effects
+Typing variations, glitch title animation, cursor blink, profile image, and GPU-accelerated particles.
 
 ### About
 
-- Canvas-based neural network with 5-layer architecture
-- Color-coded impulse propagation (green → cyan → magenta)
-- Trail effects for visual depth
-- Real-time connection rendering
+Canvas-based neural network visualization with layered nodes, animated impulses, trails, and live connections.
 
 ### Projects
 
-- GitHub API integration for live star counts
-- Scroll-triggered fade-in animations
-- External links to demos and repositories
-- Technology tags for each project
+Project cards with technology tags, external links, GitHub API star counts, and keyboard-accessible project detail interaction.
 
 ### Skills
 
-- Shooting stars background effect
-- Connected constellation patterns
-- Rainbow color cycling on select icons
-- Staggered fade-in animations
+Categorized technology icons with constellation and shooting-star canvas effects, hover states, and animated reveals.
 
 ### Experience
 
-- Timeline layout with alternating cards
-- Binary particle background with neon glow
-- Gradient text effects on dates
-- Responsive card positioning
+Timeline cards with binary rain background, gradient date styling, and responsive positioning.
+
+### Terminal
+
+Interactive terminal backed by a modular command registry, including navigation, project information, CV actions, and the `theme` command.
 
 ## 🌟 Performance Optimizations
 
-- **IntersectionObserver**: All canvas-based effects only render when visible
-- **RequestAnimationFrame**: Optimized animation loops
-- **Web Animations API**: Seasonal effects use modern API for smooth, isolated animations
-- **Smart Population Control**: Fireflies maintain stable count (85-100%) with interval monitoring
-- **CSS Containment**: Isolated rendering contexts
-- **Debounced Scroll**: Efficient scroll event handling
-- **Lazy GitHub API**: Star counts fetched only when needed
-- **Dynamic Density**: Particle count scales with viewport size
+- IntersectionObserver and lazy sections for viewport-based work
+- RequestAnimationFrame loops for canvas animations
+- Web Animations API for isolated seasonal animations
+- Automatic cleanup and offscreen pausing
+- CSS containment and GPU-friendly effects
+- Debounced scroll handling
+- Lazy GitHub star-count requests
+- Responsive particle density
+- Static prerendering (SSG) and a self-hosted Font Awesome subset
 
 ## 📄 License
 

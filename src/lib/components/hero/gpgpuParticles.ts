@@ -48,7 +48,7 @@ export async function initGpgpuParticles(
 
 	// ── Renderer ──
 	const renderer = new WebGLRenderer({
-		antialias: true,
+		antialias: false,
 		alpha: true,
 		powerPreference: 'high-performance',
 		stencil: false
@@ -65,6 +65,7 @@ export async function initGpgpuParticles(
 	const gl = renderer.getContext();
 	const extFloat = gl.getExtension('EXT_color_buffer_float');
 	if (!extFloat) {
+		renderer.dispose();
 		canvas.remove();
 		return;
 	}
@@ -472,6 +473,7 @@ export async function initGpgpuParticles(
 
 	// ── Raycasting (desktop only) ──
 	const raycaster = new Raycaster();
+	const scratchMouseUV = new Vector2(-9, -9);
 	const mouseNDC = new Vector2(-9, -9);
 	const intersectionPoint = new Vector3();
 	let isIntersecting = false;
@@ -525,9 +527,10 @@ export async function initGpgpuParticles(
 			}
 		}
 
-		const mouseUV = isIntersecting
-			? new Vector2(intersectionPoint.x, intersectionPoint.y)
-			: new Vector2(-9, -9);
+		const mouseUV = scratchMouseUV.set(
+			isIntersecting ? intersectionPoint.x : -9,
+			isIntersecting ? intersectionPoint.y : -9
+		);
 
 		simMaterial.uniforms.uPosition.value = everRendered ? rt1.texture : posTex;
 		simMaterial.uniforms.uTime.value = time;
@@ -553,7 +556,6 @@ export async function initGpgpuParticles(
 		const fadeT = Math.min(1, (performance.now() - fadeStart) / FADE_MS);
 		renderMaterial.uniforms.uAlpha.value = fadeT * fadeT;
 
-		renderer.autoClear = true;
 		renderer.render(scene, camera);
 
 		const temp = rt1;
@@ -615,6 +617,7 @@ export async function initGpgpuParticles(
 		W = container.offsetWidth;
 		H = container.offsetHeight;
 		renderer.setSize(W, H);
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 		camera.aspect = W / H;
 		camera.updateProjectionMatrix();
 	}
@@ -625,7 +628,16 @@ export async function initGpgpuParticles(
 
 	// Sync galaxy colors with CSS seasonal variables
 	updateGalaxyColors();
-	const seasonObserver = new MutationObserver(() => updateGalaxyColors());
+	let lastSeasonClass = '';
+	const seasonObserver = new MutationObserver(() => {
+		const seasonClass = Array.from(document.body.classList)
+			.filter((name) => name.startsWith('season-'))
+			.join(' ');
+		if (seasonClass !== lastSeasonClass) {
+			lastSeasonClass = seasonClass;
+			updateGalaxyColors();
+		}
+	});
 	seasonObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	return () => {
@@ -636,6 +648,7 @@ export async function initGpgpuParticles(
 		interactionTarget.removeEventListener('mousemove', onMouseMove);
 		interactionTarget.removeEventListener('mouseleave', onMouseLeave);
 		window.removeEventListener('resize', onResize);
+		renderer.forceContextLoss();
 		renderer.dispose();
 		geo.dispose();
 		renderMaterial.dispose();

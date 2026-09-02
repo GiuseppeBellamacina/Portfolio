@@ -2,127 +2,94 @@
 
 ## Progetto
 
-Portfolio personale di Giuseppe Bellamacina — sito web single-page.
+Portfolio personale di Giuseppe Bellamacina — sito single-page in SvelteKit, prerenderizzato staticamente.
 
 ## Stack
 
-- **Framework**: SvelteKit 5 (Svelte 5) + TypeScript
+- **Framework**: SvelteKit 5 / Svelte 5 con runes + TypeScript
 - **Build tool**: Vite 7
-- **Deploy**: Vercel (adapter-vercel, runtime Node.js 22)
-- **Package manager**: Bun (preferito). Usare `bun install`, `bun run dev`, ecc.
-- **Image processing**: sharp (già in dependencies)
+- **Deploy**: Vercel; push su `main` → deploy automatico
+- **Package manager**: Bun (preferito)
 - **Formatter**: Prettier con plugin Svelte
+- **Icone**: subset Font Awesome self-hosted in `static/fonts/`
 
 ## Comandi utili
 
 ```bash
-bun install          # installa dipendenze
-bun run dev          # dev server locale
-bun run build        # build di produzione
-bun run preview      # preview del build
-bun run check        # type-check (svelte-check + tsc)
-bun run format       # formatta tutto con Prettier
-bun run format:check # verifica formattazione
+bun install
+bun run dev
+bun run build
+bun run preview
+bun run check
+bun run format
+bun run format:check
 
-# Ottimizzazione assets
-bun scripts/optimize-assets.mjs              # dry-run (solo report)
-bun scripts/optimize-assets.mjs --apply      # applica ottimizzazioni
-bun scripts/optimize-assets.mjs --apply --icons    # solo icone
-bun scripts/optimize-assets.mjs --apply --projects # solo immagini progetti
-bun scripts/optimize-assets.mjs --apply --profile  # solo profilo
-bun scripts/optimize-assets.mjs --apply --max-size 256  # override dimensione max
-bun scripts/optimize-assets.mjs --apply --to-webp  # converti PNG/JPG → WebP (elimina originale)
-bun scripts/optimize-assets.mjs --apply --to-webp --projects # converti solo progetti a WebP
+# Asset
+bun scripts/optimize-assets.mjs                    # dry-run
+bun scripts/optimize-assets.mjs --apply
+bun scripts/optimize-assets.mjs --apply --icons
+bun scripts/optimize-assets.mjs --apply --projects
+bun scripts/optimize-assets.mjs --apply --profile
+bun scripts/optimize-assets.mjs --apply --max-size 256
+bun scripts/optimize-assets.mjs --apply --to-webp
+bun scripts/optimize-assets.mjs --apply --to-webp --projects
+bun scripts/gen-favicon.mjs
+bun scripts/subset-fontawesome.mjs
 ```
+
+Dopo aver aggiunto icone Font Awesome, ri-eseguire `bun scripts/subset-fontawesome.mjs`.
 
 ## Struttura del progetto
 
-```
+```text
 src/
-  app.css                    # Stili globali (variabili CSS, layout, responsive)
-  app.html                   # Template HTML
+  app.css, app.d.ts, app.html
   lib/
-    performance.css          # Override CSS per performance
-    assets/favicon.svg       # Favicon
-    components/              # Componenti principali
-      Hero.svelte            # Sezione hero
-      About.svelte           # Chi sono
-      Skills.svelte          # Tech stack (icone + canvas effects)
-      Experience.svelte      # Esperienze lavorative
-      Projects.svelte        # Portfolio progetti
-      Contact.svelte         # Contatti
-      Navbar.svelte          # Navigazione
-      Footer.svelte          # Footer
-      Terminal.svelte        # Terminale interattivo
-      CursorTrail.svelte     # Effetto scia cursore
-      ScrollProgress.svelte  # Barra progresso scroll
-      BackToTop.svelte       # Bottone torna su
-      SectionSnap.svelte     # Snap scroll tra sezioni
-      seasonal/              # Effetti stagionali (neve, sakura, halloween, ecc.)
-    stores/
-      seasonStore.ts         # Stato stagione corrente
+    components/
+      hero/        # Hero, typingEffect, gpgpuParticles
+      about/       # About, neuralNetwork
+      experience/  # Experience, experienceData, binaryRain
+      skills/      # Skills, skillsData, skillsConstellation
+      projects/    # Projects, projectsData
+      navbar/      # Navbar
+      terminal/    # Terminal, terminalData, command registry
+      contact/     # Contact
+      footer/      # Footer
+      seasonal/    # SnowEffect, SummerEffect, NewYearEffect
+      sectionSnap.ts
+      LazySection.svelte, ScrollProgress.svelte, BackToTop.svelte
+    stores/seasonStore.ts
+    performance.css, index.ts, cvDownload.ts
   routes/
-    +page.svelte             # Pagina principale
-    +layout.svelte           # Layout
-    +error.svelte            # Pagina errore
-    sitemap.xml/+server.ts   # Generazione sitemap
+    +page.svelte, +layout.svelte, +layout.ts, +error.svelte
+    sitemap.xml/+server.ts
 static/
-  assets/
-    icons/                   # Icone tech stack (target: max 128px, ~2-8KB ciascuna)
-    projects/                # Screenshot progetti (target: max 800px, formato WebP)
-    profile.avif/.png/.webp  # Foto profilo (.png tenuto come fallback per og:image)
+  assets/icons/ and assets/projects/
+  favicons/
+  fonts/ and fa-subset.css
 scripts/
-  optimize-assets.mjs        # Script ottimizzazione + conversione WebP
+  optimize-assets.mjs
+  gen-favicon.mjs
+  subset-fontawesome.mjs
 ```
 
-## Skills — Come aggiungere una nuova skill
+## Convenzioni
 
-1. Metti il logo in `static/assets/icons/` (qualsiasi formato: png, jpg, webp, svg)
-2. Esegui `bun scripts/optimize-assets.mjs --apply --icons` per ottimizzare
-3. In `src/lib/components/Skills.svelte`, aggiungi l'entry nella categoria giusta:
-   ```ts
-   { name: 'NomeTool', icon: 'nome-file.png', url: 'https://...' }
-   ```
-4. Le categorie sono: Languages, AI/ML & Data Science, Frameworks & Libraries, Databases, DevOps & Tools, IDEs & Editors, Operating Systems & Security
+- Usare tab e Prettier; commenti nel codice in inglese.
+- Usare Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`) nei nuovi componenti.
+- Mantenere la logica specifica nelle sottocartelle del componente e i dati in file `*Data.ts`.
+- Effetti seasonal: solo Snow (1-30 dic, 3-6 gen), Summer (giu-ago), New Year (31 dic-2 gen); stato in `seasonStore.ts`, comando manuale `theme` nel terminale.
+- Preservare accessibilità, cleanup degli effetti e pausa quando non visibili.
+- Asset: icone in `static/assets/icons/`, progetti in `static/assets/projects/`, favicon in `static/favicons/`.
+- Dopo ogni nuova classe/icona Font Awesome, rigenerare il subset self-hosted.
+- Tema dark di default; mantenere le variabili CSS globali esistenti.
 
-## Projects — Come aggiungere un nuovo progetto
+## Aggiungere skill o progetto
 
-1. Metti lo screenshot in `static/assets/projects/` (qualsiasi formato raster)
-2. Esegui `bun scripts/optimize-assets.mjs --apply --to-webp --projects` per ottimizzare e convertire a WebP
-3. In `src/lib/components/Projects.svelte`, aggiungi l'entry nell'array `projects`:
-   ```ts
-   {
-     icon: '🧬',
-     title: 'Nome Progetto',
-     description: 'Descrizione HTML...',
-     techTags: ['Tag1', 'Tag2'],
-     githubUrl: 'https://github.com/...',
-     image: '/assets/projects/nome.webp'
-   }
-   ```
-4. Opzionale: aggiungi `externalLink` per demo/download/youtube/hackathon
-5. Se è un progetto in corso, aggiungilo anche in `Terminal.svelte` (array `projectEntries`)
+- Skill: aggiungere l'asset in `static/assets/icons/`, ottimizzare con `--apply --icons`, quindi aggiornare i dati della cartella `skills/`.
+- Progetto: aggiungere lo screenshot in `static/assets/projects/`, usare `--apply --to-webp --projects`, quindi aggiornare `projectsData.ts` e, se necessario, le entry del terminale.
 
-## Asset — Linee guida
+## CI e deploy
 
-- **Icone**: vengono renderizzate a 50×50px CSS → max 128px (2× retina). Lo script le ridimensiona automaticamente.
-- **Progetti**: thumbnail → max 800px, formato WebP preferito.
-- **Profilo**: max 256px. Il `.png` è mantenuto come fallback per `og:image` (social preview).
-- **SVG**: non vengono toccati dallo script (già vettoriali).
-- **Conversione WebP**: usare `--to-webp` per convertire PNG/JPG in WebP. Lo script elimina l'originale e bisogna aggiornare i path nel codice.
-- **Nomi file**: possono contenere spazi (es. `unsloth logo black text.png`).
-- Alcuni file hanno prefisso `white_bg_` per versioni con sfondo bianco.
-- Lo script scrive solo se il risparmio è > 5%.
-
-## Stile e convenzioni
-
-- Variabili CSS globali: `--primary-color`, `--secondary-color`, `--bg-card`, `--bg-main`, ecc.
-- Le icone delle skill hanno effetti hover con glow e scale (definiti in `app.css`).
-- La sezione Skills ha un canvas con costellazioni e stelle cadenti per lo sfondo.
-- Effetti stagionali (neve, sakura...) sono in `components/seasonal/` e gestiti da `seasonStore.ts`.
-- Stile dark theme di default.
-
-## Deploy
-
-- Push su `main` → deploy automatico su Vercel.
-- Il deploy viene skippato se l'unica modifica è al README (`ignoreCommand` in `vercel.json`).
+- `.github/workflows/check.yml` esegue su pull request e push su `main`: `check`, `format:check`, `build`.
+- Il deploy non è gestito da GitHub Actions: avviene tramite Vercel dopo il push su `main`.

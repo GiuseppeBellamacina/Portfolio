@@ -1,3 +1,5 @@
+import type { Translations } from '$lib/i18n';
+
 export interface TechIcon {
 	name: string;
 	icon: string;
@@ -5,7 +7,7 @@ export interface TechIcon {
 }
 
 export interface SkillCategory {
-	key: string;
+	key: keyof Translations;
 	title: string;
 	icons: TechIcon[];
 }
@@ -29,7 +31,7 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{
 				name: 'Java',
-				icon: 'java-original-wordmark-removebg-preview.png',
+				icon: 'java-wordmark.png',
 				url: 'https://www.java.com/'
 			},
 			{
@@ -39,14 +41,14 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{
 				name: 'TypeScript',
-				icon: 'Typescript_logo_2020.svg.png',
+				icon: 'typescript.png',
 				url: 'https://www.typescriptlang.org/'
 			},
 			{ name: 'Bash', icon: 'bash.png', url: 'https://www.gnu.org/software/bash/' },
 			{ name: 'Markdown', icon: 'markdown.svg', url: 'https://www.markdownguide.org/' },
 			{
 				name: 'HTML',
-				icon: 'white_bg_HTML5_logo_and_wordmark.svg.png',
+				icon: 'white_bg_html5.png',
 				url: 'https://developer.mozilla.org/en-US/docs/Web/HTML'
 			},
 			{ name: 'CSS', icon: 'css.png', url: 'https://developer.mozilla.org/en-US/docs/Web/CSS' },
@@ -100,7 +102,7 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{
 				name: 'HuggingFace',
-				icon: 'huggingface-2-removebg-preview.png',
+				icon: 'huggingface.png',
 				url: 'https://huggingface.co/'
 			},
 			{
@@ -143,7 +145,7 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'Three.js', icon: 'three.png', url: 'https://threejs.org/' },
 			{
 				name: 'Node.js',
-				icon: 'free-node-js-icon-svg-download-png-1174935.webp',
+				icon: 'nodejs.webp',
 				url: 'https://nodejs.org/'
 			},
 			{ name: 'FastAPI', icon: 'fastapi.svg', url: 'https://fastapi.tiangolo.com/' },
@@ -173,7 +175,7 @@ export const skillCategories: SkillCategory[] = [
 		icons: [
 			{
 				name: 'MySQL',
-				icon: 'mysql-original-wordmark-removebg-preview.png',
+				icon: 'mysql-wordmark.png',
 				url: 'https://www.mysql.com/'
 			},
 			{
@@ -212,7 +214,7 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{
 				name: 'GitHub',
-				icon: 'github-original-wordmark-removebg-preview.png',
+				icon: 'github-wordmark.png',
 				url: 'https://github.com/'
 			},
 			{
@@ -266,7 +268,7 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'Cursor', icon: 'Cursor_logo.png', url: 'https://cursor.com/get-started' },
 			{
 				name: 'Jupyter',
-				icon: 'jupyter-original-wordmark-removebg-preview.png',
+				icon: 'jupyter-wordmark.png',
 				url: 'https://jupyter.org/'
 			},
 			{
@@ -277,7 +279,7 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'Unity', icon: 'white_bg_unity-original.png', url: 'https://unity.com/' },
 			{
 				name: 'Blender',
-				icon: 'blender-original-removebg-preview.png',
+				icon: 'blender.png',
 				url: 'https://www.blender.org/'
 			}
 		]
@@ -301,7 +303,7 @@ export const skillCategories: SkillCategory[] = [
 			},
 			{
 				name: 'Wireshark',
-				icon: 'Wireshark_icon_new.png',
+				icon: 'wireshark.png',
 				url: 'https://www.wireshark.org/'
 			},
 			{

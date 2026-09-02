@@ -11,22 +11,35 @@
 
 	function addParallaxEffect() {
 		const icons = document.querySelectorAll('.tech-icon') as NodeListOf<HTMLElement>;
+		const listeners: Array<{
+			icon: HTMLElement;
+			leave: () => void;
+			move: (event: MouseEvent) => void;
+		}> = [];
 
 		icons.forEach((icon) => {
 			// Magnetic hover: icon follows cursor within bounds
-			icon.addEventListener('mouseleave', () => {
+			const leave = () => {
 				icon.style.transform = '';
 				icon.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-			});
+			};
 
-			icon.addEventListener('mousemove', (e) => {
+			const move = (e: MouseEvent) => {
 				const rect = icon.getBoundingClientRect();
 				const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
 				const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
 				icon.style.transition = 'transform 0.1s ease-out';
 				icon.style.transform = `scale(1.15) translateY(-4px) translate(${x * 6}px, ${y * 6}px)`;
-			});
+			};
+			icon.addEventListener('mouseleave', leave);
+			icon.addEventListener('mousemove', move);
+			listeners.push({ icon, leave, move });
 		});
+		return () =>
+			listeners.forEach(({ icon, leave, move }) => {
+				icon.removeEventListener('mouseleave', leave);
+				icon.removeEventListener('mousemove', move);
+			});
 	}
 
 	function setupSkillsAnimations() {
@@ -63,10 +76,16 @@
 		icons.forEach((icon) => {
 			iconObserver.observe(icon);
 		});
+		return () => {
+			categoryObserver.disconnect();
+			iconObserver.disconnect();
+		};
 	}
 
 	onMount(() => {
 		let cleanupCanvas: (() => void) | undefined;
+		let cleanupParallax: (() => void) | undefined;
+		let cleanupAnimations: (() => void) | undefined;
 		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -77,8 +96,8 @@
 							cleanupCanvas = createCanvasConstellation(skillsSection);
 						}
 						setTimeout(() => {
-							addParallaxEffect();
-							setupSkillsAnimations();
+							cleanupParallax = addParallaxEffect();
+							cleanupAnimations = setupSkillsAnimations();
 						}, 100);
 					}
 				});
@@ -92,8 +111,10 @@
 
 		return () => {
 			if (skillsSection) {
-				observer.unobserve(skillsSection);
+				observer.disconnect();
 			}
+			cleanupParallax?.();
+			cleanupAnimations?.();
 			cleanupCanvas?.();
 		};
 	});
@@ -105,7 +126,7 @@
 
 		{#each skillCategories as category}
 			<div class="skills-category">
-				<h3>{$t[category.key as keyof Translations]}</h3>
+				<h3>{$t[category.key]}</h3>
 				<div class="skills-grid">
 					{#each category.icons as icon}
 						<a href={icon.url} target="_blank" rel="noopener noreferrer" class="tech-icon-link">

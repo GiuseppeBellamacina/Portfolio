@@ -37,6 +37,31 @@ export function createBinaryRain(
 
 	let COLORS = getColors();
 
+	/* Pre-rendered glow sprites (one per color+char pair): drawn once with
+	   shadowBlur on an offscreen canvas, then blitted per frame via drawImage. */
+	const spriteCache = new Map<string, HTMLCanvasElement>();
+
+	function getSprite(color: string, ch: string): HTMLCanvasElement {
+		const key = `${color}|${ch}`;
+		let sprite = spriteCache.get(key);
+		if (!sprite) {
+			const S = 48; // 2x the largest particle size, keeps glow padding crisp
+			sprite = document.createElement('canvas');
+			sprite.width = S;
+			sprite.height = S;
+			const g = sprite.getContext('2d')!;
+			g.font = `bold 32px 'Courier New', monospace`;
+			g.textAlign = 'center';
+			g.textBaseline = 'middle';
+			g.shadowColor = color;
+			g.shadowBlur = 8;
+			g.fillStyle = color;
+			g.fillText(ch, S / 2, S / 2);
+			spriteCache.set(key, sprite);
+		}
+		return sprite;
+	}
+
 	function spawnParticle(): Particle {
 		return {
 			x: Math.random() * canvas.width,
@@ -53,7 +78,7 @@ export function createBinaryRain(
 	function frame() {
 		// Skip all rendering while off-screen or in a background tab.
 		if (!getVisible() || document.hidden) {
-			rafId = requestAnimationFrame(frame);
+			rafId = 0;
 			return;
 		}
 		const w = canvas.width;
@@ -74,23 +99,24 @@ export function createBinaryRain(
 				continue;
 			}
 
+			// Blit the pre-rendered glow sprite: one drawImage, no per-frame shadow cost
 			ctx!.globalAlpha = p.opacity;
-			ctx!.font = `bold ${p.size}px 'Courier New', monospace`;
-			ctx!.fillStyle = p.color;
-			ctx!.shadowColor = p.color;
-			ctx!.shadowBlur = 4;
-			ctx!.fillText(p.ch, p.x, p.y);
+			const s = p.size * 1.5;
+			ctx!.drawImage(getSprite(p.color, p.ch), p.x - s / 2, p.y - s / 2, s, s);
 		}
 		ctx!.globalAlpha = 1;
-		ctx!.shadowBlur = 0;
 
 		rafId = requestAnimationFrame(frame);
 	}
+	const visibilityObserver = new IntersectionObserver(() => {
+		if (getVisible() && !document.hidden && !rafId) rafId = requestAnimationFrame(frame);
+	});
+	visibilityObserver.observe(canvas);
 
-	COLORS = getColors();
 	rafId = requestAnimationFrame(frame);
 
 	return () => {
 		cancelAnimationFrame(rafId);
+		visibilityObserver.disconnect();
 	};
 }

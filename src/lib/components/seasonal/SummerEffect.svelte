@@ -6,6 +6,7 @@
 	let showSummer = $state(false);
 	let canvas = $state<HTMLCanvasElement>();
 	let effectCleanup: (() => void) | undefined;
+	let startTimeout: ReturnType<typeof setTimeout> | undefined;
 	let isDateBased = false;
 
 	function isSummerPeriod(): boolean {
@@ -36,6 +37,17 @@
 		let W = (canvas.width = window.innerWidth);
 		let H = (canvas.height = window.innerHeight);
 		let raf: number;
+		let running = true;
+		const sprite = document.createElement('canvas');
+		sprite.width = sprite.height = 32;
+		const spriteCtx = sprite.getContext('2d');
+		if (!spriteCtx) return;
+		const gradient = spriteCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+		gradient.addColorStop(0, '#fff');
+		gradient.addColorStop(0.3, 'rgba(255, 190, 60, .45)');
+		gradient.addColorStop(1, 'rgba(255, 160, 30, 0)');
+		spriteCtx.fillStyle = gradient;
+		spriteCtx.fillRect(0, 0, 32, 32);
 
 		const screenArea = (W * H) / (1920 * 1080);
 		const COUNT = Math.max(20, Math.floor(45 * screenArea));
@@ -63,10 +75,7 @@
 		}
 
 		function draw() {
-			if (document.hidden) {
-				raf = requestAnimationFrame(draw);
-				return;
-			}
+			if (document.hidden || !running) return;
 			ctx!.clearRect(0, 0, W, H);
 
 			for (const f of fireflies) {
@@ -84,21 +93,9 @@
 					const light = 55 + glow * 20;
 
 					// Outer glow
-					const glowRadius = f.size * (3 + glow * 4);
-					const grad = ctx!.createRadialGradient(f.x, f.y, 0, f.x, f.y, glowRadius);
-					grad.addColorStop(0, `hsla(${hue}, ${sat}%, ${light}%, ${glow * 0.9})`);
-					grad.addColorStop(0.3, `hsla(${hue}, ${sat}%, ${light - 10}%, ${glow * 0.4})`);
-					grad.addColorStop(1, `hsla(${hue}, ${sat}%, ${light - 20}%, 0)`);
-					ctx!.fillStyle = grad;
-					ctx!.beginPath();
-					ctx!.arc(f.x, f.y, glowRadius, 0, Math.PI * 2);
-					ctx!.fill();
-
-					// Bright core
-					ctx!.fillStyle = `hsla(${hue}, ${sat}%, 90%, ${glow})`;
-					ctx!.beginPath();
-					ctx!.arc(f.x, f.y, f.size * 0.6, 0, Math.PI * 2);
-					ctx!.fill();
+					ctx!.globalAlpha = glow;
+					ctx!.drawImage(sprite, f.x - f.size * 4, f.y - f.size * 4, f.size * 8, f.size * 8);
+					ctx!.globalAlpha = 1;
 				}
 
 				// Wander — smooth organic drift
@@ -130,8 +127,16 @@
 		draw();
 
 		window.addEventListener('resize', resize);
+		const observer = new IntersectionObserver(([entry]) => {
+			running = entry.isIntersecting;
+			if (running) raf = requestAnimationFrame(draw);
+			else cancelAnimationFrame(raf);
+		});
+		observer.observe(canvas);
 		return () => {
+			running = false;
 			cancelAnimationFrame(raf);
+			observer.disconnect();
 			window.removeEventListener('resize', resize);
 		};
 	}
@@ -144,11 +149,13 @@
 	}
 
 	function stopFireflies() {
+		if (startTimeout) clearTimeout(startTimeout);
 		effectCleanup?.();
 		effectCleanup = undefined;
 	}
 
 	onMount(() => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 		if (forceShow || isSummerPeriod()) {
 			isDateBased = !forceShow;
 			showSummer = true;

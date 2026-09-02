@@ -7,6 +7,12 @@ function easeInOutCubic(t: number): number {
 	return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
+// Keys that trigger snap while in the hero (module-level: built once)
+const SCROLL_KEYS = new Set(['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End']);
+
+const REDUCED_MOTION =
+	typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function initSectionSnap(): () => void {
 	let snapping = false;
 	let inHero = true;
@@ -14,6 +20,16 @@ export function initSectionSnap(): () => void {
 	let snapCooldown = false;
 
 	function smoothScrollTo(target: number, cb?: () => void) {
+		if (REDUCED_MOTION) {
+			// Reduced motion: jump instantly instead of animating
+			window.scrollTo({ top: target, behavior: 'instant' });
+			snapCooldown = true;
+			setTimeout(() => {
+				snapCooldown = false;
+			}, 200);
+			cb?.();
+			return;
+		}
 		snapping = true;
 		const start = window.scrollY;
 		const dist = target - start;
@@ -43,11 +59,21 @@ export function initSectionSnap(): () => void {
 		requestAnimationFrame(frame);
 	}
 
+	// Cached hero bottom edge (offsetTop/offsetHeight don't change on scroll,
+	// only on layout changes → invalidated on resize)
+	let heroBottomCache: number | null = null;
+
 	function checkHero(): boolean {
-		const hero = document.getElementById('home');
-		if (!hero) return false;
-		const heroBottom = hero.offsetTop + hero.offsetHeight;
-		return window.scrollY < heroBottom - window.innerHeight * 0.5;
+		if (heroBottomCache === null) {
+			const hero = document.getElementById('home');
+			if (!hero) return false;
+			heroBottomCache = hero.offsetTop + hero.offsetHeight;
+		}
+		return window.scrollY < heroBottomCache - window.innerHeight * 0.5;
+	}
+
+	function invalidateHeroCache() {
+		heroBottomCache = null;
 	}
 
 	function snapToAbout() {
@@ -92,8 +118,7 @@ export function initSectionSnap(): () => void {
 
 	function onKeyDown(e: KeyboardEvent) {
 		if (!inHero) return;
-		const scrollKeys = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End'];
-		if (scrollKeys.includes(e.key)) {
+		if (SCROLL_KEYS.has(e.key)) {
 			e.preventDefault();
 			if (!snapping && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ')) {
 				snapToAbout();
@@ -104,6 +129,7 @@ export function initSectionSnap(): () => void {
 	// Determine initial state (page might be refreshed mid-scroll)
 	inHero = checkHero();
 
+	window.addEventListener('resize', invalidateHeroCache);
 	window.addEventListener('wheel', onWheel, { passive: false });
 	window.addEventListener('touchstart', onTouchStart, { passive: true });
 	window.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -111,6 +137,7 @@ export function initSectionSnap(): () => void {
 	window.addEventListener('keydown', onKeyDown);
 
 	return () => {
+		window.removeEventListener('resize', invalidateHeroCache);
 		window.removeEventListener('wheel', onWheel);
 		window.removeEventListener('touchstart', onTouchStart);
 		window.removeEventListener('touchmove', onTouchMove);

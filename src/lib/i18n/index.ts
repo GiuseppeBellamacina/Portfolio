@@ -144,7 +144,7 @@ const translations = {
 		term_starwarsForce: 'May the Force be with you! ⚔️',
 		term_animeWatch: '🎌 You should watch:',
 		term_musicAvailable: '🎵 Available music:',
-		term_musicTip: 'Tip: music -l to see all available songs',
+		term_bootHelp: 'Type "help" for available commands.',
 		term_musicTipArtist: 'Tip: type an artist name directly to play their music.',
 		term_driveJacket: '🏎️ *puts on scorpion jacket*',
 		term_driveStare: '*stares intensely*',
@@ -288,7 +288,7 @@ const translations = {
 		term_starwarsForce: 'Che la Forza sia con te! ⚔️',
 		term_animeWatch: '🎌 Dovresti guardare:',
 		term_musicAvailable: '🎵 Musica disponibile:',
-		term_musicTip: 'Suggerimento: music -l per vedere tutte le canzoni',
+		term_bootHelp: 'Digita "help" per i comandi disponibili.',
 		term_musicTipArtist:
 			'Suggerimento: scrivi direttamente il nome di un artista per riprodurre la sua musica.',
 		term_driveJacket: '🏎️ *indossa la giacca con lo scorpione*',
@@ -319,5 +319,7 @@ const translations = {
 } as const;
 
 export type Translations = (typeof translations)['en'];
+/** The active translation (the union of every language's dictionary) */
+export type Translation = (typeof translations)[Lang];
 
 export const t = derived(lang, ($lang) => translations[$lang]);

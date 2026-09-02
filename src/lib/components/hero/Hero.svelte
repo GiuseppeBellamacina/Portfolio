@@ -1,15 +1,64 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Component } from 'svelte';
 	import { get } from 'svelte/store';
 	import { currentSeason } from '$lib/stores/seasonStore';
+	import type { Season } from '$lib/stores/seasonStore';
 	import { t, lang } from '$lib/i18n';
 	import { getBaseTexts, getSeasonalGreetings } from './heroData';
 	import { startTypingEffect } from './typingEffect';
 	import { downloadCV, type CvDownloadState } from '$lib/cvDownload';
-	import SnowEffect from '$lib/components/seasonal/SnowEffect.svelte';
-	import SummerEffect from '$lib/components/seasonal/SummerEffect.svelte';
-	import NewYearEffect from '$lib/components/seasonal/NewYearEffect.svelte';
 	import './hero.css';
+
+	type SeasonalProps = { forceShow?: boolean };
+	const seasonalLoaders: Record<
+		'snow' | 'summer' | 'newyear',
+		() => Promise<{ default: Component<SeasonalProps> }>
+	> = {
+		snow: () => import('$lib/components/seasonal/SnowEffect.svelte'),
+		summer: () => import('$lib/components/seasonal/SummerEffect.svelte'),
+		newyear: () => import('$lib/components/seasonal/NewYearEffect.svelte')
+	};
+
+	/**
+	 * Season implied by the current date — mirrors the exact windows checked
+	 * inside each seasonal effect component (they stay authoritative).
+	 */
+	function dateSeason(): Season {
+		const month = new Date().getMonth(); // 0-11
+		const day = new Date().getDate();
+		if ((month === 11 && day === 31) || (month === 0 && day <= 2)) return 'newyear';
+		if ((month === 11 && day >= 1 && day <= 30) || (month === 0 && day >= 3 && day <= 6)) {
+			return 'snow';
+		}
+		if (month >= 5 && month <= 7) return 'summer';
+		return 'default';
+	}
+
+	// Only the active season's effect is mounted, via dynamic import, so
+	// off-season chunks never enter the initial bundle. The terminal
+	// `theme` command overrides the calendar via the season store.
+	let SeasonalEffect = $state<Component<SeasonalProps> | null>(null);
+
+	$effect(() => {
+		const storeSeason = $currentSeason;
+		const active = storeSeason !== 'default' ? storeSeason : dateSeason();
+		if (active === 'default') {
+			SeasonalEffect = null;
+			return;
+		}
+		let cancelled = false;
+		seasonalLoaders[active]()
+			.then((mod) => {
+				if (!cancelled) SeasonalEffect = mod.default;
+			})
+			.catch(() => {
+				/* decorative effect — fail silently */
+			});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	let typingText = $state('');
 	let mounted = $state(false);
@@ -53,61 +102,97 @@
 			texts.splice(pos, 0, greetings[i]);
 		}
 		return texts;
-	}		onMount(() => {
-		const unsubSeason = currentSeason.subscribe(() => {});
-		const unsubLang = lang.subscribe(() => {});
-		startTypingEffect(getTexts, (t) => (typingText = t));
+	}
+
+	/* ── Spotlight: rAF-coalesced mouse tracking with a cached rect ── */
+	let pendingMouseEvent: MouseEvent | null = null;
+	let spotlightRaf: number | undefined;
+	let heroRect: DOMRect | null = null;
+
+	function invalidateHeroRect() {
+		heroRect = null;
+	}
+
+	function applySpotlight() {
+		spotlightRaf = undefined;
+		const e = pendingMouseEvent;
+		pendingMouseEvent = null;
+		if (!e || !heroSection) return;
+		if (!heroRect) heroRect = heroSection.getBoundingClientRect();
+		spotlightX = ((e.clientX - heroRect.left) / heroRect.width) * 100;
+		spotlightY = ((e.clientY - heroRect.top) / heroRect.height) * 100;
+	}
+
+	function onHeroMouseMove(e: MouseEvent) {
+		pendingMouseEvent = e;
+		if (spotlightRaf === undefined) {
+			spotlightRaf = requestAnimationFrame(applySpotlight);
+		}
+	}
+
+	onMount(() => {
+		const cancelTyping = startTypingEffect(getTexts, (text) => (typingText = text));
 		scheduleGlitch();
 
-		let cleanup: (() => void) | undefined;
-		let idle: number | undefined;
+		const mountedRaf = requestAnimationFrame(() => (mounted = true));
+		window.addEventListener('scroll', invalidateHeroRect, { passive: true });
+		window.addEventListener('resize', invalidateHeroRect);
+
+		/* ── GPGPU particles: deferred init with unmount-race guards ── */
+		let gpgpuCleanup: (() => void) | undefined;
+		let idleTimeout: number | undefined;
+		let idleHandle: number | undefined;
+		let destroyed = false;
+
+		const initGpgpu = async () => {
+			const { initGpgpuParticles } = await import('./gpgpuParticles');
+			// Too late (component unmounted): init never ran, nothing to clean.
+			if (destroyed || !document.contains(heroContainer)) return;
+			gpgpuCleanup = await initGpgpuParticles(heroContainer, heroSection);
+			if (destroyed) {
+				// Unmounted while initializing: release immediately.
+				gpgpuCleanup?.();
+				gpgpuCleanup = undefined;
+			}
+		};
 
 		// Skip heavy GPGPU particles on mobile/low-end devices
 		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		if (!isMobile) {
 			// Small delay so the galaxy appears promptly without blocking the TBT window;
 			// the system itself fades in gradually once initialized.
-			idle = setTimeout(async () => {
+			idleTimeout = setTimeout(() => {
 				if ('requestIdleCallback' in window) {
-					requestIdleCallback(async () => {
-						const { initGpgpuParticles } = await import('./gpgpuParticles');
-						cleanup = await initGpgpuParticles(heroContainer, heroSection);
-					});
+					idleHandle = requestIdleCallback(initGpgpu);
 				} else {
-					const { initGpgpuParticles } = await import('./gpgpuParticles');
-					cleanup = await initGpgpuParticles(heroContainer, heroSection);
+					initGpgpu();
 				}
 			}, 600) as unknown as number;
 		}
 
-		requestAnimationFrame(() => (mounted = true));
 		return () => {
-			unsubSeason();
-			unsubLang();
+			destroyed = true;
+			cancelTyping();
 			clearTimeout(glitchTimeout);
-			if (idle !== undefined) {
-				clearTimeout(idle);
+			cancelAnimationFrame(mountedRaf);
+			if (spotlightRaf !== undefined) cancelAnimationFrame(spotlightRaf);
+			window.removeEventListener('scroll', invalidateHeroRect);
+			window.removeEventListener('resize', invalidateHeroRect);
+			if (idleTimeout !== undefined) clearTimeout(idleTimeout);
+			if (idleHandle !== undefined && 'cancelIdleCallback' in window) {
+				cancelIdleCallback(idleHandle);
 			}
-			cleanup?.();
+			gpgpuCleanup?.();
 		};
 	});
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<section
-	id="home"
-	class="hero"
-	bind:this={heroSection}
-	onmousemove={(e) => {
-		const rect = heroSection.getBoundingClientRect();
-		spotlightX = ((e.clientX - rect.left) / rect.width) * 100;
-		spotlightY = ((e.clientY - rect.top) / rect.height) * 100;
-	}}
->
+<section id="home" class="hero" bind:this={heroSection} onmousemove={onHeroMouseMove}>
 	<div class="hero-canvas" bind:this={heroContainer}></div>
-	<SnowEffect />
-	<NewYearEffect />
-	<SummerEffect />
+	{#if SeasonalEffect}
+		<SeasonalEffect />
+	{/if}
 	<div
 		class="hero-spotlight"
 		style="--spot-x: {spotlightX}%; --spot-y: {spotlightY}%"
@@ -133,7 +218,13 @@
 			</picture>
 		</div>
 
-		<h1 class="glitch hero-stagger s2" class:is-glitching={isGlitching} data-text="Giuseppe Bellamacina">Giuseppe Bellamacina</h1>
+		<h1
+			class="glitch hero-stagger s2"
+			class:is-glitching={isGlitching}
+			data-text="Giuseppe Bellamacina"
+		>
+			Giuseppe Bellamacina
+		</h1>
 
 		<p class="subtitle hero-stagger s3">
 			<span class="typing-prefix">&gt;&nbsp;</span>

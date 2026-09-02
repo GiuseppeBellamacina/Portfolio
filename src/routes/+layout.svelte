@@ -27,14 +27,7 @@
 	// Apply seasonal CSS class on <body>
 	$effect(() => {
 		const season = $currentSeason;
-		const classes = [
-			'season-snow',
-			'season-newyear',
-			'season-summer',
-			'season-halloween',
-			'season-spring',
-			'season-autumn'
-		];
+		const classes = ['season-snow', 'season-newyear', 'season-summer'];
 		classes.forEach((c) => document.body.classList.remove(c));
 		if (season !== 'default') {
 			document.body.classList.add(`season-${season}`);

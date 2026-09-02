@@ -1,22 +1,5 @@
 /* Navigation */
 
-@keyframes matrixFall {
-	0% {
-		transform: translateY(0);
-		opacity: 0;
-	}
-	10% {
-		opacity: 0.3;
-	}
-	90% {
-		opacity: 0.3;
-	}
-	100% {
-		transform: translateY(60px);
-		opacity: 0;
-	}
-}
-
 .navbar {
 	position: fixed;
 	top: 0;

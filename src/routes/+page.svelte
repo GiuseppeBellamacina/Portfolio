@@ -15,6 +15,11 @@
 	onMount(() => {
 		const cleanup = initSectionSnap();
 
+		// Parallax is a decorative motion effect: skip entirely for reduced motion
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			return () => cleanup();
+		}
+
 		// Enhanced parallax on section titles and dividers
 		const titles = document.querySelectorAll<HTMLElement>('.section-title');
 		const dividers = document.querySelectorAll<HTMLElement>('.section-divider');
@@ -22,18 +27,24 @@
 
 		function updateParallax() {
 			const vh = window.innerHeight;
-			// Section titles parallax
+			// Pass 1: read ALL rects first (no interleaved reads/writes → no forced reflow)
+			const titleData: { el: HTMLElement; offset: number }[] = [];
 			for (const el of titles) {
 				const rect = el.getBoundingClientRect();
 				const center = rect.top + rect.height / 2;
-				const offset = ((center - vh / 2) / vh) * -15;
-				el.style.transform = `translateY(${offset}px) translateZ(0)`;
+				titleData.push({ el, offset: ((center - vh / 2) / vh) * -15 });
 			}
-			// Divider parallax
+			const dividerData: { el: HTMLElement; offset: number }[] = [];
 			for (const el of dividers) {
 				const rect = el.getBoundingClientRect();
 				const center = rect.top + rect.height / 2;
-				const offset = ((center - vh / 2) / vh) * -20;
+				dividerData.push({ el, offset: ((center - vh / 2) / vh) * -20 });
+			}
+			// Pass 2: write all transforms
+			for (const { el, offset } of titleData) {
+				el.style.transform = `translateY(${offset}px) translateZ(0)`;
+			}
+			for (const { el, offset } of dividerData) {
 				el.style.setProperty('--parallax-offset', `${offset}px`);
 			}
 		}

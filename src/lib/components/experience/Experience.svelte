@@ -66,6 +66,7 @@
 		window.addEventListener('resize', onResize);
 
 		let cleanupRain: (() => void) | undefined;
+		let itemObs: IntersectionObserver | undefined;
 
 		const sectionObs = new IntersectionObserver(
 			(entries) => {
@@ -90,7 +91,7 @@
 			sectionObs.observe(experienceSection);
 
 			const items = experienceSection.querySelectorAll('.tl-item');
-			const itemObs = new IntersectionObserver(
+			itemObs = new IntersectionObserver(
 				(entries) => {
 					entries.forEach((entry) => {
 						const idx = Number((entry.target as HTMLElement).dataset.idx);
@@ -109,18 +110,12 @@
 				{ threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
 			);
 
-			items.forEach((item) => itemObs.observe(item));
-
-			return () => {
-				sectionObs.disconnect();
-				itemObs.disconnect();
-				cleanupRain?.();
-				window.removeEventListener('resize', onResize);
-			};
+			items.forEach((item) => itemObs?.observe(item));
 		}
 
 		return () => {
 			sectionObs.disconnect();
+			itemObs?.disconnect();
 			cleanupRain?.();
 			window.removeEventListener('resize', onResize);
 		};

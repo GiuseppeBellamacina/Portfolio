@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 
-export type Season = 'default' | 'newyear' | 'snow' | 'halloween' | 'summer' | 'spring' | 'autumn';
+export type Season = 'default' | 'newyear' | 'snow' | 'summer';
 
 export const currentSeason = writable<Season>('default');
 

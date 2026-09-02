@@ -6,6 +6,7 @@
 	let showSnow = $state(false);
 	let snowContainer = $state<HTMLDivElement>();
 	let snowInterval: ReturnType<typeof setInterval> | undefined;
+	let snowBurstTimeouts: ReturnType<typeof setTimeout>[] = [];
 	let isDateBased = false;
 
 	function isChristmasPeriod(): boolean {
@@ -63,7 +64,7 @@
 			const initialFlakes = Math.max(12, Math.floor(40 * densityFactor));
 
 			for (let i = 0; i < initialFlakes; i++) {
-				setTimeout(() => createSnowflake(), i * 200);
+				snowBurstTimeouts.push(setTimeout(() => createSnowflake(), i * 200));
 			}
 
 			snowInterval = setInterval(() => {
@@ -76,6 +77,8 @@
 	}
 
 	function stopSnow() {
+		for (const timeout of snowBurstTimeouts) clearTimeout(timeout);
+		snowBurstTimeouts = [];
 		if (snowInterval) {
 			clearInterval(snowInterval);
 			snowInterval = undefined;
@@ -140,7 +143,7 @@
 			0 0 5px #fff,
 			0 0 10px #fff,
 			0 0 20px rgba(255, 255, 255, 0.5);
-		animation: snowfall linear infinite;
+		animation: snowfall linear;
 		pointer-events: none;
 		user-select: none;
 		will-change: transform;

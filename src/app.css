@@ -1,3 +1,22 @@
+/* ── Self-hosted variable fonts (latin subset) ──
+   Weight ranges let the browser interpolate every used weight from a single
+   file per family; font-display: block + preload (app.html) removes the
+   fallback-font flash on reload. */
+@font-face {
+	font-family: 'Outfit';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: block;
+	src: url('/fonts/outfit-latin-var.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'Sora';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: block;
+	src: url('/fonts/sora-latin-var.woff2') format('woff2');
+}
+
 :root {
 	--primary-color: #818cf8;
 	--secondary-color: #a78bfa;
@@ -674,16 +693,5 @@ button:focus:not(:focus-visible) {
 	:focus-visible {
 		outline: 3px solid var(--neon-green);
 		outline-offset: 2px;
-	}
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
 	}
 }

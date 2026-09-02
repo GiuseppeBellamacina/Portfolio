@@ -41,22 +41,6 @@
 /* Animations on body pseudo-elements are paused via JS (tab-hidden class in app.css) */
 
 /* ── GPU acceleration per animazioni ── */
-@keyframes codeFloat {
-	0% {
-		transform: translate(0, 0) translateZ(0);
-		opacity: 0;
-	}
-	10% {
-		opacity: 0.8;
-	}
-	90% {
-		opacity: 0.8;
-	}
-	100% {
-		transform: translate(var(--float-x, 50px), var(--float-y, -100px)) translateZ(0);
-		opacity: 0;
-	}
-}
 
 /* ── Riduci repaint per elementi fissi ── */
 .navbar {

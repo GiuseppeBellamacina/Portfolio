@@ -29,43 +29,23 @@
 			href="%sveltekit.assets%/favicons/apple-touch-icon.png"
 		/>
 		<meta name="theme-color" content="#000000" />
-		<!-- Google Fonts: Outfit (headings) + Sora (body) — non-render-blocking -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<!-- Self-hosted fonts (latin variable subsets) — preloaded, same-origin,
+		     font-display: block → no fallback-font flash on reload -->
 		<link
 			rel="preload"
-			as="style"
-			href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Sora:wght@400;600;700&display=swap&subset=latin"
-			onload="
-				this.onload = null;
-				this.rel = 'stylesheet';
-			"
+			href="/fonts/sora-latin-var.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
 		/>
-		<noscript>
-			<link
-				rel="stylesheet"
-				href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Sora:wght@400;600;700&display=swap&subset=latin"
-			/>
-		</noscript>
-		<!-- Preconnect BEFORE using the CDN -->
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-		<!-- Font Awesome: async load to avoid render-blocking -->
 		<link
 			rel="preload"
-			as="style"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-			onload="
-				this.onload = null;
-				this.rel = 'stylesheet';
-			"
+			href="/fonts/outfit-latin-var.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
 		/>
-		<noscript>
-			<link
-				rel="stylesheet"
-				href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-			/>
-		</noscript>
+		<link rel="stylesheet" href="/fa-subset.css" />
 		<!-- Preload hero image (desktop only — on mobile it's smaller priority) -->
 		<link
 			rel="preload"
@@ -82,7 +62,8 @@
 			property="og:description"
 			content="Giuseppe Bellamacina — AI Engineer specialised in LLM-based systems, multi-agent architectures, and Deep Learning models. Working on AI deployments for healthcare and defence organisations."
 		/>
-		<meta property="og:image" content="https://giuseppebellamacina.com/assets/profile.png" />
+		<meta property="og:image" content="https://giuseppebellamacina.com/assets/og-image.png" />
+		<meta property="og:url" content="https://giuseppebellamacina.com/" />
 		<meta property="og:type" content="website" />
 		<meta name="twitter:card" content="summary_large_image" />
 		<script type="application/ld+json">
@@ -93,9 +74,38 @@
 				"url": "https://giuseppebellamacina.com/"
 			}
 		</script>
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "Person",
+				"name": "Giuseppe Bellamacina",
+				"jobTitle": "AI/ML Engineer",
+				"url": "https://giuseppebellamacina.com/",
+				"sameAs": [
+					"https://github.com/GiuseppeBellamacina",
+					"https://www.linkedin.com/in/giuseppe-bellamacina-739b03204/",
+					"https://www.instagram.com/giuseppe_bellamacina/"
+				]
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<script>
+			// Apply the seasonal palette before first paint to avoid a default-theme
+			// flash during seasonal periods. Mirrors dateSeason() in Hero.svelte — keep in sync.
+			(function () {
+				var d = new Date();
+				var m = d.getMonth();
+				var day = d.getDate();
+				var season = 'default';
+				if ((m === 11 && day === 31) || (m === 0 && day <= 2)) season = 'newyear';
+				else if ((m === 11 && day >= 1 && day <= 30) || (m === 0 && day >= 3 && day <= 6))
+					season = 'snow';
+				else if (m >= 5 && m <= 7) season = 'summer';
+				if (season !== 'default') document.body.classList.add('season-' + season);
+			})();
+		</script>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

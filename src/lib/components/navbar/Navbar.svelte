@@ -3,8 +3,18 @@
 	import { t, lang, toggleLang } from '$lib/i18n';
 	import './navbar.css';
 
+	const navLinks = [
+		{ href: '#home', key: 'nav_home' },
+		{ href: '#about', key: 'nav_about' },
+		{ href: '#experience', key: 'nav_experience' },
+		{ href: '#projects', key: 'nav_projects' },
+		{ href: '#skills', key: 'nav_skills' },
+		{ href: '#contact', key: 'nav_contact' }
+	] as const;
+
 	let isMenuActive = $state(false);
 	let navbarElement: HTMLElement;
+	let hamburgerEl: HTMLButtonElement;
 	let scrollY = $state(0);
 
 	function toggleMenu() {
@@ -40,7 +50,8 @@
 		const ctx = rainCanvas.getContext('2d');
 		if (!ctx) return;
 
-		const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+		const characters =
+			'01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 
 		interface RainDrop {
 			x: number;
@@ -67,7 +78,7 @@
 				x: Math.random() * rainCanvas.width,
 				y: Math.random() * 30,
 				ch: characters[Math.floor(Math.random() * characters.length)],
-				speed: 0.6 + Math.random() * 1.8,
+				speed: 4 + Math.random() * 6,
 				alpha: 0.02,
 				size: 10 + Math.random() * 6
 			});
@@ -92,7 +103,7 @@
 			for (let i = drops.length - 1; i >= 0; i--) {
 				const d = drops[i];
 				d.y += d.speed * 0.016;
-				d.alpha += 0.0008;
+				d.alpha += 0.004;
 
 				if (d.alpha > 0.28) d.alpha = 0.28;
 
@@ -144,67 +155,73 @@
 	});
 </script>
 
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape' && isMenuActive) {
+			closeMenu();
+			hamburgerEl?.focus();
+		}
+	}}
+/>
+
+{#snippet flag()}
+	{#if $lang === 'en'}
+		<svg class="flag-icon" viewBox="0 0 640 480"
+			><path fill="#fff" d="M0 0h640v480H0z" /><path fill="#009246" d="M0 0h213.3v480H0z" /><path
+				fill="#ce2b37"
+				d="M426.7 0H640v480H426.7z"
+			/></svg
+		>
+	{:else}
+		<svg class="flag-icon" viewBox="0 0 640 480"
+			><path fill="#012169" d="M0 0h640v480H0z" /><path
+				fill="#FFF"
+				d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z"
+			/><path
+				fill="#C8102E"
+				d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z"
+			/><path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z" /><path
+				fill="#C8102E"
+				d="M0 193v96h640v-96zM273 0v480h96V0z"
+			/></svg
+		>
+	{/if}
+{/snippet}
+
 <nav class="navbar" class:navbar-solid={scrollY > 100} bind:this={navbarElement}>
 	<canvas class="rain-canvas" bind:this={rainCanvas}></canvas>
 	<div class="container" style="position: relative;">
 		<div class="nav-brand">Giuseppe Bellamacina</div>
 		<ul class="nav-menu desktop-menu">
-			<li><a href="#home" onclick={handleScroll}>{$t.nav_home}</a></li>
-			<li><a href="#about" onclick={handleScroll}>{$t.nav_about}</a></li>
-			<li><a href="#experience" onclick={handleScroll}>{$t.nav_experience}</a></li>
-			<li><a href="#projects" onclick={handleScroll}>{$t.nav_projects}</a></li>
-			<li><a href="#skills" onclick={handleScroll}>{$t.nav_skills}</a></li>
-			<li><a href="#contact" onclick={handleScroll}>{$t.nav_contact}</a></li>
+			{#each navLinks as link}
+				<li><a href={link.href} onclick={handleScroll}>{$t[link.key]}</a></li>
+			{/each}
 		</ul>
-		<div
+		<button
 			class="hamburger"
 			class:active={isMenuActive}
 			onclick={toggleMenu}
-			onkeydown={(e) => e.key === 'Enter' && toggleMenu()}
-			role="button"
-			tabindex="0"
 			aria-label={isMenuActive ? $t.nav_close : $t.nav_open}
 			aria-expanded={isMenuActive}
+			aria-controls="mobile-menu"
+			bind:this={hamburgerEl}
 		>
 			<span></span>
 			<span></span>
 			<span></span>
-		</div>
+		</button>
 	</div>
 	<button class="lang-toggle desktop-lang" onclick={toggleLang} aria-label="Switch language">
-		{#if $lang === 'en'}
-			<svg class="flag-icon" viewBox="0 0 640 480"
-				><path fill="#fff" d="M0 0h640v480H0z" /><path fill="#009246" d="M0 0h213.3v480H0z" /><path
-					fill="#ce2b37"
-					d="M426.7 0H640v480H426.7z"
-				/></svg
-			>
-		{:else}
-			<svg class="flag-icon" viewBox="0 0 640 480"
-				><path fill="#012169" d="M0 0h640v480H0z" /><path
-					fill="#FFF"
-					d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z"
-				/><path
-					fill="#C8102E"
-					d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z"
-				/><path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z" /><path
-					fill="#C8102E"
-					d="M0 193v96h640v-96zM273 0v480h96V0z"
-				/></svg
-			>
-		{/if}
+		{@render flag()}
 	</button>
 </nav>
 
 <!-- Menu mobile separato -->
-<div class="mobile-menu-wrapper" class:active={isMenuActive}>
+<div class="mobile-menu-wrapper" class:active={isMenuActive} id="mobile-menu">
 	<ul class="nav-menu mobile-menu">
-		<li><a href="#home" onclick={handleScroll}>{$t.nav_home}</a></li>
-		<li><a href="#about" onclick={handleScroll}>{$t.nav_about}</a></li>
-		<li><a href="#experience" onclick={handleScroll}>{$t.nav_experience}</a></li>
-		<li><a href="#projects" onclick={handleScroll}>{$t.nav_projects}</a></li>
-		<li><a href="#skills" onclick={handleScroll}>{$t.nav_skills}</a></li>
-		<li><a href="#contact" onclick={handleScroll}>{$t.nav_contact}</a></li>
+		{#each navLinks as link}
+			<li><a href={link.href} onclick={handleScroll}>{$t[link.key]}</a></li>
+		{/each}
 		<li>
 			<button
 				class="lang-toggle mobile-lang"
@@ -214,26 +231,11 @@
 				}}
 				aria-label="Switch language"
 			>
+				{@render flag()}
 				{#if $lang === 'en'}
-					<svg class="flag-icon" viewBox="0 0 640 480"
-						><path fill="#fff" d="M0 0h640v480H0z" /><path
-							fill="#009246"
-							d="M0 0h213.3v480H0z"
-						/><path fill="#ce2b37" d="M426.7 0H640v480H426.7z" /></svg
-					> Italiano
+					Italiano
 				{:else}
-					<svg class="flag-icon" viewBox="0 0 640 480"
-						><path fill="#012169" d="M0 0h640v480H0z" /><path
-							fill="#FFF"
-							d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z"
-						/><path
-							fill="#C8102E"
-							d="m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z"
-						/><path fill="#FFF" d="M241 0v480h160V0zM0 160v160h640V160z" /><path
-							fill="#C8102E"
-							d="M0 193v96h640v-96zM273 0v480h96V0z"
-						/></svg
-					> English
+					English
 				{/if}
 			</button>
 		</li>

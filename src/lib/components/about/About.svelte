@@ -65,8 +65,9 @@
 		return () => {
 			window.removeEventListener('resize', checkScreenSize);
 			cleanupCanvas?.();
+			revealObs.disconnect();
 			if (aboutSection) {
-				observer.unobserve(aboutSection);
+				observer.disconnect();
 			}
 		};
 	});

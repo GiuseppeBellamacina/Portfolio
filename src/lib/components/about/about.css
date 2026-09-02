@@ -74,7 +74,10 @@
 }
 
 .about-content {
-	max-width: 800px;
+	/* Matches the Experience timeline width (950px) for a consistent rhythm
+	   between adjacent sections; slightly wider than before to reduce text
+	   wrapping and shorten the section vertically */
+	max-width: 950px;
 	margin: 0 auto;
 }
 

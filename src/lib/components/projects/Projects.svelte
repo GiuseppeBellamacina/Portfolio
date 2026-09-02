@@ -226,6 +226,12 @@
 	function onKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Escape') closePanel();
 	}
+	function onCarouselKeyDown(e: KeyboardEvent) {
+		if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+		e.preventDefault();
+		targetIndex += e.key === 'ArrowRight' ? 1 : -1;
+		startSnapAnimation();
+	}
 
 	// ── Auto-play ──
 	let autoPlayRaf: number | null = null;
@@ -474,8 +480,16 @@
 	<!-- Desktop: Carousel / Grid -->
 	<div class="desktop-only">
 		{#if viewMode === 'carousel'}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="carousel-viewport" onpointerdown={onPointerDown}>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+			<!-- WAI-ARIA carousel pattern: focusable region so keyboard users can arrow-navigate -->
+			<div
+				class="carousel-viewport"
+				tabindex="0"
+				role="region"
+				aria-label={$t.nav_projects}
+				onpointerdown={onPointerDown}
+				onkeydown={onCarouselKeyDown}
+			>
 				<div class="carousel-stage">
 					{#each projects as project, i}
 						<div class="carousel-card" style={getCardStyle(i)}>
@@ -491,7 +505,7 @@
 							</div>
 							<div class="carousel-card-overlay"></div>
 							{#if project.isHackathonWinner}
-								<span class="carousel-badge">🏆 Winner</span>
+								<span class="carousel-badge">{$t.proj_winner}</span>
 							{/if}
 							{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
 								<span class="carousel-stars">⭐ {project.stars}</span>
@@ -582,7 +596,7 @@
 					</div>
 					<div class="pcard-overlay"></div>
 					{#if project.isHackathonWinner}
-						<span class="pcard-badge">🏆 Winner</span>
+						<span class="pcard-badge">{$t.proj_winner}</span>
 					{/if}
 					{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
 						<span class="pcard-stars">⭐ {project.stars}</span>
@@ -604,7 +618,7 @@
 					class="mobile-dot"
 					class:active={mobileActiveIndex === i}
 					onclick={() => goToMobileSlide(i)}
-					aria-label="Go to project {i + 1}"
+					aria-label={`${$t.nav_projects} — ${projects[i].title}`}
 				></button>
 			{/each}
 		</div>

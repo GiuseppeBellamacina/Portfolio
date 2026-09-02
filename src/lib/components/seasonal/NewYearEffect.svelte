@@ -47,6 +47,17 @@
 		let H = (canvas.height = window.innerHeight);
 		let raf: number;
 		let paused = false;
+		let offscreen = false;
+		const sparkSprite = document.createElement('canvas');
+		sparkSprite.width = sparkSprite.height = 32;
+		const sparkCtx = sparkSprite.getContext('2d');
+		if (!sparkCtx) return;
+		const sparkGradient = sparkCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+		sparkGradient.addColorStop(0, '#fff');
+		sparkGradient.addColorStop(0.3, 'rgba(255, 220, 120, .8)');
+		sparkGradient.addColorStop(1, 'rgba(255, 160, 40, 0)');
+		sparkCtx.fillStyle = sparkGradient;
+		sparkCtx.fillRect(0, 0, 32, 32);
 
 		const rockets: Rocket[] = [];
 		const sparks: Spark[] = [];
@@ -113,6 +124,7 @@
 		}
 
 		function draw() {
+			if (paused || offscreen) return;
 			// Clear canvas fully — transparent overlay, no darkening
 			ctx!.clearRect(0, 0, W, H);
 
@@ -177,14 +189,9 @@
 
 				// Draw spark
 				if (s.life > 0) {
-					const brightness = 50 + s.life * 30;
-					ctx!.beginPath();
-					ctx!.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
-					ctx!.fillStyle = `hsla(${s.hue}, 80%, ${brightness}%, ${s.life})`;
-					ctx!.shadowBlur = 6 * s.life;
-					ctx!.shadowColor = `hsla(${s.hue}, 90%, 60%, ${s.life * 0.6})`;
-					ctx!.fill();
-					ctx!.shadowBlur = 0;
+					ctx!.globalAlpha = s.life;
+					ctx!.drawImage(sparkSprite, s.x - s.size * 4, s.y - s.size * 4, s.size * 8, s.size * 8);
+					ctx!.globalAlpha = 1;
 				}
 
 				if (s.life <= 0) sparks.splice(i, 1);
@@ -197,6 +204,7 @@
 
 		// Launch rockets at random intervals
 		let launchTimeout: ReturnType<typeof setTimeout>;
+		const secondaryTimeouts: ReturnType<typeof setTimeout>[] = [];
 		function scheduleLaunch() {
 			const delay = 400 + Math.random() * 2000;
 			launchTimeout = setTimeout(() => {
@@ -206,10 +214,10 @@
 				}
 				launchRocket();
 				if (Math.random() > 0.5) {
-					setTimeout(launchRocket, 100 + Math.random() * 200);
+					secondaryTimeouts.push(setTimeout(launchRocket, 100 + Math.random() * 200));
 				}
 				if (Math.random() > 0.75) {
-					setTimeout(launchRocket, 200 + Math.random() * 300);
+					secondaryTimeouts.push(setTimeout(launchRocket, 200 + Math.random() * 300));
 				}
 				scheduleLaunch();
 			}, delay);
@@ -230,11 +238,18 @@
 			}
 		}
 		document.addEventListener('visibilitychange', onVisibilityChange);
+		const observer = new IntersectionObserver(([entry]) => {
+			offscreen = !entry.isIntersecting;
+			if (!offscreen && !document.hidden) raf = requestAnimationFrame(draw);
+		});
+		observer.observe(canvas);
 
 		window.addEventListener('resize', resize);
 		return () => {
 			cancelAnimationFrame(raf);
 			clearTimeout(launchTimeout);
+			for (const timeout of secondaryTimeouts) clearTimeout(timeout);
+			observer.disconnect();
 			document.removeEventListener('visibilitychange', onVisibilityChange);
 			window.removeEventListener('resize', resize);
 		};
@@ -253,6 +268,7 @@
 	}
 
 	onMount(() => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 		if (forceShow || isNewYearPeriod()) {
 			isDateBased = !forceShow;
 			showNewYear = true;

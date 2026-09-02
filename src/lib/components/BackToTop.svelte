@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
 
-	let visible = false;
+	let visible = $state(false);
+	let reduceMotion = false;
 
 	function checkScroll() {
 		visible = window.scrollY > 500;
@@ -11,12 +12,13 @@
 	function scrollToTop() {
 		window.scrollTo({
 			top: 0,
-			behavior: 'smooth'
+			behavior: reduceMotion ? 'auto' : 'smooth'
 		});
 	}
 
 	onMount(() => {
-		window.addEventListener('scroll', checkScroll);
+		reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		window.addEventListener('scroll', checkScroll, { passive: true });
 		checkScroll();
 
 		return () => {
@@ -28,7 +30,7 @@
 <button
 	class="back-to-top"
 	class:visible
-	on:click={scrollToTop}
+	onclick={scrollToTop}
 	aria-label={$t.backToTop}
 	title={$t.backToTop}
 >
@@ -60,19 +62,34 @@
 		opacity: 1;
 		visibility: visible;
 		transform: translateY(0) scale(1);
+	}
+
+	/* Pulsing glow as a pseudo-element behind the button, animated via
+	   opacity (composited) instead of box-shadow (continuous repaint). */
+	.back-to-top::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		pointer-events: none;
+		z-index: -1;
+		box-shadow:
+			0 0 20px rgba(var(--primary-rgb), 0.15),
+			0 0 40px rgba(var(--primary-rgb), 0.06);
+		opacity: 0;
+	}
+
+	.back-to-top.visible::after {
 		animation: btnPulseGlow 3s ease-in-out infinite;
 	}
 
 	@keyframes btnPulseGlow {
 		0%,
 		100% {
-			box-shadow: 0 4px 15px rgba(var(--indigo-rgb), 0.12);
+			opacity: 0;
 		}
 		50% {
-			box-shadow:
-				0 4px 15px rgba(var(--indigo-rgb), 0.2),
-				0 0 20px rgba(var(--primary-rgb), 0.15),
-				0 0 40px rgba(var(--primary-rgb), 0.06);
+			opacity: 1;
 		}
 	}
 

@@ -1,37 +1,59 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let progress = 0;
+	let progress = $state(0);
+
+	// Cached layout metrics (invalidated on resize) to avoid forced layouts on every scroll event
+	let scrollable = 1;
+	let rafId: number | undefined;
+
+	function measure() {
+		scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+	}
 
 	function updateProgress() {
-		const windowHeight = window.innerHeight;
-		const documentHeight = document.documentElement.scrollHeight;
-		const scrollTop = window.scrollY;
-		const scrollable = documentHeight - windowHeight;
-		progress = (scrollTop / scrollable) * 100;
+		rafId = undefined;
+		progress = Math.min(100, (window.scrollY / scrollable) * 100);
+	}
+
+	function onScroll() {
+		// Coalesce scroll events into a single update per frame
+		if (rafId === undefined) {
+			rafId = requestAnimationFrame(updateProgress);
+		}
+	}
+
+	function onResize() {
+		measure();
+		updateProgress();
 	}
 
 	onMount(() => {
-		window.addEventListener('scroll', updateProgress);
+		measure();
 		updateProgress();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onResize);
 
 		return () => {
-			window.removeEventListener('scroll', updateProgress);
+			if (rafId !== undefined) cancelAnimationFrame(rafId);
+			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('resize', onResize);
 		};
 	});
 </script>
 
-<div class="scroll-progress-bar" style="width: {progress}%"></div>
+<div class="scroll-progress-bar" style="transform: scaleX({progress / 100})"></div>
 
 <style>
 	.scroll-progress-bar {
 		position: fixed;
 		top: 0;
 		left: 0;
+		width: 100%;
 		height: 3px;
 		background: linear-gradient(90deg, var(--primary-color), var(--neon-pink), var(--neon-green));
 		z-index: 10000;
-		transition: width 0.1s ease-out;
+		transform-origin: left;
 		box-shadow:
 			0 0 8px var(--primary-color),
 			0 0 20px rgba(var(--primary-rgb), 0.3);
