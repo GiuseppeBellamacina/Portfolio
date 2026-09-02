@@ -1,12 +1,15 @@
 /* Terminal component styles */
 .terminal {
-	background: rgba(var(--bg-dark-rgb), 0.5);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
-	border: 1px solid rgba(var(--primary-rgb), 0.08);
+	/* Extra-transparent glass: the neural network impulses stay readable behind it */
+	background: rgba(var(--bg-dark-rgb), 0.32);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	border: 1px solid rgba(var(--primary-rgb), 0.18);
 	border-radius: 12px;
 	overflow: hidden;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.35),
+		0 0 24px rgba(var(--indigo-rgb), 0.08);
 	font-family: 'Courier New', 'Fira Code', monospace;
 	cursor: text;
 }
@@ -17,8 +20,8 @@
 	align-items: center;
 	gap: 7px;
 	padding: 10px 14px;
-	background: rgba(var(--bg-card-rgb), 0.5);
-	border-bottom: 1px solid rgba(var(--primary-rgb), 0.06);
+	background: rgba(var(--bg-card-rgb), 0.4);
+	border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
 	cursor: default;
 }
 .dot {
@@ -45,7 +48,8 @@
 /* ── Body ── */
 .terminal-body {
 	padding: 1rem 1.2rem;
-	height: clamp(260px, 15rem + 2vw, 300px);
+	/* Taller than the old embedded widget: bio + shell share this space */
+	height: clamp(340px, 24rem + 4vw, 460px);
 	overflow-y: auto;
 	scrollbar-width: thin;
 	scrollbar-color: rgba(var(--primary-rgb), 0.15) transparent;
@@ -150,6 +154,32 @@
 	}
 }
 
+/* ── Bio (output of the `about` command) ── */
+.rich .bio-name {
+	color: var(--primary-color);
+	font-weight: bold;
+	font-size: 1.1em;
+	text-shadow: 0 0 12px rgba(var(--primary-rgb), 0.45);
+}
+/* Tab-like alignment: fixed label column + content column (monospace → exact ch) */
+.rich .bio-row {
+	display: grid;
+	grid-template-columns: 7ch 1fr;
+	column-gap: 1.5ch;
+	align-items: baseline;
+}
+.rich .bio-label {
+	color: var(--neon-green);
+	font-weight: bold;
+}
+.rich .bio-content {
+	min-width: 0;
+}
+/* <strong> highlights inside bio paragraphs get the neon accent */
+.rich strong {
+	color: var(--primary-color);
+}
+
 /* ── Input line ── */
 .input-line {
 	display: flex;
@@ -189,7 +219,7 @@
 		font-size: 0.78rem;
 	}
 	.terminal-body {
-		height: 280px;
+		height: min(400px, 62vh);
 	}
 }
 @media (max-width: 480px) {
@@ -201,6 +231,6 @@
 	}
 	.terminal-body {
 		padding: 0.8rem 0.9rem;
-		max-height: 240px;
+		height: min(340px, 60vh);
 	}
 }

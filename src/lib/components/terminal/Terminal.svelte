@@ -4,17 +4,48 @@
 	import { t as tStore } from '$lib/i18n';
 	import type { Translation } from '$lib/i18n';
 	import './terminal.css';
-	import { type HistoryEntry, bootLines, completableCommands } from './terminalData';
+	import {
+		type HistoryEntry,
+		bootLines,
+		completableCommands,
+		buildBioEntries,
+		buildInitialHistory
+	} from './terminalData';
 	import { commands, type CommandContext } from './commands';
 
+	interface Props {
+		/** Fired after a valid, non-empty command is dispatched (About wires this to the neural net) */
+		onCommandExecuted?: () => void;
+		/** Fired once the opening bio reveal finishes printing */
+		onBioRevealed?: () => void;
+	}
+	let { onCommandExecuted, onBioRevealed }: Props = $props();
+
 	let inputValue = $state('');
-	let history = $state<HistoryEntry[]>([]);
+	// Initialized at component time (NOT onMount): boot + bio must be in the
+	// prerendered HTML for SEO/no-JS. During SSR get(tStore) returns the EN dict.
+	let history = $state<HistoryEntry[]>(buildInitialHistory(get(tStore)));
+	let terminalEl: HTMLElement;
 	let terminalBody: HTMLElement;
 	let inputEl: HTMLInputElement;
 	let commandHistory: string[] = [];
 	let historyIndex = -1;
 
 	let inputLocked = $state(false);
+
+	// "Pristine" = the user hasn't submitted anything yet: while pristine, the
+	// opening content is regenerated on language change. Once the user types,
+	// the terminal becomes theirs and is never reset.
+	let pristine = true;
+	let revealDone = false;
+	let revealInProgress = false;
+
+	$effect(() => {
+		const tr = $tStore;
+		if (pristine && !revealInProgress) {
+			history = buildInitialHistory(tr);
+		}
+	});
 
 	/* ── Sequential output helpers (exposed to commands via CommandContext) ── */
 	function delay(ms: number): Promise<void> {
@@ -90,6 +121,7 @@
 		const raw = inputValue;
 		inputValue = '';
 		historyIndex = -1;
+		pristine = false;
 
 		if (raw.trim()) {
 			commandHistory = [raw.trim(), ...commandHistory];
@@ -98,6 +130,14 @@
 		history.push({ type: 'input', text: raw });
 
 		const result = executeCommand(raw);
+
+		// Notify the host (About) only for valid, non-empty commands
+		const trimmed = raw.trim();
+		if (trimmed) {
+			const cmdName = trimmed.split(/\s+/)[0].toLowerCase();
+			if (commands[cmdName]) onCommandExecuted?.();
+		}
+
 		if (result === 'async') {
 			/* async commands push their own lines via pushLine/pushLines */
 			return;
@@ -164,15 +204,67 @@
 		}
 	}
 
-	onMount(() => {
+	/**
+	 * Opening reveal: once the terminal scrolls into view, replay the boot —
+	 * type `about` and print the bio line by line. Runs once, only with JS and
+	 * only when motion is allowed; otherwise the SSR-rendered content stays put.
+	 */
+	async function playOpeningReveal() {
+		revealInProgress = true;
+		inputLocked = true;
 		const tr = get(tStore);
-		history = [...bootLines, { type: 'output', text: tr.term_bootHelp }];
+		const bio = buildBioEntries(tr);
+
+		history = [...bootLines];
+		await tick();
+
+		// Type the command character by character
+		const cmd = 'about';
+		history.push({ type: 'input', text: '' });
+		const typedIdx = history.length - 1;
+		for (let i = 1; i <= cmd.length; i++) {
+			history[typedIdx] = { type: 'input', text: cmd.slice(0, i) };
+			await delay(90);
+		}
+		await delay(300);
+
+		// Print the bio line by line
+		for (const entry of bio) {
+			await pushLine(entry);
+			await delay(entry.text === '' ? 220 : 130);
+		}
+		await pushLine({ type: 'output', text: '' });
+		await pushLine({ type: 'output', text: tr.term_bootHelp });
+
+		inputLocked = false;
+		revealInProgress = false;
+		revealDone = true;
+		onBioRevealed?.();
+	}
+
+	onMount(() => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+		const io = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting && !revealDone && !revealInProgress) {
+						io.disconnect();
+						playOpeningReveal();
+					}
+				});
+			},
+			{ threshold: 0.3 }
+		);
+		if (terminalEl) io.observe(terminalEl);
+
+		return () => io.disconnect();
 	});
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="terminal" onclick={focusInput}>
+<div class="terminal" onclick={focusInput} bind:this={terminalEl}>
 	<div class="terminal-bar">
 		<span class="dot red"></span>
 		<span class="dot yellow"></span>

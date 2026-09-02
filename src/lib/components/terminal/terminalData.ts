@@ -1,3 +1,5 @@
+import type { Translation } from '$lib/i18n';
+
 export interface HistoryEntry {
 	type: 'input' | 'output' | 'html' | 'error' | 'ascii';
 	text: string;
@@ -47,6 +49,47 @@ export const bootLines: HistoryEntry[] = [
 	{ type: 'output', text: '' },
 	{ type: 'output', text: '' }
 ];
+
+/** One bio line: label column + content column (tab-like alignment, see .bio-row styles) */
+function bioRow(label: string, content: string): string {
+	return `<span class="bio-row"><span class="bio-label">${label}</span><span class="bio-content">${content}</span></span>`;
+}
+
+/**
+ * Rich bio printed by the `about` command. Single source of truth shared by
+ * the command handler and the initial (SSR-rendered) terminal history, so the
+ * bio stays in the prerendered HTML for SEO/no-JS and can be reprinted after
+ * `clear`. Labels are pseudo-command names: language-neutral on purpose.
+ */
+export function buildBioEntries(tr: Translation): HistoryEntry[] {
+	return [
+		{ type: 'html', text: `<span class="bio-name">${tr.term_aboutName}</span>` },
+		{ type: 'html', text: `<span class="cmt">${tr.term_aboutRole}</span>` },
+		{ type: 'output', text: '' },
+		{ type: 'html', text: bioRow('whoami', tr.about_p1) },
+		{ type: 'html', text: bioRow('now', tr.about_p2) },
+		{ type: 'html', text: bioRow('focus', tr.about_p3) },
+		{ type: 'html', text: bioRow('build', tr.about_p4) },
+		{ type: 'html', text: bioRow('infra', tr.about_p5) },
+		{ type: 'html', text: bioRow('eng', tr.about_p6) },
+		{ type: 'output', text: '' },
+		{ type: 'html', text: `<span class="cmt">${tr.term_aboutPassion}</span>` }
+	];
+}
+
+/**
+ * Full opening history: boot output + the `about` command echo + bio + hint.
+ * Built at component init time (not onMount) so it is part of the static HTML.
+ */
+export function buildInitialHistory(tr: Translation): HistoryEntry[] {
+	return [
+		...bootLines,
+		{ type: 'input', text: 'about' },
+		...buildBioEntries(tr),
+		{ type: 'output', text: '' },
+		{ type: 'output', text: tr.term_bootHelp }
+	];
+}
 
 export const completableCommands = [
 	'help',

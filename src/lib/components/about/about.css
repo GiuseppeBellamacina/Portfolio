@@ -71,14 +71,45 @@
 .about .container {
 	position: relative;
 	z-index: 1;
+	/* Column flow: title pinned at the top, terminal centered in the space below */
+	display: flex;
+	flex-direction: column;
+	align-self: stretch;
 }
 
-.about-content {
-	/* Matches the Experience timeline width (950px) for a consistent rhythm
-	   between adjacent sections; slightly wider than before to reduce text
-	   wrapping and shorten the section vertically */
-	max-width: 950px;
-	margin: 0 auto;
+/* Title in its own clean band at the top of the section — the network starts
+   below it (TITLE_BAND in neuralNetwork.ts), so they never overlap */
+.about .section-title {
+	margin-bottom: clamp(2rem, 4vh, 3.5rem);
+}
+
+/* The terminal is the sole content block, centered in the remaining space.
+   This wrapper is also the neural network's stage: the canvas fills it. */
+.about-terminal-wrap {
+	position: relative;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+}
+
+/* Neural canvas: anchored to the wrapper (= same box as the terminal, so the
+   two are concentric), but wider than the container so the network keeps side
+   presence beyond the terminal glass. Heights are 1:1 with the wrapper. */
+.neural-canvas {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: min(92vw, 1500px);
+	height: 100%;
+	pointer-events: none;
+}
+.about-terminal {
+	position: relative;
+	width: 100%;
+	max-width: 1050px;
 }
 
 /* ── Responsive ── */
@@ -91,20 +122,6 @@
 			linear-gradient(0deg, transparent 48%, rgba(var(--secondary-rgb), 0.04) 50%, transparent 52%)
 				0 0 / 40px 40px;
 	}
-}
-
-/* ── Neural canvas ── */
-.neural-canvas {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 90%;
-	height: 80%;
-	max-width: 1400px;
-	max-height: 800px;
-	pointer-events: none;
-	z-index: 1;
 }
 
 /* ── Staggered reveal ── */
@@ -121,86 +138,4 @@
 }
 .about-block[data-idx='1'] {
 	transition-delay: 0.1s;
-}
-.about-block[data-idx='2'] {
-	transition-delay: 0.25s;
-}
-
-/* ── Bio card (glassmorphism) ── */
-.bio-card {
-	background: rgba(15, 18, 35, 0.5);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	border: 1px solid rgba(var(--primary-rgb), 0.08);
-	border-radius: 16px;
-	padding: clamp(1.4rem, 1rem + 0.6vw, 2rem) clamp(1.5rem, 1rem + 0.8vw, 2.2rem);
-	margin-bottom: 2rem;
-	position: relative;
-	overflow: hidden;
-	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-	transition:
-		border-color 0.4s ease,
-		box-shadow 0.4s ease;
-}
-.bio-card:hover {
-	border-color: rgba(var(--primary-rgb), 0.2);
-	box-shadow: 0 8px 40px rgba(var(--indigo-rgb), 0.1);
-}
-.bio-card::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	border-radius: 16px;
-	padding: 1px;
-	background: linear-gradient(
-		135deg,
-		rgba(var(--primary-rgb), 0.25),
-		transparent 30%,
-		transparent 70%,
-		rgba(var(--secondary-rgb), 0.2)
-	);
-	background-size: 300% 300%;
-	animation: borderGlow 6s ease-in-out infinite;
-	-webkit-mask:
-		linear-gradient(#fff 0 0) content-box,
-		linear-gradient(#fff 0 0);
-	mask:
-		linear-gradient(#fff 0 0) content-box,
-		linear-gradient(#fff 0 0);
-	-webkit-mask-composite: xor;
-	mask-composite: exclude;
-	pointer-events: none;
-}
-@keyframes borderGlow {
-	0%,
-	100% {
-		opacity: 0.5;
-	}
-	50% {
-		opacity: 1;
-	}
-}
-.bio-card p {
-	font-size: clamp(0.95rem, 0.85rem + 0.2vw, 1.1rem);
-	line-height: 1.8;
-	color: var(--text-light);
-	margin-bottom: 1rem;
-}
-.bio-card p:last-child {
-	margin-bottom: 0;
-}
-
-/* ── About responsive ── */
-@media (max-width: 768px) {
-	.bio-card {
-		padding: 1.4rem 1.2rem;
-	}
-	.bio-card p {
-		font-size: 1rem;
-	}
-}
-@media (max-width: 480px) {
-	.bio-card p {
-		font-size: 0.95rem;
-	}
 }

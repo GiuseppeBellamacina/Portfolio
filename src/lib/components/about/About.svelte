@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
 	import Terminal from '../terminal/Terminal.svelte';
-	import { createNeuralNetworkViz, createMobileParticles } from './neuralNetwork';
+	import { createNeuralNetworkViz, createMobileParticles, type VizHandle } from './neuralNetwork';
 	import './about.css';
 
 	let canvasElement: HTMLCanvasElement;
@@ -10,6 +10,7 @@
 	let isVisible = false;
 	let isSmallScreen = false;
 	let revealed = $state<boolean[]>([]);
+	let vizHandle: VizHandle | undefined;
 
 	onMount(() => {
 		const checkScreenSize = () => {
@@ -18,8 +19,8 @@
 		checkScreenSize();
 		window.addEventListener('resize', checkScreenSize);
 
-		// Staggered reveal for about blocks
-		const BLOCK_COUNT = 3;
+		// Staggered reveal for section title + terminal
+		const BLOCK_COUNT = 2;
 		revealed = Array(BLOCK_COUNT).fill(false);
 		const revealBlocks = aboutSection?.querySelectorAll('.about-block');
 		const revealObs = new IntersectionObserver(
@@ -35,8 +36,6 @@
 		);
 		revealBlocks?.forEach((el) => revealObs.observe(el));
 
-		let cleanupCanvas: (() => void) | undefined;
-
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -45,7 +44,7 @@
 							isVisible = true;
 							setTimeout(() => {
 								const factory = isSmallScreen ? createMobileParticles : createNeuralNetworkViz;
-								cleanupCanvas = factory(canvasElement, aboutSection, () => isVisible);
+								vizHandle = factory(canvasElement, aboutSection, () => isVisible);
 							}, 0);
 						} else {
 							isVisible = true;
@@ -64,13 +63,23 @@
 
 		return () => {
 			window.removeEventListener('resize', checkScreenSize);
-			cleanupCanvas?.();
+			vizHandle?.destroy();
 			revealObs.disconnect();
 			if (aboutSection) {
 				observer.disconnect();
 			}
 		};
 	});
+
+	// The network "processes" every valid command typed in the terminal
+	function handleCommandExecuted() {
+		vizHandle?.triggerWave();
+	}
+
+	// ...and reacts once the bio finishes printing at the opening reveal
+	function handleBioRevealed() {
+		vizHandle?.triggerWave();
+	}
 </script>
 
 <section id="about" class="about" bind:this={aboutSection}>
@@ -81,20 +90,13 @@
 			{$t.about_title}
 		</h2>
 
-		<div class="about-content">
-			<!-- Bio card (glassmorphism) -->
-			<div class="bio-card about-block" class:show={revealed[1]} data-idx="1">
-				<p>{@html $t.about_p1}</p>
-				<p>{@html $t.about_p2}</p>
-				<p>{@html $t.about_p3}</p>
-				<p>{@html $t.about_p4}</p>
-				<p>{@html $t.about_p5}</p>
-				<p>{@html $t.about_p6}</p>
-			</div>
-
-			<!-- Interactive terminal -->
-			<div class="about-block" class:show={revealed[2]} data-idx="2">
-				<Terminal />
+		<!-- The network lives in the same box as the terminal: the canvas covers
+		     exactly this wrapper, so the terminal is concentric with the network
+		     (horizontally and vertically) by construction. -->
+		<div class="about-terminal-wrap about-block" class:show={revealed[1]} data-idx="1">
+			<canvas class="neural-canvas" bind:this={canvasElement}></canvas>
+			<div class="about-terminal">
+				<Terminal onCommandExecuted={handleCommandExecuted} onBioRevealed={handleBioRevealed} />
 			</div>
 		</div>
 	</div>

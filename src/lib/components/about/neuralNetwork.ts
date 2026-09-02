@@ -1,4 +1,13 @@
 /**
+ * Handle returned by the canvas factories: cleanup plus a `triggerWave`
+ * hook the host can fire to make the visualization react to user actions.
+ */
+export interface VizHandle {
+	destroy: () => void;
+	triggerWave: () => void;
+}
+
+/**
  * Feedforward neural network visualization with impulse propagation.
  * Renders layers of neurons with animated forward-pass impulses on Canvas 2D.
  */
@@ -6,7 +15,7 @@ export function createNeuralNetworkViz(
 	canvas: HTMLCanvasElement,
 	section: HTMLElement,
 	getVisible: () => boolean
-): (() => void) | undefined {
+): VizHandle | undefined {
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 	const ctx = canvas.getContext('2d');
@@ -56,7 +65,7 @@ export function createNeuralNetworkViz(
 					x: layer.x * canvas.width,
 					y: (i + 1) * spacing,
 					layer: layerIndex,
-					radius: 6,
+					radius: 8,
 					glow: 0
 				};
 				neurons.push(neuron);
@@ -78,8 +87,10 @@ export function createNeuralNetworkViz(
 		});
 	}
 	function resizeCanvas() {
-		canvas.width = section.offsetWidth;
-		canvas.height = section.offsetHeight;
+		// The canvas is anchored to the terminal wrapper (see about.css): size the
+		// backing store from the element itself for a 1:1 mapping with its stage.
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
 		layoutNetwork();
 	}
 	// Size the canvas BEFORE the first layout: without this, neurons are placed
@@ -90,7 +101,41 @@ export function createNeuralNetworkViz(
 	let time = 0;
 	const impulses: Impulse[] = [];
 	const timeoutIds: number[] = [];
-	const maxImpulses = 25;
+	const maxImpulses = 30;
+
+	function spawnImpulse(from: Neuron, to: Neuron) {
+		if (impulses.length >= maxImpulses) return;
+		impulses.push({
+			from,
+			to,
+			progress: 0,
+			speed: 0.012 + Math.random() * 0.008,
+			trail: []
+		});
+	}
+
+	/**
+	 * Burst of impulses from the input layer, fired on user actions (e.g. a
+	 * terminal command). Also lights up the output layer for ~1s as pure visual
+	 * emphasis — no coupling with the network layout math. Ignored offscreen.
+	 */
+	function triggerWave() {
+		if (!getVisible()) return;
+		const inputNeurons = layerNeurons[0];
+		if (!inputNeurons?.length) return;
+		const burst = 10 + Math.floor(Math.random() * 5); // 10-14 impulses
+		for (let i = 0; i < burst; i++) {
+			const neuron = inputNeurons[Math.floor(Math.random() * inputNeurons.length)];
+			const next = connections.filter((c) => c.from === neuron);
+			if (!next.length) continue;
+			const conn = next[Math.floor(Math.random() * next.length)];
+			// Slight stagger so the wave reads as a propagation, not a flash
+			const timeoutId = window.setTimeout(() => spawnImpulse(conn.from, conn.to), i * 40);
+			timeoutIds.push(timeoutId);
+		}
+		// Output-layer emphasis: glow decays at 0.02/frame (~0.8-1s at 60fps)
+		layerNeurons[layers.length - 1].forEach((n) => (n.glow = 1));
+	}
 
 	const impulseInterval = setInterval(() => {
 		if (!getVisible() || impulses.length > maxImpulses) return;
@@ -108,17 +153,11 @@ export function createNeuralNetworkViz(
 					.slice(0, Math.floor(Math.random() * 2) + 2);
 
 				selectedConnections.forEach((conn) => {
-					impulses.push({
-						from: conn.from,
-						to: conn.to,
-						progress: 0,
-						speed: 0.012 + Math.random() * 0.008,
-						trail: []
-					});
+					spawnImpulse(conn.from, conn.to);
 				});
 			}
 		});
-	}, 800);
+	}, 650);
 
 	let rafId = 0;
 	function animate() {
@@ -134,9 +173,9 @@ export function createNeuralNetworkViz(
 
 		// Draw connections
 		connections.forEach((conn) => {
-			const opacity = 0.15 + Math.sin(time + conn.weight * 10) * 0.05;
+			const opacity = 0.3 + Math.sin(time + conn.weight * 10) * 0.08;
 			ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
-			ctx.lineWidth = 1;
+			ctx.lineWidth = 1.2;
 			ctx.beginPath();
 			ctx.moveTo(conn.from.x, conn.from.y);
 			ctx.lineTo(conn.to.x, conn.to.y);
@@ -165,10 +204,10 @@ export function createNeuralNetworkViz(
 			});
 
 			ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
-			ctx.shadowBlur = 8;
-			ctx.shadowColor = 'rgba(52, 211, 153, 0.5)';
+			ctx.shadowBlur = 12;
+			ctx.shadowColor = 'rgba(52, 211, 153, 0.6)';
 			ctx.beginPath();
-			ctx.arc(x, y, 3, 0, Math.PI * 2);
+			ctx.arc(x, y, 3.5, 0, Math.PI * 2);
 			ctx.fill();
 			ctx.shadowBlur = 0;
 
@@ -190,15 +229,7 @@ export function createNeuralNetworkViz(
 
 					selectedConnections.forEach((conn, idx) => {
 						const timeoutId = window.setTimeout(() => {
-							if (impulses.length < maxImpulses) {
-								impulses.push({
-									from: conn.from,
-									to: conn.to,
-									progress: 0,
-									speed: 0.012 + Math.random() * 0.008,
-									trail: []
-								});
-							}
+							spawnImpulse(conn.from, conn.to);
 						}, idx * 50);
 						timeoutIds.push(timeoutId);
 					});
@@ -223,17 +254,17 @@ export function createNeuralNetworkViz(
 				color = 'rgba(99, 102, 241, ';
 			}
 
-			ctx.fillStyle = color + '0.6)';
+			ctx.fillStyle = color + '0.75)';
 			ctx.beginPath();
 			ctx.arc(neuron.x, neuron.y, neuron.radius, 0, Math.PI * 2);
 			ctx.fill();
 
 			if (neuron.glow > 0) {
 				ctx.fillStyle = color + neuron.glow + ')';
-				ctx.shadowBlur = 10;
+				ctx.shadowBlur = 16;
 				ctx.shadowColor = color + '1)';
 				ctx.beginPath();
-				ctx.arc(neuron.x, neuron.y, neuron.radius + 4, 0, Math.PI * 2);
+				ctx.arc(neuron.x, neuron.y, neuron.radius + 6, 0, Math.PI * 2);
 				ctx.fill();
 				ctx.shadowBlur = 0;
 			}
@@ -255,12 +286,15 @@ export function createNeuralNetworkViz(
 	visibilityObserver.observe(section);
 	resume();
 
-	return () => {
-		clearInterval(impulseInterval);
-		cancelAnimationFrame(rafId);
-		timeoutIds.forEach((id) => clearTimeout(id));
-		visibilityObserver.disconnect();
-		window.removeEventListener('resize', resizeCanvas);
+	return {
+		destroy: () => {
+			clearInterval(impulseInterval);
+			cancelAnimationFrame(rafId);
+			timeoutIds.forEach((id) => clearTimeout(id));
+			visibilityObserver.disconnect();
+			window.removeEventListener('resize', resizeCanvas);
+		},
+		triggerWave
 	};
 }
 
@@ -271,15 +305,15 @@ export function createMobileParticles(
 	canvas: HTMLCanvasElement,
 	section: HTMLElement,
 	getVisible: () => boolean
-): (() => void) | undefined {
+): VizHandle | undefined {
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 	const ctx = canvas.getContext('2d');
 	if (!ctx) return;
 
 	function resizeCanvas() {
-		canvas.width = section.offsetWidth;
-		canvas.height = section.offsetHeight;
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
 	}
 	resizeCanvas();
 	window.addEventListener('resize', resizeCanvas);
@@ -307,6 +341,13 @@ export function createMobileParticles(
 		});
 	}
 
+	// Brief excitement pulse fired on user actions (mobile counterpart of the wave)
+	let pulse = 0;
+	function triggerWave() {
+		if (!getVisible()) return;
+		pulse = 1;
+	}
+
 	let rafId = 0;
 	function animate() {
 		rafId = 0;
@@ -318,6 +359,8 @@ export function createMobileParticles(
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+		if (pulse > 0) pulse -= 0.02;
+
 		particles.forEach((p1, i) => {
 			particles.slice(i + 1).forEach((p2) => {
 				const dx = p2.x - p1.x;
@@ -325,7 +368,7 @@ export function createMobileParticles(
 				const dist = Math.sqrt(dx * dx + dy * dy);
 
 				if (dist < 150) {
-					const opacity = (1 - dist / 150) * 0.2;
+					const opacity = (1 - dist / 150) * (0.2 + pulse * 0.15);
 					ctx.strokeStyle = `hsla(${(p1.hue + p2.hue) / 2}, 50%, 60%, ${opacity})`;
 					ctx.lineWidth = 0.5;
 					ctx.beginPath();
@@ -346,11 +389,12 @@ export function createMobileParticles(
 			particle.x = Math.max(0, Math.min(canvas.width, particle.x));
 			particle.y = Math.max(0, Math.min(canvas.height, particle.y));
 
-			ctx.fillStyle = `hsla(${particle.hue}, 50%, 60%, ${particle.opacity})`;
+			const alpha = Math.min(1, particle.opacity + pulse * 0.3);
+			ctx.fillStyle = `hsla(${particle.hue}, 50%, 60%, ${alpha})`;
 			ctx.shadowBlur = 8;
-			ctx.shadowColor = `hsla(${particle.hue}, 50%, 60%, ${particle.opacity})`;
+			ctx.shadowColor = `hsla(${particle.hue}, 50%, 60%, ${alpha})`;
 			ctx.beginPath();
-			ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+			ctx.arc(particle.x, particle.y, particle.radius * (1 + pulse * 0.6), 0, Math.PI * 2);
 			ctx.fill();
 			ctx.shadowBlur = 0;
 		});
@@ -365,9 +409,12 @@ export function createMobileParticles(
 	visibilityObserver.observe(section);
 	resume();
 
-	return () => {
-		cancelAnimationFrame(rafId);
-		visibilityObserver.disconnect();
-		window.removeEventListener('resize', resizeCanvas);
+	return {
+		destroy: () => {
+			cancelAnimationFrame(rafId);
+			visibilityObserver.disconnect();
+			window.removeEventListener('resize', resizeCanvas);
+		},
+		triggerWave
 	};
 }

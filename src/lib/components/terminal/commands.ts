@@ -7,7 +7,13 @@ import { get } from 'svelte/store';
 import { t as tStore } from '$lib/i18n';
 import type { Translation } from '$lib/i18n';
 import { setSeason, resetSeason } from '$lib/stores/seasonStore';
-import { type HistoryEntry, type Song, projectEntries, musicCatalog } from './terminalData';
+import {
+	type HistoryEntry,
+	type Song,
+	projectEntries,
+	musicCatalog,
+	buildBioEntries
+} from './terminalData';
 
 export interface CommandContext {
 	/** Command arguments (tokens after the command name) */
@@ -119,12 +125,7 @@ const helpCommand: CommandHandler = ({ tr }) => [
 	{ type: 'output', text: tr.term_helpHidden }
 ];
 
-const aboutCommand: CommandHandler = ({ tr }) => [
-	{ type: 'output', text: tr.term_aboutName },
-	{ type: 'output', text: tr.term_aboutStudent },
-	{ type: 'output', text: tr.term_aboutPassion },
-	{ type: 'output', text: tr.term_aboutAlias }
-];
+const aboutCommand: CommandHandler = ({ tr }) => buildBioEntries(tr);
 
 const skillsCommand: CommandHandler = () => [
 	{
