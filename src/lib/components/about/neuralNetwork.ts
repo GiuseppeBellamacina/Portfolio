@@ -8,10 +8,13 @@ export interface VizHandle {
 }
 
 /**
- * Feedforward neural network visualization with impulse propagation.
- * Renders layers of neurons with animated forward-pass impulses on Canvas 2D.
+ * Sparse neural graph visualization with impulse propagation.
+ * Nodes are scattered across the whole section (min-spacing rejection sampling)
+ * and each connects to 2-3 nearest neighbours; impulses travel along edges,
+ * glow on arrival and propagate node-to-node. The engine is the same as the
+ * old layered FNN — on a free-form graph that fills the entire section.
  */
-export function createNeuralNetworkViz(
+export function createNeuralGraphViz(
 	canvas: HTMLCanvasElement,
 	section: HTMLElement,
 	getVisible: () => boolean
@@ -24,11 +27,18 @@ export function createNeuralNetworkViz(
 	interface Neuron {
 		x: number;
 		y: number;
-		layer: number;
 		radius: number;
 		glow: number;
+		/** Color role — keeps the tri-tone identity of the old layered net */
+		tone: 'core' | 'in' | 'out';
+		/** Last impulse departure (performance.now) — LRU bias spreads traffic */
+		lastActive: number;
+		/** Per-node propagation chance — organic heterogeneity, not uniform rules */
+		propagation: number;
+		/** Per-node quiet period after firing (ms) — hubs can't be machine-gunned */
+		cooldown: number;
 	}
-	interface Connection {
+	interface Edge {
 		from: Neuron;
 		to: Neuron;
 		weight: number;
@@ -41,60 +51,100 @@ export function createNeuralNetworkViz(
 		trail: { x: number; y: number }[];
 	}
 
-	const layers = [
-		{ nodes: 5, x: 0.15 },
-		{ nodes: 8, x: 0.35 },
-		{ nodes: 6, x: 0.55 },
-		{ nodes: 4, x: 0.75 },
-		{ nodes: 3, x: 0.9 }
-	];
-
 	const neurons: Neuron[] = [];
-	const connections: Connection[] = [];
-	const layerNeurons: Neuron[][] = layers.map(() => []);
+	const edges: Edge[] = [];
+	const adjacency = new Map<Neuron, Edge[]>();
+	// Keep nodes away from the section borders
+	const MARGIN = 48;
 
-	function layoutNetwork() {
+	function toneFor(): Neuron['tone'] {
+		const r = Math.random();
+		return r < 0.68 ? 'core' : r < 0.88 ? 'in' : 'out';
+	}
+
+	function pushAdj(node: Neuron, edge: Edge) {
+		const list = adjacency.get(node);
+		if (list) list.push(edge);
+		else adjacency.set(node, [edge]);
+	}
+
+	/**
+	 * Sparse organic layout: rejection-sampled node positions with a minimum
+	 * spacing that scales with the section area, then each node links to 2-3
+	 * nearest neighbours (deduped, globally capped) — no layers, no columns.
+	 */
+	function layoutGraph() {
 		neurons.length = 0;
-		connections.length = 0;
-		layerNeurons.forEach((layer) => (layer.length = 0));
-		layers.forEach((layer, layerIndex) => {
-			const spacing = canvas.height / (layer.nodes + 1);
+		edges.length = 0;
+		adjacency.clear();
 
-			for (let i = 0; i < layer.nodes; i++) {
-				const neuron: Neuron = {
-					x: layer.x * canvas.width,
-					y: (i + 1) * spacing,
-					layer: layerIndex,
-					radius: 8,
-					glow: 0
-				};
-				neurons.push(neuron);
-				layerNeurons[layerIndex].push(neuron);
+		const w = canvas.width;
+		const h = canvas.height;
+		// Node count scales with the section area, clamped for legibility/perf
+		const target = Math.max(20, Math.min(36, Math.round((w * h) / 42000)));
+		const minDist = Math.sqrt((w * h) / target) * 0.62;
+
+		let attempts = 0;
+		while (neurons.length < target && attempts < 900) {
+			attempts++;
+			const x = MARGIN + Math.random() * (w - 2 * MARGIN);
+			const y = MARGIN + Math.random() * (h - 2 * MARGIN);
+			let free = true;
+			for (const n of neurons) {
+				const dx = n.x - x;
+				const dy = n.y - y;
+				if (dx * dx + dy * dy < minDist * minDist) {
+					free = false;
+					break;
+				}
 			}
-
-			if (layerIndex > 0) {
-				const prevLayerNeurons = layerNeurons[layerIndex - 1];
-				layerNeurons[layerIndex].forEach((neuron) => {
-					prevLayerNeurons.forEach((prevNeuron) => {
-						connections.push({
-							from: prevNeuron,
-							to: neuron,
-							weight: Math.random() * 0.5 + 0.3
-						});
-					});
+			if (free) {
+				neurons.push({
+					x,
+					y,
+					radius: 5 + Math.random() * 3.5,
+					glow: 0,
+					tone: toneFor(),
+					lastActive: -Infinity,
+					propagation: 0.45 + Math.random() * 0.25,
+					cooldown: 900 + Math.random() * 1600
 				});
+			}
+		}
+
+		const maxEdges = Math.round(neurons.length * 1.7);
+		const seen = new Set<string>();
+		neurons.forEach((n, i) => {
+			const nearest = neurons
+				.map((m, j) => ({ j, d: (m.x - n.x) ** 2 + (m.y - n.y) ** 2 }))
+				.filter((o) => o.j !== i)
+				.sort((a, b) => a.d - b.d)
+				.slice(0, 2 + (Math.random() < 0.45 ? 1 : 0));
+			for (const { j } of nearest) {
+				const key = i < j ? `${i}:${j}` : `${j}:${i}`;
+				if (seen.has(key) || edges.length >= maxEdges) continue;
+				seen.add(key);
+				const edge: Edge = {
+					from: neurons[i],
+					to: neurons[j],
+					weight: Math.random() * 0.5 + 0.3
+				};
+				edges.push(edge);
+				pushAdj(edge.from, edge);
+				pushAdj(edge.to, edge);
 			}
 		});
 	}
+
 	function resizeCanvas() {
-		// The canvas is anchored to the terminal wrapper (see about.css): size the
-		// backing store from the element itself for a 1:1 mapping with its stage.
+		// The canvas covers the whole section (see about.css): size the backing
+		// store from the element itself for a 1:1 mapping.
 		canvas.width = canvas.offsetWidth;
 		canvas.height = canvas.offsetHeight;
-		layoutNetwork();
+		layoutGraph();
 	}
-	// Size the canvas BEFORE the first layout: without this, neurons are placed
-	// in the default 300x150 backing store and the CSS stretch pixelates/zooms everything
+	// Size the canvas BEFORE the first layout, otherwise nodes are placed in the
+	// default 300x150 backing store and the CSS stretch pixelates everything
 	resizeCanvas();
 	window.addEventListener('resize', resizeCanvas);
 
@@ -103,7 +153,27 @@ export function createNeuralNetworkViz(
 	const timeoutIds: number[] = [];
 	const maxImpulses = 30;
 
-	function spawnImpulse(from: Neuron, to: Neuron) {
+	function edgesFrom(node: Neuron): Edge[] {
+		return adjacency.get(node) ?? [];
+	}
+
+	function otherEnd(edge: Edge, node: Neuron): Neuron {
+		return edge.from === node ? edge.to : edge.from;
+	}
+
+	/** Among a node's edges, prefer those leading to the least recently active
+	 *  neighbours (random pick within the quietest half) — spreads traffic
+	 *  instead of feeding the same hubs. */
+	function pickQuietEdge(list: Edge[], from: Neuron): Edge {
+		if (list.length <= 1) return list[0];
+		const sorted = list
+			.map((edge) => ({ edge, neighbour: otherEnd(edge, from) }))
+			.sort((a, b) => a.neighbour.lastActive - b.neighbour.lastActive);
+		const quietest = sorted.slice(0, Math.max(1, Math.ceil(sorted.length / 2)));
+		return quietest[Math.floor(Math.random() * quietest.length)].edge;
+	}
+
+	function spawnImpulseBetween(from: Neuron, to: Neuron) {
 		if (impulses.length >= maxImpulses) return;
 		impulses.push({
 			from,
@@ -115,48 +185,46 @@ export function createNeuralNetworkViz(
 	}
 
 	/**
-	 * Burst of impulses from the input layer, fired on user actions (e.g. a
-	 * terminal command). Also lights up the output layer for ~1s as pure visual
-	 * emphasis — no coupling with the network layout math. Ignored offscreen.
+	 * Burst of impulses across the graph, fired on user actions (e.g. a
+	 * terminal command) — the graph "processes" the event. Also bumps the glow
+	 * of a third of the nodes as pure visual emphasis. Ignored offscreen.
 	 */
 	function triggerWave() {
-		if (!getVisible()) return;
-		const inputNeurons = layerNeurons[0];
-		if (!inputNeurons?.length) return;
+		if (!getVisible() || !neurons.length) return;
+		const now = performance.now();
 		const burst = 10 + Math.floor(Math.random() * 5); // 10-14 impulses
 		for (let i = 0; i < burst; i++) {
-			const neuron = inputNeurons[Math.floor(Math.random() * inputNeurons.length)];
-			const next = connections.filter((c) => c.from === neuron);
-			if (!next.length) continue;
-			const conn = next[Math.floor(Math.random() * next.length)];
+			const node = neurons[Math.floor(Math.random() * neurons.length)];
+			const list = edgesFrom(node);
+			if (!list.length) continue;
+			const edge = pickQuietEdge(list, node);
+			const neighbour = otherEnd(edge, node);
+			node.lastActive = now;
 			// Slight stagger so the wave reads as a propagation, not a flash
-			const timeoutId = window.setTimeout(() => spawnImpulse(conn.from, conn.to), i * 40);
+			const timeoutId = window.setTimeout(() => spawnImpulseBetween(node, neighbour), i * 40);
 			timeoutIds.push(timeoutId);
 		}
-		// Output-layer emphasis: glow decays at 0.02/frame (~0.8-1s at 60fps)
-		layerNeurons[layers.length - 1].forEach((n) => (n.glow = 1));
+		neurons.forEach((n) => {
+			if (Math.random() < 0.34) n.glow = Math.max(n.glow, 0.8);
+		});
 	}
 
+	// Ambient life: impulses spark from nodes that have been quiet for a while,
+	// so dormant areas wake up instead of always feeding the busiest nodes
 	const impulseInterval = setInterval(() => {
-		if (!getVisible() || impulses.length > maxImpulses) return;
-
-		const inputNeurons = layerNeurons[0];
-		const selectedNeurons = inputNeurons
-			.sort(() => Math.random() - 0.5)
-			.slice(0, Math.random() > 0.7 ? 2 : 1);
-
-		selectedNeurons.forEach((neuron) => {
-			if (impulses.length < maxImpulses) {
-				const nextConnections = connections.filter((c) => c.from === neuron);
-				const selectedConnections = nextConnections
-					.sort(() => Math.random() - 0.5)
-					.slice(0, Math.floor(Math.random() * 2) + 2);
-
-				selectedConnections.forEach((conn) => {
-					spawnImpulse(conn.from, conn.to);
-				});
-			}
-		});
+		if (!getVisible() || impulses.length > maxImpulses || !neurons.length) return;
+		const now = performance.now();
+		const quiet = neurons.filter((n) => now - n.lastActive > 1200);
+		const pool = quiet.length ? quiet : neurons;
+		const sparks = Math.random() > 0.6 ? 2 : 1;
+		for (let i = 0; i < sparks && impulses.length < maxImpulses; i++) {
+			const node = pool[Math.floor(Math.random() * pool.length)];
+			const list = edgesFrom(node);
+			if (!list.length) continue;
+			const edge = pickQuietEdge(list, node);
+			node.lastActive = now;
+			spawnImpulseBetween(node, otherEnd(edge, node));
+		}
 	}, 650);
 
 	let rafId = 0;
@@ -171,18 +239,18 @@ export function createNeuralNetworkViz(
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		time += 0.01;
 
-		// Draw connections
-		connections.forEach((conn) => {
-			const opacity = 0.3 + Math.sin(time + conn.weight * 10) * 0.08;
+		// Draw edges (same shimmer as the old connections)
+		edges.forEach((edge) => {
+			const opacity = 0.3 + Math.sin(time + edge.weight * 10) * 0.08;
 			ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
 			ctx.lineWidth = 1.2;
 			ctx.beginPath();
-			ctx.moveTo(conn.from.x, conn.from.y);
-			ctx.lineTo(conn.to.x, conn.to.y);
+			ctx.moveTo(edge.from.x, edge.from.y);
+			ctx.lineTo(edge.to.x, edge.to.y);
 			ctx.stroke();
 		});
 
-		// Update and draw impulses
+		// Update and draw impulses (same engine: trail + glow + propagation)
 		for (let i = impulses.length - 1; i >= 0; i--) {
 			const impulse = impulses[i];
 			impulse.progress += impulse.speed;
@@ -214,41 +282,47 @@ export function createNeuralNetworkViz(
 			if (impulse.progress >= 1) {
 				impulse.to.glow = 1;
 
-				const nextConnections = connections.filter((c) => c.from === impulse.to);
-				const propagationChance = 0.4 + impulse.to.layer * 0.1;
-				const numToPropagate = Math.floor(nextConnections.length * propagationChance);
-
-				if (numToPropagate > 0 && impulses.length < maxImpulses) {
-					const selectedConnections = nextConnections
-						.sort((a, b) => {
-							const weightA = a.weight + Math.random() * 0.3;
-							const weightB = b.weight + Math.random() * 0.3;
-							return weightB - weightA;
-						})
-						.slice(0, numToPropagate);
-
-					selectedConnections.forEach((conn, idx) => {
-						const timeoutId = window.setTimeout(() => {
-							spawnImpulse(conn.from, conn.to);
-						}, idx * 50);
-						timeoutIds.push(timeoutId);
-					});
+				// Propagation: the arrival node may fire along its own edges —
+				// gated by its personal cooldown (hub control) and probability,
+				// aimed at its quietest neighbours (traffic spreading)
+				const now = performance.now();
+				const arrived = impulse.to;
+				const next = edgesFrom(arrived);
+				if (
+					next.length &&
+					impulses.length < maxImpulses &&
+					now - arrived.lastActive > arrived.cooldown
+				) {
+					const roll = Math.random();
+					const toFire = roll < 0.16 ? 2 : roll < arrived.propagation ? 1 : 0;
+					if (toFire > 0) {
+						arrived.lastActive = now;
+						for (let k = 0; k < toFire; k++) {
+							const edge = pickQuietEdge(next, arrived);
+							const neighbour = otherEnd(edge, arrived);
+							const timeoutId = window.setTimeout(
+								() => spawnImpulseBetween(arrived, neighbour),
+								k * 50
+							);
+							timeoutIds.push(timeoutId);
+						}
+					}
 				}
 
 				impulses.splice(i, 1);
 			}
 		}
 
-		// Draw neurons
+		// Draw neurons (same tri-tone styling, roles instead of layers)
 		neurons.forEach((neuron) => {
 			if (neuron.glow > 0) {
 				neuron.glow -= 0.02;
 			}
 
 			let color: string;
-			if (neuron.layer === 0) {
+			if (neuron.tone === 'in') {
 				color = 'rgba(52, 211, 153, ';
-			} else if (neuron.layer === layers.length - 1) {
+			} else if (neuron.tone === 'out') {
 				color = 'rgba(167, 139, 250, ';
 			} else {
 				color = 'rgba(99, 102, 241, ';

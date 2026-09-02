@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
 	import Terminal from '../terminal/Terminal.svelte';
-	import { createNeuralNetworkViz, createMobileParticles, type VizHandle } from './neuralNetwork';
+	import { createNeuralGraphViz, createMobileParticles, type VizHandle } from './neuralNetwork';
 	import './about.css';
 
 	let canvasElement: HTMLCanvasElement;
@@ -43,7 +43,7 @@
 						if (!isVisible) {
 							isVisible = true;
 							setTimeout(() => {
-								const factory = isSmallScreen ? createMobileParticles : createNeuralNetworkViz;
+								const factory = isSmallScreen ? createMobileParticles : createNeuralGraphViz;
 								vizHandle = factory(canvasElement, aboutSection, () => isVisible);
 							}, 0);
 						} else {
@@ -90,11 +90,8 @@
 			{$t.about_title}
 		</h2>
 
-		<!-- The network lives in the same box as the terminal: the canvas covers
-		     exactly this wrapper, so the terminal is concentric with the network
-		     (horizontally and vertically) by construction. -->
+		<!-- Interactive terminal: fixed width, centered in the space below the title -->
 		<div class="about-terminal-wrap about-block" class:show={revealed[1]} data-idx="1">
-			<canvas class="neural-canvas" bind:this={canvasElement}></canvas>
 			<div class="about-terminal">
 				<Terminal onCommandExecuted={handleCommandExecuted} onBioRevealed={handleBioRevealed} />
 			</div>

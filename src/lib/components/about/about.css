@@ -83,10 +83,9 @@
 	margin-bottom: clamp(2rem, 4vh, 3.5rem);
 }
 
-/* The terminal is the sole content block, centered in the remaining space.
-   This wrapper is also the neural network's stage: the canvas fills it. */
+/* The terminal is the sole content block, centered in the remaining space
+   below the title */
 .about-terminal-wrap {
-	position: relative;
 	flex: 1;
 	display: flex;
 	align-items: center;
@@ -94,22 +93,21 @@
 	width: 100%;
 }
 
-/* Neural canvas: anchored to the wrapper (= same box as the terminal, so the
-   two are concentric), but wider than the container so the network keeps side
-   presence beyond the terminal glass. Heights are 1:1 with the wrapper. */
+/* Sparse neural graph canvas: covers the WHOLE section — the graph is the
+   section's living backdrop, readable behind both the title and the glass */
 .neural-canvas {
 	position: absolute;
-	top: 0;
-	left: 50%;
-	transform: translateX(-50%);
-	width: min(92vw, 1500px);
+	inset: 0;
+	width: 100%;
 	height: 100%;
 	pointer-events: none;
+	z-index: 0;
 }
 .about-terminal {
 	position: relative;
-	width: 100%;
-	max-width: 1050px;
+	/* Fixed width: never content- or flex-driven (min() only guards narrow viewports) */
+	flex: 0 0 auto;
+	width: min(100%, 1050px);
 }
 
 /* ── Responsive ── */
