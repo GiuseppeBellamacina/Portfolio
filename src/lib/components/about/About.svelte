@@ -45,6 +45,8 @@
 							setTimeout(() => {
 								const factory = isSmallScreen ? createMobileParticles : createNeuralGraphViz;
 								vizHandle = factory(canvasElement, aboutSection, () => isVisible);
+								// Greeting wave: the graph reacts to your arrival
+								vizHandle?.triggerWave();
 							}, 0);
 						} else {
 							isVisible = true;
@@ -75,11 +77,6 @@
 	function handleCommandExecuted() {
 		vizHandle?.triggerWave();
 	}
-
-	// ...and reacts once the bio finishes printing at the opening reveal
-	function handleBioRevealed() {
-		vizHandle?.triggerWave();
-	}
 </script>
 
 <section id="about" class="about" bind:this={aboutSection}>
@@ -93,7 +90,7 @@
 		<!-- Interactive terminal: fixed width, centered in the space below the title -->
 		<div class="about-terminal-wrap about-block" class:show={revealed[1]} data-idx="1">
 			<div class="about-terminal">
-				<Terminal onCommandExecuted={handleCommandExecuted} onBioRevealed={handleBioRevealed} />
+				<Terminal onCommandExecuted={handleCommandExecuted} />
 			</div>
 		</div>
 	</div>

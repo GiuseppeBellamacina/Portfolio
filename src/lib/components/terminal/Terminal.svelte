@@ -1,25 +1,17 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import { get } from 'svelte/store';
 	import { t as tStore } from '$lib/i18n';
 	import type { Translation } from '$lib/i18n';
 	import './terminal.css';
-	import {
-		type HistoryEntry,
-		bootLines,
-		completableCommands,
-		buildBioEntries,
-		buildInitialHistory
-	} from './terminalData';
+	import { type HistoryEntry, completableCommands, buildInitialHistory } from './terminalData';
 	import { commands, type CommandContext } from './commands';
 
 	interface Props {
 		/** Fired after a valid, non-empty command is dispatched (About wires this to the neural net) */
 		onCommandExecuted?: () => void;
-		/** Fired once the opening bio reveal finishes printing */
-		onBioRevealed?: () => void;
 	}
-	let { onCommandExecuted, onBioRevealed }: Props = $props();
+	let { onCommandExecuted }: Props = $props();
 
 	let inputValue = $state('');
 	// Initialized at component time (NOT onMount): boot + bio must be in the
@@ -37,12 +29,12 @@
 	// opening content is regenerated on language change. Once the user types,
 	// the terminal becomes theirs and is never reset.
 	let pristine = true;
-	let revealDone = false;
-	let revealInProgress = false;
 
+	// While pristine (no user commands yet), the opening content follows the
+	// active language; after the first submit the history belongs to the user.
 	$effect(() => {
 		const tr = $tStore;
-		if (pristine && !revealInProgress) {
+		if (pristine) {
 			history = buildInitialHistory(tr);
 		}
 	});
@@ -203,63 +195,6 @@
 			e.stopPropagation();
 		}
 	}
-
-	/**
-	 * Opening reveal: once the terminal scrolls into view, replay the boot —
-	 * type `about` and print the bio line by line. Runs once, only with JS and
-	 * only when motion is allowed; otherwise the SSR-rendered content stays put.
-	 */
-	async function playOpeningReveal() {
-		revealInProgress = true;
-		inputLocked = true;
-		const tr = get(tStore);
-		const bio = buildBioEntries(tr);
-
-		history = [...bootLines];
-		await tick();
-
-		// Type the command character by character
-		const cmd = 'about';
-		history.push({ type: 'input', text: '' });
-		const typedIdx = history.length - 1;
-		for (let i = 1; i <= cmd.length; i++) {
-			history[typedIdx] = { type: 'input', text: cmd.slice(0, i) };
-			await delay(90);
-		}
-		await delay(300);
-
-		// Print the bio line by line
-		for (const entry of bio) {
-			await pushLine(entry);
-			await delay(entry.text === '' ? 220 : 130);
-		}
-		await pushLine({ type: 'output', text: '' });
-		await pushLine({ type: 'output', text: tr.term_bootHelp });
-
-		inputLocked = false;
-		revealInProgress = false;
-		revealDone = true;
-		onBioRevealed?.();
-	}
-
-	onMount(() => {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-		const io = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting && !revealDone && !revealInProgress) {
-						io.disconnect();
-						playOpeningReveal();
-					}
-				});
-			},
-			{ threshold: 0.3 }
-		);
-		if (terminalEl) io.observe(terminalEl);
-
-		return () => io.disconnect();
-	});
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

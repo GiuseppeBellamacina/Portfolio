@@ -43,13 +43,6 @@ export const projectEntries: HistoryEntry[] = [
 	}
 ];
 
-export const bootLines: HistoryEntry[] = [
-	{ type: 'output', text: 'giuseppe@portfolio:~$ ls projects/' },
-	...projectEntries,
-	{ type: 'output', text: '' },
-	{ type: 'output', text: '' }
-];
-
 /** One bio line: label column + content column (tab-like alignment, see .bio-row styles) */
 function bioRow(label: string, content: string): string {
 	return `<span class="bio-row"><span class="bio-label">${label}</span><span class="bio-content">${content}</span></span>`;
@@ -83,7 +76,6 @@ export function buildBioEntries(tr: Translation): HistoryEntry[] {
  */
 export function buildInitialHistory(tr: Translation): HistoryEntry[] {
 	return [
-		...bootLines,
 		{ type: 'input', text: 'about' },
 		...buildBioEntries(tr),
 		{ type: 'output', text: '' },

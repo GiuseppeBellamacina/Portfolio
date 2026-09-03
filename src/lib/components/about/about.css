@@ -71,10 +71,14 @@
 .about .container {
 	position: relative;
 	z-index: 1;
-	/* Column flow: title pinned at the top, terminal centered in the space below */
+	/* Column flow: title pinned at the top, terminal centered in the space below.
+	   width: 100% is essential: as a flex item of the section, the container
+	   would otherwise be fit-content sized, making the terminal width follow
+	   its content (e.g. narrowing after `clear`). */
 	display: flex;
 	flex-direction: column;
 	align-self: stretch;
+	width: 100%;
 }
 
 /* Title in its own clean band at the top of the section — the network starts
