@@ -25,7 +25,7 @@
 	--neon-pink: #e879f9;
 	--neon-blue: #60a5fa;
 	--neon-green: #34d399;
-	--neon-purple: #a78bfa;
+	--neon-purple: var(--secondary-color);
 	--bg-dark: #07090f;
 	--bg-card: #0e1121;
 	--bg-main: #07090f;
@@ -65,6 +65,58 @@
 	--galaxy-c10: #b08acc;
 	--galaxy-c11: #d4a679;
 	--galaxy-c12: #fbbf24;
+
+	/* ── Design tokens ──────────────────────────────────────────────────────
+	   Shared scales so every section converges on the same rhythm instead of
+	   inventing its own spacing/radius/shadow/motion values. */
+
+	/* Spacing */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4rem;
+	--section-padding: clamp(80px, 5rem + 3vw, 140px);
+	--title-gap: clamp(3rem, 2rem + 2vw, 5rem);
+
+	/* Radius — five tiers by object scale, not arbitrary per-component picks */
+	--radius-tag: 6px;
+	--radius-tile: 12px;
+	--radius-card: 16px;
+	--radius-panel: 20px;
+	--radius-pill: 999px;
+
+	/* Shadow — shared card elevation language */
+	--shadow-card-resting: 0 4px 24px rgba(0, 0, 0, 0.18);
+	--shadow-card-hover: 0 12px 32px rgba(var(--primary-rgb), 0.2);
+	--shadow-panel:
+		0 0 0 1px rgba(var(--primary-rgb), 0.12), 0 60px 140px rgba(0, 0, 0, 0.6),
+		0 0 80px rgba(var(--primary-rgb), 0.08);
+
+	/* Motion — consolidates 3 near-duplicate bounce curves into 1 */
+	--ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+	/* Elevation (hover-lift) tiers */
+	--lift-sm-y: -4px;
+	--lift-sm-scale: 1.06;
+	--lift-md-y: -6px;
+	--lift-lg-y: -8px;
+	--lift-lg-scale: 1.02;
+
+	/* Type scale — fluid clamps, converging elements that had drifted apart */
+	--fs-0: 0.75rem; /* micro: badges/tags/meta */
+	--fs-1: 0.875rem; /* small: descriptions */
+	--fs-3: clamp(1.05rem, 1rem + 0.3vw, 1.25rem); /* card title */
+	--fs-4: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem); /* lead */
+	--fs-5: clamp(2.1rem, 1.6rem + 1vw, 2.7rem); /* section title */
+	--fs-6: clamp(2.8rem, 2rem + 1.5vw, 4rem); /* display — Hero name only */
+
+	/* Monospace — one shared stack (was 3 separate ad-hoc declarations) */
+	--font-mono: ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
 }
 
 /* ── Seasonal Theme Overrides ─────────────────────────────────────────────── */
@@ -246,6 +298,201 @@ body.season-newyear .glitch {
 	-webkit-background-clip: text;
 	background-clip: text;
 	filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.25));
+}
+
+/* ── Day/Night ─────────────────────────────────────────────────────────────
+   "Day" is intentionally a no-op: it's whatever season/default palette is
+   already defined above, unchanged — the site's familiar current look.
+   "Night" (auto-detected from the local clock, or forced via the terminal's
+   `day`/`night` commands) replaces it with a near-OLED-black background plus
+   ONE dominant accent hue and its tints/shades — whitish/silver by default,
+   or that season's own predominant color (red for snow, cyan for summer,
+   blue for new year) — which also becomes the Hero galaxy's monochrome
+   gradient instead of the day palette's multi-hue one. Values are computed
+   (not hand-picked) from each season's existing primary color as the seed
+   hue, so the accent stays recognizably "that season" even in duotone. */
+body.tod-night {
+	--bg-dark: #000000;
+	--bg-card: #0a0a0b;
+	--bg-main: #000000;
+	--primary-color: #f0f1f4;
+	--secondary-color: #c0c5d2;
+	--accent-color: #eeeff1;
+	--neon-pink: #e1e3ea;
+	--neon-blue: #dfe1e7;
+	--neon-green: #aaadb5;
+	--neon-purple: var(--secondary-color);
+	--text-light: #f0f0f0;
+	--text-muted: #8f9199;
+	--primary-rgb: 240, 241, 244;
+	--secondary-rgb: 192, 197, 210;
+	--indigo-rgb: 240, 241, 244;
+	--neon-pink-rgb: 225, 227, 234;
+	--neon-blue-rgb: 223, 225, 231;
+	--neon-green-rgb: 170, 173, 181;
+	--bg-dark-rgb: 0, 0, 0;
+	--bg-card-rgb: 10, 10, 11;
+	--gradient-1: linear-gradient(135deg, #2c2f3a 0%, #4d5366 100%);
+	--gradient-2: linear-gradient(135deg, #40444e 0%, #606880 100%);
+	--gradient-3: linear-gradient(135deg, #464c5d 0%, #272a34 100%);
+	--hero-bg-1: #000000;
+	--hero-bg-2: #090a0b;
+	--hero-bg-3: #070708;
+	--hero-glow-1: rgba(240, 241, 244, 0.06);
+	--hero-glow-2: rgba(192, 197, 210, 0.045);
+	--hero-glow-3: rgba(225, 227, 234, 0.03);
+	--galaxy-c1: #ffffff;
+	--galaxy-c2: #eaebed;
+	--galaxy-c3: #d9dbe0;
+	--galaxy-c4: #c8cbd4;
+	--galaxy-c5: #b7bbc8;
+	--galaxy-c6: #a8acba;
+	--galaxy-c7: #999dac;
+	--galaxy-c8: #8a8f9d;
+	--galaxy-c9: #7c808e;
+	--galaxy-c10: #70737d;
+	--galaxy-c11: #63656c;
+	--galaxy-c12: #57585c;
+}
+
+body.season-snow.tod-night {
+	--bg-dark: #000000;
+	--bg-card: #0d0707;
+	--bg-main: #000000;
+	--primary-color: #f87171;
+	--secondary-color: #fd1a1a;
+	--accent-color: #f7c4c4;
+	--neon-pink: #ff9393;
+	--neon-blue: #f75454;
+	--neon-green: #c32222;
+	--neon-purple: var(--secondary-color);
+	--text-light: #f6e9e9;
+	--text-muted: #ca5e5e;
+	--primary-rgb: 248, 113, 113;
+	--secondary-rgb: 253, 26, 26;
+	--indigo-rgb: 248, 113, 113;
+	--neon-pink-rgb: 255, 147, 147;
+	--neon-blue-rgb: 247, 84, 84;
+	--neon-green-rgb: 195, 34, 34;
+	--bg-dark-rgb: 0, 0, 0;
+	--bg-card-rgb: 13, 7, 7;
+	--gradient-1: linear-gradient(135deg, #610505 0%, #aa0808 100%);
+	--gradient-2: linear-gradient(135deg, #751a1a 0%, #d60b0b 100%);
+	--gradient-3: linear-gradient(135deg, #9c0808 0%, #570404 100%);
+	--hero-bg-1: #000000;
+	--hero-bg-2: #0f0606;
+	--hero-bg-3: #0b0404;
+	--hero-glow-1: rgba(248, 113, 113, 0.06);
+	--hero-glow-2: rgba(253, 26, 26, 0.045);
+	--hero-glow-3: rgba(255, 147, 147, 0.03);
+	--galaxy-c1: #ffffff;
+	--galaxy-c2: #f1e5e5;
+	--galaxy-c3: #f0c9c9;
+	--galaxy-c4: #f7a6a6;
+	--galaxy-c5: #f58a8a;
+	--galaxy-c6: #eb7777;
+	--galaxy-c7: #df6666;
+	--galaxy-c8: #d05858;
+	--galaxy-c9: #be4d4d;
+	--galaxy-c10: #a24b4b;
+	--galaxy-c11: #844b4b;
+	--galaxy-c12: #694949;
+}
+
+body.season-summer.tod-night {
+	--bg-dark: #000000;
+	--bg-card: #070b0d;
+	--bg-main: #000000;
+	--primary-color: #38bdf8;
+	--secondary-color: #009ade;
+	--accent-color: #90d4f1;
+	--neon-pink: #5accff;
+	--neon-blue: #1ab3f7;
+	--neon-green: #176e94;
+	--neon-purple: var(--secondary-color);
+	--text-light: #e9f2f6;
+	--text-muted: #5baacd;
+	--primary-rgb: 56, 189, 248;
+	--secondary-rgb: 0, 154, 222;
+	--indigo-rgb: 56, 189, 248;
+	--neon-pink-rgb: 90, 204, 255;
+	--neon-blue-rgb: 26, 179, 247;
+	--neon-green-rgb: 23, 110, 148;
+	--bg-dark-rgb: 0, 0, 0;
+	--bg-card-rgb: 7, 11, 13;
+	--gradient-1: linear-gradient(135deg, #034563 0%, #0679ac 100%);
+	--gradient-2: linear-gradient(135deg, #195976 0%, #0899d9 100%);
+	--gradient-3: linear-gradient(135deg, #066f9e 0%, #033e59 100%);
+	--hero-bg-1: #000000;
+	--hero-bg-2: #050c0f;
+	--hero-bg-3: #04090b;
+	--hero-glow-1: rgba(56, 189, 248, 0.06);
+	--hero-glow-2: rgba(0, 154, 222, 0.045);
+	--hero-glow-3: rgba(90, 204, 255, 0.03);
+	--galaxy-c1: #ffffff;
+	--galaxy-c2: #e5eef1;
+	--galaxy-c3: #c9e4f1;
+	--galaxy-c4: #a4def8;
+	--galaxy-c5: #89d5f6;
+	--galaxy-c6: #75c8ed;
+	--galaxy-c7: #64bae0;
+	--galaxy-c8: #56abd1;
+	--galaxy-c9: #4b9bbf;
+	--galaxy-c10: #4988a3;
+	--galaxy-c11: #4a7385;
+	--galaxy-c12: #49606a;
+}
+
+body.season-newyear.tod-night {
+	--bg-dark: #000000;
+	--bg-card: #070a0d;
+	--bg-main: #000000;
+	--primary-color: #60a5fa;
+	--secondary-color: #0977ff;
+	--accent-color: #b5d2f6;
+	--neon-pink: #84bbff;
+	--neon-blue: #4294f9;
+	--neon-green: #1c63ba;
+	--neon-purple: var(--secondary-color);
+	--text-light: #e9eff6;
+	--text-muted: #5a8ece;
+	--primary-rgb: 96, 165, 250;
+	--secondary-rgb: 9, 119, 255;
+	--indigo-rgb: 96, 165, 250;
+	--neon-pink-rgb: 132, 187, 255;
+	--neon-blue-rgb: 66, 148, 249;
+	--neon-green-rgb: 28, 99, 186;
+	--bg-dark-rgb: 0, 0, 0;
+	--bg-card-rgb: 7, 10, 13;
+	--gradient-1: linear-gradient(135deg, #032e63 0%, #0551ad 100%);
+	--gradient-2: linear-gradient(135deg, #184376 0%, #0765da 100%);
+	--gradient-3: linear-gradient(135deg, #054a9e 0%, #032959 100%);
+	/* The Hero's own background/glow/particle colors are pinned to New Year's
+	   DAY values here — not left undeclared. body.tod-night (the bare,
+	   season-less block) has the same specificity as body.season-newyear but
+	   comes later in the file, so it would otherwise win the cascade and
+	   silently replace these with the default night's white/blue galaxy.
+	   Explicitly repeating the day values here (higher specificity via the
+	   compound selector) is what actually keeps the galaxy scene identical
+	   in day and night for this season. */
+	--hero-bg-1: #010103;
+	--hero-bg-2: #060620;
+	--hero-bg-3: #080418;
+	--hero-glow-1: rgba(96, 165, 250, 0.06);
+	--hero-glow-2: rgba(167, 139, 250, 0.04);
+	--hero-glow-3: rgba(59, 130, 246, 0.03);
+	--galaxy-c1: #fffff0;
+	--galaxy-c2: #fefce8;
+	--galaxy-c3: #fde68a;
+	--galaxy-c4: #fbbf24;
+	--galaxy-c5: #f59e0b;
+	--galaxy-c6: #e2e8f0;
+	--galaxy-c7: #c4b5fd;
+	--galaxy-c8: #a78bfa;
+	--galaxy-c9: #93c5fd;
+	--galaxy-c10: #a5b4fc;
+	--galaxy-c11: #c4b5fd;
+	--galaxy-c12: #ddd6fe;
 }
 
 * {
@@ -557,7 +804,7 @@ body.tab-hidden::after {
 }
 
 .btn-primary:hover {
-	transform: translateY(-3px);
+	transform: translateY(var(--lift-md-y));
 	box-shadow:
 		0 8px 30px rgba(var(--indigo-rgb), 0.4),
 		0 0 20px rgba(var(--warm-accent-rgb), 0.18);
@@ -580,9 +827,9 @@ body.tab-hidden::after {
 
 /* ── Shared Section Title ── */
 .section-title {
-	font-size: clamp(2.2rem, 1.6rem + 1vw, 2.8rem);
+	font-size: var(--fs-5);
 	text-align: center;
-	margin-bottom: clamp(2rem, 1.5rem + 0.8vw, 3rem);
+	margin-bottom: var(--title-gap);
 	background: var(--gradient-1);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -597,6 +844,15 @@ body.tab-hidden::after {
 	width: 100%;
 	will-change: transform;
 	transition: transform 0.1s linear;
+}
+
+/* Night mode: gradient-1 is now a dark button-background gradient (see the
+   day/night block above), unusable as gradient-clip text — solid white reads
+   correctly instead. Day mode keeps the per-season gradient untouched. */
+body.tod-night .section-title {
+	background: none;
+	-webkit-text-fill-color: var(--text-light);
+	color: var(--text-light);
 }
 
 .section-title::after {
@@ -616,9 +872,7 @@ body.tab-hidden::after {
 	transform: scaleX(0);
 	transform-origin: center;
 	will-change: transform;
-	box-shadow:
-		0 0 8px rgba(var(--primary-rgb), 0.4),
-		0 0 20px rgba(var(--warm-accent-rgb), 0.2);
+	box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.3);
 }
 
 @keyframes lineExpand {

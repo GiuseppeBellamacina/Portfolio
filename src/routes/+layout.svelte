@@ -7,6 +7,7 @@
 	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 	import { initLang } from '$lib/i18n';
 	import { currentSeason } from '$lib/stores/seasonStore';
+	import { initTimeOfDay, timeOfDay } from '$lib/stores/timeOfDayStore';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
 	injectSpeedInsights();
@@ -15,6 +16,7 @@
 
 	onMount(() => {
 		initLang();
+		initTimeOfDay();
 
 		// Pause heavy CSS animations when the tab is hidden to save GPU/CPU
 		const onVis = () => document.body.classList.toggle('tab-hidden', document.hidden);
@@ -32,6 +34,13 @@
 		if (season !== 'default') {
 			document.body.classList.add(`season-${season}`);
 		}
+	});
+
+	// Apply day/night CSS class on <body> — independent of season
+	$effect(() => {
+		const mode = $timeOfDay;
+		document.body.classList.toggle('tod-day', mode === 'day');
+		document.body.classList.toggle('tod-night', mode === 'night');
 	});
 </script>
 

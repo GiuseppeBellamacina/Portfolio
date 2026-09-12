@@ -113,7 +113,7 @@
 				}
 
 				ctx!.globalAlpha = d.alpha;
-				ctx!.font = `bold ${d.size}px 'Courier New', monospace`;
+				ctx!.font = `bold ${d.size}px ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace`;
 				ctx!.fillStyle = colors[Math.floor(Math.random() * colors.length)];
 				ctx!.shadowColor = 'rgba(129, 140, 248, 0.3)';
 				ctx!.shadowBlur = 4;

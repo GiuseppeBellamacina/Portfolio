@@ -7,6 +7,7 @@ import { get } from 'svelte/store';
 import { t as tStore } from '$lib/i18n';
 import type { Translation } from '$lib/i18n';
 import { setSeason, resetSeason } from '$lib/stores/seasonStore';
+import { setTimeOfDay, resetTimeOfDay } from '$lib/stores/timeOfDayStore';
 import {
 	type HistoryEntry,
 	type Song,
@@ -121,6 +122,10 @@ const helpCommand: CommandHandler = ({ tr }) => [
 	{ type: 'html', text: `<span class="cmd-name">anime</span>         ${tr.term_helpAnime}` },
 	{ type: 'html', text: `<span class="cmd-name">music</span> [-l]    ${tr.term_helpMusic}` },
 	{ type: 'html', text: `<span class="cmd-name">themes</span>        ${tr.term_helpThemes}` },
+	{
+		type: 'html',
+		text: `<span class="cmd-name">day</span> / <span class="cmd-name">night</span>   ${tr.term_helpDayNight}`
+	},
 	{ type: 'output', text: '' },
 	{ type: 'output', text: tr.term_helpHidden }
 ];
@@ -524,11 +529,30 @@ const newyearCommand: CommandHandler = ({ tr }) => {
 const defaultCommand: CommandHandler = ({ tr }) => {
 	clearGalaxyOverrides();
 	resetSeason();
+	resetTimeOfDay();
 	return [
 		{
 			type: 'html',
 			text: `🌌 ${tr.term_themeDefault}`
 		}
+	];
+};
+
+/* ── Day/Night commands ── */
+
+const dayCommand: CommandHandler = ({ tr }) => {
+	setTimeOfDay('day');
+	return [
+		{ type: 'html', text: `☀️ ${tr.term_dayApplied}` },
+		{ type: 'html', text: `<span class="cmt">${tr.term_todTemp}</span>` }
+	];
+};
+
+const nightCommand: CommandHandler = ({ tr }) => {
+	setTimeOfDay('night');
+	return [
+		{ type: 'html', text: `🌙 ${tr.term_nightApplied}` },
+		{ type: 'html', text: `<span class="cmt">${tr.term_todTemp}</span>` }
 	];
 };
 
@@ -586,5 +610,9 @@ export const commands: Record<string, CommandHandler> = {
 	estate: summerCommand,
 	newyear: newyearCommand,
 	capodanno: newyearCommand,
-	default: defaultCommand
+	default: defaultCommand,
+	day: dayCommand,
+	giorno: dayCommand,
+	night: nightCommand,
+	notte: nightCommand
 };

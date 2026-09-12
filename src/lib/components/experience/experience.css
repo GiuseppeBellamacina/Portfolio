@@ -1,6 +1,6 @@
 /* Experience Section */
 .experience {
-	padding: clamp(60px, 4rem + 2vw, 100px) 0;
+	padding: var(--section-padding) 0;
 	background: var(--bg-card);
 	position: relative;
 	overflow: hidden;
@@ -46,9 +46,9 @@
 	background: linear-gradient(
 		90deg,
 		transparent 0%,
-		rgba(var(--indigo-rgb), 0.03) 45%,
-		rgba(var(--primary-rgb), 0.06) 50%,
-		rgba(var(--indigo-rgb), 0.03) 55%,
+		rgba(var(--indigo-rgb), 0.015) 45%,
+		rgba(var(--primary-rgb), 0.03) 50%,
+		rgba(var(--indigo-rgb), 0.015) 55%,
 		transparent 100%
 	);
 	animation: dataStream 10s linear infinite;
@@ -99,8 +99,8 @@
 	align-items: center;
 	gap: 0.6rem;
 	padding: 0.5rem 1.4rem;
-	border-radius: 50px;
-	background: rgba(15, 18, 35, 0.7);
+	border-radius: var(--radius-pill);
+	background: rgba(var(--bg-card-rgb), 0.7);
 	backdrop-filter: blur(14px);
 	border: 1px solid rgba(var(--indigo-rgb), 0.2);
 	box-shadow:
@@ -128,6 +128,14 @@
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	font-size: 1em;
+}
+
+/* Night mode: gradient-1 is a dark button-background gradient there, unusable
+   as gradient-clip text — a solid bright accent reads correctly instead. */
+body.tod-night .exp-total-badge i {
+	background: none;
+	-webkit-text-fill-color: var(--primary-color);
+	color: var(--primary-color);
 }
 
 .exp-total-badge .exp-value {
@@ -274,23 +282,23 @@
 .tl-card {
 	position: relative;
 	padding: clamp(1.2rem, 0.8rem + 0.5vw, 1.6rem) clamp(1.3rem, 0.9rem + 0.5vw, 1.8rem);
-	border-radius: 16px;
-	background: rgba(var(--bg-card-rgb), 0.5);
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
+	border-radius: var(--radius-card);
+	background: rgba(var(--bg-card-rgb), 0.55);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
 	border: 1px solid rgba(var(--primary-rgb), 0.08);
 	transition:
 		transform 0.35s ease,
 		border-color 0.35s ease,
 		box-shadow 0.35s ease;
 	overflow: hidden;
-	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-card-resting);
 }
 .tl-card::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	border-radius: 16px;
+	border-radius: var(--radius-card);
 	padding: 1px;
 	background: linear-gradient(
 		135deg,
@@ -338,7 +346,7 @@
 	box-shadow: 0 2px 20px rgba(var(--secondary-rgb), 0.04);
 }
 .tl-card:hover {
-	transform: translateY(-4px);
+	transform: translateY(var(--lift-sm-y));
 }
 .tl-item.work .tl-card:hover {
 	border-color: rgba(var(--indigo-rgb), 0.35);
@@ -385,11 +393,11 @@
 .tl-date {
 	display: inline-block;
 	padding: 0.25rem 0.75rem;
-	font-size: 0.8rem;
+	font-size: var(--fs-0);
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 1.2px;
-	border-radius: 6px;
+	border-radius: var(--radius-tag);
 }
 .tl-item.work .tl-date {
 	background: rgba(var(--indigo-rgb), 0.08);
@@ -425,7 +433,7 @@
 }
 
 .tl-title {
-	font-size: clamp(1.1rem, 0.9rem + 0.3vw, 1.3rem);
+	font-size: var(--fs-3);
 	font-weight: 700;
 	margin: 0 0 0.4rem;
 	color: var(--text-light);
@@ -498,7 +506,7 @@
 .tl-desc {
 	color: var(--text-muted);
 	line-height: 1.6;
-	font-size: clamp(0.85rem, 0.75rem + 0.15vw, 0.95rem);
+	font-size: var(--fs-1);
 	margin: 0 0 0.75rem;
 }
 
@@ -534,11 +542,11 @@
 	display: inline-block;
 	margin-top: 1rem;
 	padding: 0.2rem 0.65rem;
-	font-size: 0.72rem;
+	font-size: var(--fs-0);
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.8px;
-	border-radius: 4px;
+	border-radius: var(--radius-tag);
 	opacity: 0.7;
 }
 .tl-item.work .tl-type-badge {

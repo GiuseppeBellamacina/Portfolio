@@ -32,13 +32,13 @@
 			for (const el of titles) {
 				const rect = el.getBoundingClientRect();
 				const center = rect.top + rect.height / 2;
-				titleData.push({ el, offset: ((center - vh / 2) / vh) * -15 });
+				titleData.push({ el, offset: ((center - vh / 2) / vh) * -8 });
 			}
 			const dividerData: { el: HTMLElement; offset: number }[] = [];
 			for (const el of dividers) {
 				const rect = el.getBoundingClientRect();
 				const center = rect.top + rect.height / 2;
-				dividerData.push({ el, offset: ((center - vh / 2) / vh) * -20 });
+				dividerData.push({ el, offset: ((center - vh / 2) / vh) * -10 });
 			}
 			// Pass 2: write all transforms
 			for (const { el, offset } of titleData) {

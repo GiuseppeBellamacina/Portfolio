@@ -36,6 +36,10 @@ export function createBinaryRain(
 	}
 
 	let COLORS = getColors();
+	const themeObserver = new MutationObserver(() => {
+		COLORS = getColors();
+	});
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
 	/* Pre-rendered glow sprites (one per color+char pair): drawn once with
 	   shadowBlur on an offscreen canvas, then blitted per frame via drawImage. */
@@ -50,7 +54,7 @@ export function createBinaryRain(
 			sprite.width = S;
 			sprite.height = S;
 			const g = sprite.getContext('2d')!;
-			g.font = `bold 32px 'Courier New', monospace`;
+			g.font = `bold 32px ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace`;
 			g.textAlign = 'center';
 			g.textBaseline = 'middle';
 			g.shadowColor = color;
@@ -118,5 +122,6 @@ export function createBinaryRain(
 	return () => {
 		cancelAnimationFrame(rafId);
 		visibilityObserver.disconnect();
+		themeObserver.disconnect();
 	};
 }

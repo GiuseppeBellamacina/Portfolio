@@ -68,7 +68,8 @@
 	let spotlightY = $state(50);
 	let isGlitching = $state(false);
 
-	// Occasional glitch effect on the name (~every 8 seconds, random interval)
+	// Rare glitch moment on the name (~every 45-90s, random interval) — a
+	// delightful glitch-in-the-matrix beat rather than a constant metronome
 	let glitchTimeout: ReturnType<typeof setTimeout>;
 	function scheduleGlitch() {
 		function tick() {
@@ -76,9 +77,9 @@
 				isGlitching = true;
 				setTimeout(() => (isGlitching = false), 700);
 			}
-			glitchTimeout = setTimeout(tick, 7000 + Math.random() * 4000);
+			glitchTimeout = setTimeout(tick, 45000 + Math.random() * 45000);
 		}
-		glitchTimeout = setTimeout(tick, 7000 + Math.random() * 4000);
+		glitchTimeout = setTimeout(tick, 45000 + Math.random() * 45000);
 	}
 
 	let cvState = $state<CvDownloadState>('idle');

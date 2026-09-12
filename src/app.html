@@ -105,6 +105,17 @@
 				else if (m >= 5 && m <= 7) season = 'summer';
 				if (season !== 'default') document.body.classList.add('season-' + season);
 			})();
+			// Apply the day/night class before first paint too. Mirrors
+			// hoursToTimeOfDay() in timeOfDayStore.ts — keep in sync.
+			(function () {
+				var saved = localStorage.getItem('portfolio-tod-override');
+				var mode = saved === 'day' || saved === 'night' ? saved : null;
+				if (!mode) {
+					var h = new Date().getHours();
+					mode = h >= 7 && h < 19 ? 'day' : 'night';
+				}
+				document.body.classList.add('tod-' + mode);
+			})();
 		</script>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>

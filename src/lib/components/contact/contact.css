@@ -1,6 +1,6 @@
 /* Contact Section */
 .contact {
-	padding: clamp(60px, 4rem + 2vw, 100px) 0;
+	padding: var(--section-padding) 0;
 	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 40%, var(--bg-card) 100%);
 	text-align: center;
 	position: relative;
@@ -16,15 +16,15 @@
 	width: 100%;
 	height: 100%;
 	background:
-		radial-gradient(ellipse 60% 50% at 20% 60%, rgba(var(--primary-rgb), 0.06) 0%, transparent 70%),
+		radial-gradient(ellipse 60% 50% at 20% 60%, rgba(var(--primary-rgb), 0.03) 0%, transparent 70%),
 		radial-gradient(
 			ellipse 50% 40% at 80% 40%,
-			rgba(var(--secondary-rgb), 0.05) 0%,
+			rgba(var(--secondary-rgb), 0.025) 0%,
 			transparent 60%
 		),
 		radial-gradient(
 			ellipse 40% 50% at 50% 80%,
-			rgba(var(--neon-pink-rgb), 0.04) 0%,
+			rgba(var(--neon-pink-rgb), 0.02) 0%,
 			transparent 60%
 		);
 	animation: contactGlow 12s ease-in-out infinite;
@@ -50,7 +50,7 @@
 }
 
 .contact-text {
-	font-size: clamp(1rem, 0.85rem + 0.2vw, 1.2rem);
+	font-size: var(--fs-4);
 	color: var(--text-muted);
 	margin-bottom: 2rem;
 }
@@ -115,7 +115,7 @@
 	background: rgba(var(--indigo-rgb), 0.12);
 	color: var(--primary-color);
 	border-color: rgba(var(--primary-rgb), 0.5);
-	transform: translateY(-4px);
+	transform: translateY(var(--lift-md-y));
 	box-shadow:
 		0 8px 24px rgba(var(--indigo-rgb), 0.15),
 		0 0 20px rgba(var(--primary-rgb), 0.1);

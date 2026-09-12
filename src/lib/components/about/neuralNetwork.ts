@@ -57,6 +57,21 @@ export function createNeuralGraphViz(
 	// Keep nodes away from the section borders
 	const MARGIN = 48;
 
+	/** Live theme colors (RGB triplet strings) — re-read on season/day-night class changes */
+	function getThemeColors() {
+		const style = getComputedStyle(document.body);
+		return {
+			core: style.getPropertyValue('--primary-rgb').trim() || '99, 102, 241',
+			in: style.getPropertyValue('--neon-green-rgb').trim() || '52, 211, 153',
+			out: style.getPropertyValue('--secondary-rgb').trim() || '167, 139, 250'
+		};
+	}
+	let colors = getThemeColors();
+	const themeObserver = new MutationObserver(() => {
+		colors = getThemeColors();
+	});
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
 	function toneFor(): Neuron['tone'] {
 		const r = Math.random();
 		return r < 0.68 ? 'core' : r < 0.88 ? 'in' : 'out';
@@ -242,7 +257,7 @@ export function createNeuralGraphViz(
 		// Draw edges (same shimmer as the old connections)
 		edges.forEach((edge) => {
 			const opacity = 0.3 + Math.sin(time + edge.weight * 10) * 0.08;
-			ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
+			ctx.strokeStyle = `rgba(${colors.core}, ${opacity})`;
 			ctx.lineWidth = 1.2;
 			ctx.beginPath();
 			ctx.moveTo(edge.from.x, edge.from.y);
@@ -265,15 +280,15 @@ export function createNeuralGraphViz(
 
 			impulse.trail.forEach((point, idx) => {
 				const trailOpacity = (idx / impulse.trail.length) * 0.8;
-				ctx.fillStyle = `rgba(52, 211, 153, ${trailOpacity})`;
+				ctx.fillStyle = `rgba(${colors.in}, ${trailOpacity})`;
 				ctx.beginPath();
 				ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
 				ctx.fill();
 			});
 
-			ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
+			ctx.fillStyle = `rgba(${colors.in}, 0.9)`;
 			ctx.shadowBlur = 12;
-			ctx.shadowColor = 'rgba(52, 211, 153, 0.6)';
+			ctx.shadowColor = `rgba(${colors.in}, 0.6)`;
 			ctx.beginPath();
 			ctx.arc(x, y, 3.5, 0, Math.PI * 2);
 			ctx.fill();
@@ -321,11 +336,11 @@ export function createNeuralGraphViz(
 
 			let color: string;
 			if (neuron.tone === 'in') {
-				color = 'rgba(52, 211, 153, ';
+				color = `rgba(${colors.in}, `;
 			} else if (neuron.tone === 'out') {
-				color = 'rgba(167, 139, 250, ';
+				color = `rgba(${colors.out}, `;
 			} else {
-				color = 'rgba(99, 102, 241, ';
+				color = `rgba(${colors.core}, `;
 			}
 
 			ctx.fillStyle = color + '0.75)';
@@ -366,6 +381,7 @@ export function createNeuralGraphViz(
 			cancelAnimationFrame(rafId);
 			timeoutIds.forEach((id) => clearTimeout(id));
 			visibilityObserver.disconnect();
+			themeObserver.disconnect();
 			window.removeEventListener('resize', resizeCanvas);
 		},
 		triggerWave
@@ -392,6 +408,20 @@ export function createMobileParticles(
 	resizeCanvas();
 	window.addEventListener('resize', resizeCanvas);
 
+	/** Live theme colors (RGB triplet strings) — re-read on season/day-night class changes */
+	function getThemeColors() {
+		const style = getComputedStyle(document.body);
+		return {
+			core: style.getPropertyValue('--primary-rgb').trim() || '99, 102, 241',
+			out: style.getPropertyValue('--secondary-rgb').trim() || '167, 139, 250'
+		};
+	}
+	let colors = getThemeColors();
+	const themeObserver = new MutationObserver(() => {
+		colors = getThemeColors();
+	});
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
 	interface Particle {
 		x: number;
 		y: number;
@@ -399,7 +429,7 @@ export function createMobileParticles(
 		vy: number;
 		radius: number;
 		opacity: number;
-		hue: number;
+		tone: 'core' | 'out';
 	}
 
 	const particles: Particle[] = [];
@@ -411,7 +441,7 @@ export function createMobileParticles(
 			vy: (Math.random() - 0.5) * 0.5,
 			radius: Math.random() * 2 + 1,
 			opacity: Math.random() * 0.5 + 0.3,
-			hue: Math.random() * 40 + 230
+			tone: Math.random() < 0.5 ? 'core' : 'out'
 		});
 	}
 
@@ -443,7 +473,7 @@ export function createMobileParticles(
 
 				if (dist < 150) {
 					const opacity = (1 - dist / 150) * (0.2 + pulse * 0.15);
-					ctx.strokeStyle = `hsla(${(p1.hue + p2.hue) / 2}, 50%, 60%, ${opacity})`;
+					ctx.strokeStyle = `rgba(${colors.core}, ${opacity})`;
 					ctx.lineWidth = 0.5;
 					ctx.beginPath();
 					ctx.moveTo(p1.x, p1.y);
@@ -464,9 +494,10 @@ export function createMobileParticles(
 			particle.y = Math.max(0, Math.min(canvas.height, particle.y));
 
 			const alpha = Math.min(1, particle.opacity + pulse * 0.3);
-			ctx.fillStyle = `hsla(${particle.hue}, 50%, 60%, ${alpha})`;
+			const rgb = colors[particle.tone];
+			ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
 			ctx.shadowBlur = 8;
-			ctx.shadowColor = `hsla(${particle.hue}, 50%, 60%, ${alpha})`;
+			ctx.shadowColor = `rgba(${rgb}, ${alpha})`;
 			ctx.beginPath();
 			ctx.arc(particle.x, particle.y, particle.radius * (1 + pulse * 0.6), 0, Math.PI * 2);
 			ctx.fill();
@@ -487,6 +518,7 @@ export function createMobileParticles(
 		destroy: () => {
 			cancelAnimationFrame(rafId);
 			visibilityObserver.disconnect();
+			themeObserver.disconnect();
 			window.removeEventListener('resize', resizeCanvas);
 		},
 		triggerWave

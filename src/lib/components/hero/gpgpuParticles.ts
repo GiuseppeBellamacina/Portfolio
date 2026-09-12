@@ -437,20 +437,24 @@ export async function initGpgpuParticles(
                     dist = length(vLocalPos.xy) / 8.0;
                 }
 
-                // 12-stop rainbow gradient: center → edge
-                vec3 col = mix(uColorC1, uColorC2, smoothstep(0.0, 0.03, dist));
-                col = mix(col, uColorC3, smoothstep(0.03, 0.08, dist));
-                col = mix(col, uColorC4, smoothstep(0.08, 0.15, dist));
-                col = mix(col, uColorC5, smoothstep(0.15, 0.22, dist));
-                col = mix(col, uColorC6, smoothstep(0.22, 0.32, dist));
-                col = mix(col, uColorC7, smoothstep(0.32, 0.42, dist));
-                col = mix(col, uColorC8, smoothstep(0.42, 0.52, dist));
-                col = mix(col, uColorC9, smoothstep(0.52, 0.62, dist));
-                col = mix(col, uColorC10, smoothstep(0.62, 0.72, dist));
-                col = mix(col, uColorC11, smoothstep(0.72, 0.85, dist));
-                col = mix(col, uColorC12, smoothstep(0.85, 1.0, dist));
+                // 12-stop gradient: center → edge. Wider bright core (c1-c5 now
+                // hold until dist ~0.25, up from ~0.18) before easing into the
+                // darker stops, which still fully resolve by the rim.
+                vec3 col = mix(uColorC1, uColorC2, smoothstep(0.0, 0.05, dist));
+                col = mix(col, uColorC3, smoothstep(0.05, 0.1, dist));
+                col = mix(col, uColorC4, smoothstep(0.1, 0.17, dist));
+                col = mix(col, uColorC5, smoothstep(0.17, 0.25, dist));
+                col = mix(col, uColorC6, smoothstep(0.25, 0.34, dist));
+                col = mix(col, uColorC7, smoothstep(0.34, 0.44, dist));
+                col = mix(col, uColorC8, smoothstep(0.44, 0.54, dist));
+                col = mix(col, uColorC9, smoothstep(0.54, 0.64, dist));
+                col = mix(col, uColorC10, smoothstep(0.64, 0.74, dist));
+                col = mix(col, uColorC11, smoothstep(0.74, 0.86, dist));
+                col = mix(col, uColorC12, smoothstep(0.86, 1.0, dist));
 
-                col += vec3(vVelocity * 0.8);
+                // Reduced from 0.8: this term brightened every particle regardless
+                // of position, fighting the dark edge colors above.
+                col += vec3(vVelocity * 0.4);
 
                 vec2 uv = gl_PointCoord.xy - 0.5;
                 float pDist = length(uv);
@@ -626,12 +630,13 @@ export async function initGpgpuParticles(
 	interactionTarget.addEventListener('mouseleave', onMouseLeave);
 	window.addEventListener('resize', onResize);
 
-	// Sync galaxy colors with CSS seasonal variables
+	// Sync galaxy colors with CSS season/day-night variables — both prefixes
+	// affect --galaxy-c* (season owns hue, day/night owns the OLED duotone).
 	updateGalaxyColors();
 	let lastSeasonClass = '';
 	const seasonObserver = new MutationObserver(() => {
 		const seasonClass = Array.from(document.body.classList)
-			.filter((name) => name.startsWith('season-'))
+			.filter((name) => name.startsWith('season-') || name.startsWith('tod-'))
 			.join(' ');
 		if (seasonClass !== lastSeasonClass) {
 			lastSeasonClass = seasonClass;

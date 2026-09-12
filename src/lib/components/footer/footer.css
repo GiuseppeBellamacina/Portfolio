@@ -44,6 +44,14 @@
 	width: fit-content;
 }
 
+/* Night mode: gradient-1 is a dark button-background gradient there, unusable
+   as gradient-clip text — solid white reads correctly instead. */
+body.tod-night .footer-logo {
+	background: none;
+	-webkit-text-fill-color: var(--text-light);
+	color: var(--text-light);
+}
+
 .footer-copy {
 	color: var(--text-muted);
 	font-size: 0.9rem;
@@ -60,9 +68,7 @@
 /* Column headings */
 .footer-heading {
 	font-family: 'Outfit', sans-serif;
-	font-size: 0.85rem;
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
+	font-size: var(--fs-1);
 	color: var(--primary-color);
 	margin-bottom: 1rem;
 	font-weight: 600;

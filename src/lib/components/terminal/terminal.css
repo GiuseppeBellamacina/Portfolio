@@ -10,7 +10,7 @@
 	box-shadow:
 		0 8px 32px rgba(0, 0, 0, 0.35),
 		0 0 24px rgba(var(--indigo-rgb), 0.08);
-	font-family: 'Courier New', 'Fira Code', monospace;
+	font-family: var(--font-mono);
 	cursor: text;
 }
 

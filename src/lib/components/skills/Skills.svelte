@@ -29,7 +29,8 @@
 				const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
 				const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
 				icon.style.transition = 'transform 0.1s ease-out';
-				icon.style.transform = `scale(1.15) translateY(-4px) translate(${x * 6}px, ${y * 6}px)`;
+				// scale/translateY match the lift-sm token in skills.css (--lift-sm-scale/-y)
+				icon.style.transform = `scale(1.06) translateY(-4px) translate(${x * 6}px, ${y * 6}px)`;
 			};
 			icon.addEventListener('mouseleave', leave);
 			icon.addEventListener('mousemove', move);

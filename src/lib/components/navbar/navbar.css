@@ -48,10 +48,7 @@
 .nav-brand {
 	font-size: clamp(1.2rem, 0.9rem + 0.4vw, 1.5rem);
 	font-weight: bold;
-	background: var(--gradient-3);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
+	color: var(--primary-color);
 	cursor: pointer;
 	transition: filter 0.3s ease;
 }

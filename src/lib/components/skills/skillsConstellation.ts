@@ -16,6 +16,20 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	const ctx = canvas.getContext('2d', { alpha: true });
 	if (!ctx) return;
 
+	/** Live theme colors (RGB triplet strings) — re-read on season/day-night class changes */
+	function getThemeColors() {
+		const style = getComputedStyle(document.body);
+		return {
+			core: style.getPropertyValue('--primary-rgb').trim() || '99, 102, 241',
+			out: style.getPropertyValue('--secondary-rgb').trim() || '167, 139, 250'
+		};
+	}
+	let colors = getThemeColors();
+	const themeObserver = new MutationObserver(() => {
+		colors = getThemeColors();
+	});
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
 	let W = (canvas.width = section.offsetWidth);
 	let H = (canvas.height = section.offsetHeight);
 	let canvasRunning = false;
@@ -44,7 +58,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	const vx = new Float32Array(COUNT);
 	const vy = new Float32Array(COUNT);
 	const radii = new Float32Array(COUNT);
-	const hues = new Uint16Array(COUNT);
+	const tones = new Uint8Array(COUNT); // 0 = core (primary), 1 = out (secondary)
 	const pulse = new Float32Array(COUNT);
 	const pulseSpeed = new Float32Array(COUNT);
 
@@ -54,7 +68,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 		vx[i] = (Math.random() - 0.5) * 0.4;
 		vy[i] = (Math.random() - 0.5) * 0.4;
 		radii[i] = Math.random() * 2 + 1;
-		hues[i] = Math.random() > 0.5 ? (235 + Math.random() * 15) | 0 : (270 + Math.random() * 20) | 0;
+		tones[i] = Math.random() > 0.5 ? 0 : 1;
 		pulse[i] = Math.random() * Math.PI * 2;
 		pulseSpeed[i] = 0.02 + Math.random() * 0.02;
 	}
@@ -197,7 +211,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 			const lineCount = lineBatchLengths[l];
 			if (lineCount === 0) continue;
 			const alpha = ((l + 0.5) / ALPHA_LEVELS) * 0.25;
-			ctx!.strokeStyle = `hsla(252, 60%, 60%, ${alpha.toFixed(3)})`;
+			ctx!.strokeStyle = `rgba(${colors.core}, ${alpha.toFixed(3)})`;
 			ctx!.beginPath();
 			for (let k = 0; k < lineCount; k++) {
 				const lineOffset = k * 4;
@@ -210,7 +224,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 		// Mouse connections (batched)
 		if (mouse.x > -9000) {
 			ctx!.lineWidth = 0.8;
-			ctx!.strokeStyle = 'hsla(252, 65%, 65%, 0.25)';
+			ctx!.strokeStyle = `rgba(${colors.core}, 0.25)`;
 			ctx!.beginPath();
 			let hasMouseLines = false;
 			for (let i = 0; i < COUNT; i++) {
@@ -234,13 +248,14 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 			const r = radii[i] + sinP * 0.5;
 
 			// Outer glow (larger, semi-transparent)
-			ctx!.fillStyle = `hsla(${hues[i]}, 55%, 60%, ${(glow * 0.3).toFixed(3)})`;
+			const rgb = tones[i] === 0 ? colors.core : colors.out;
+			ctx!.fillStyle = `rgba(${rgb}, ${(glow * 0.3).toFixed(3)})`;
 			ctx!.beginPath();
 			ctx!.arc(px[i], py[i], r + 3, 0, Math.PI * 2);
 			ctx!.fill();
 
 			// Core
-			ctx!.fillStyle = `hsla(${hues[i]}, 55%, 65%, ${glow.toFixed(3)})`;
+			ctx!.fillStyle = `rgba(${rgb}, ${glow.toFixed(3)})`;
 			ctx!.beginPath();
 			ctx!.arc(px[i], py[i], r, 0, Math.PI * 2);
 			ctx!.fill();
@@ -307,6 +322,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 		cancelAnimationFrame(raf);
 		resizeObs.disconnect();
 		visObs.disconnect();
+		themeObserver.disconnect();
 		section.removeEventListener('mousemove', onMouseMove);
 		section.removeEventListener('mouseleave', onMouseLeave);
 		canvas.remove();
