@@ -632,14 +632,20 @@ export async function initGpgpuParticles(
 
 	// Sync galaxy colors with CSS season/day-night variables — both prefixes
 	// affect --galaxy-c* (season owns hue, day/night owns the OLED duotone).
+	// Also re-syncs on inline `style` changes (rainbow/palette terminal
+	// commands set --galaxy-c* directly on body.style, with no class change
+	// at all — a class-only comparison here would silently miss them).
 	updateGalaxyColors();
 	let lastSeasonClass = '';
+	let lastStyleSignature = document.body.getAttribute('style') ?? '';
 	const seasonObserver = new MutationObserver(() => {
 		const seasonClass = Array.from(document.body.classList)
 			.filter((name) => name.startsWith('season-') || name.startsWith('tod-'))
 			.join(' ');
-		if (seasonClass !== lastSeasonClass) {
+		const styleSignature = document.body.getAttribute('style') ?? '';
+		if (seasonClass !== lastSeasonClass || styleSignature !== lastStyleSignature) {
 			lastSeasonClass = seasonClass;
+			lastStyleSignature = styleSignature;
 			updateGalaxyColors();
 		}
 	});

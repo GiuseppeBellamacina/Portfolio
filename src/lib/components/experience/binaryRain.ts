@@ -39,7 +39,7 @@ export function createBinaryRain(
 	const themeObserver = new MutationObserver(() => {
 		COLORS = getColors();
 	});
-	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	/* Pre-rendered glow sprites (one per color+char pair): drawn once with
 	   shadowBlur on an offscreen canvas, then blitted per frame via drawImage. */

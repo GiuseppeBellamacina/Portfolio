@@ -28,7 +28,7 @@ export function createCanvasConstellation(section: HTMLElement): (() => void) | 
 	const themeObserver = new MutationObserver(() => {
 		colors = getThemeColors();
 	});
-	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	let W = (canvas.width = section.offsetWidth);
 	let H = (canvas.height = section.offsetHeight);

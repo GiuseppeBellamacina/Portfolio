@@ -70,7 +70,7 @@ export function createNeuralGraphViz(
 	const themeObserver = new MutationObserver(() => {
 		colors = getThemeColors();
 	});
-	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	function toneFor(): Neuron['tone'] {
 		const r = Math.random();
@@ -420,7 +420,7 @@ export function createMobileParticles(
 	const themeObserver = new MutationObserver(() => {
 		colors = getThemeColors();
 	});
-	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
 	interface Particle {
 		x: number;

@@ -51,7 +51,7 @@ Each section lives in `src/lib/components/<name>/` with its own `<Name>.svelte`,
 
 ### i18n
 
-`src/lib/i18n/index.ts` is a hand-rolled i18n layer, not a library: a `lang` Svelte store (`'en' | 'it'`) and a derived `t` store over a single `translations` object with parallel `en`/`it` key blocks. `lang` always starts as `'en'` so SSR and the initial hydration match; `initLang()` (called from `+layout.svelte`'s `onMount`) detects the saved/browser language afterwards and only then starts persisting to `localStorage`. **Any new user-facing string needs a key added to both the `en` and `it` blocks** — there's no fallback/missing-key mechanism.
+`src/lib/i18n/index.ts` is a hand-rolled i18n layer, not a library: a `lang` Svelte store (`'en' | 'it'`) and a derived `t` store over a single `translations` object with parallel `en`/`it` key blocks. The site is fully prerendered (no per-request SSR), so the static HTML always ships English; on the client, `lang`'s initial value is computed eagerly from `localStorage`/`navigator.language` (mirrors `seasonStore`'s `calendarSeason()`/`timeOfDayStore`'s `computeTimeOfDay()`) so hydration renders straight into the right language in one pass instead of flashing English and then flipping every string on the page once `onMount` fires. `initLang()` (called from `+layout.svelte`'s `onMount`) then subscribes to persist future changes to `localStorage` and keep `<html lang>` in sync. **Any new user-facing string needs a key added to both the `en` and `it` blocks** — there's no fallback/missing-key mechanism.
 
 ### Seasonal theme system
 

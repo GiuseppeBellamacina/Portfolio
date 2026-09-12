@@ -3,21 +3,34 @@ import { browser } from '$app/environment';
 
 export type Lang = 'en' | 'it';
 
-// Always start as 'en' so SSR and hydration produce the same DOM
-export const lang = writable<Lang>('en');
+const STORAGE_KEY = 'portfolio-lang';
 
-/** Call from onMount in the root layout to detect the real language after hydration */
+/**
+ * Mirrors seasonStore's calendarSeason()/timeOfDayStore's computeTimeOfDay():
+ * computed eagerly (not behind onMount) so the store's first client-side
+ * value is already correct — hydration renders straight into the right
+ * language in one pass instead of rendering English, then flipping every
+ * translated string on the page a moment later once onMount fires. Safe
+ * because this is a fully prerendered site (no per-request SSR): the static
+ * HTML always ships English, and this only decides what hydration itself
+ * produces, not something that has to match a live server render.
+ */
+function detectLang(): Lang {
+	if (!browser) return 'en';
+	const saved = localStorage.getItem(STORAGE_KEY);
+	if (saved === 'it' || saved === 'en') return saved;
+	return navigator.language.toLowerCase().startsWith('it') ? 'it' : 'en';
+}
+
+export const lang = writable<Lang>(detectLang());
+
+/** Call from onMount in the root layout to start persisting changes + syncing <html lang>. */
 export function initLang() {
 	if (!browser) return;
-	const saved = localStorage.getItem('portfolio-lang');
-	if (saved === 'it' || saved === 'en') {
-		lang.set(saved);
-	} else if (navigator.language.toLowerCase().startsWith('it')) {
-		lang.set('it');
-	}
-	// Start persisting only after the real language has been detected
+	// Fires immediately with the current value too, so <html lang> and
+	// localStorage are in sync right away, not just on future changes.
 	lang.subscribe(($lang) => {
-		localStorage.setItem('portfolio-lang', $lang);
+		localStorage.setItem(STORAGE_KEY, $lang);
 		document.documentElement.lang = $lang;
 	});
 }
