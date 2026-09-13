@@ -44,6 +44,16 @@
 		// Opacità random
 		snowflake.style.opacity = (Math.random() * 0.6 + 0.4).toString(); // 0.4 - 1
 
+		// Assigned directly (not via :nth-child in CSS): nth-child is recomputed
+		// every time a sibling flake is added/removed, and an element flipping
+		// in/out of :nth-child(2n) mid-flight changes its animation-name — which
+		// restarts that animation from 0%. With flakes constantly being created
+		// and removed, this made flakes visibly freeze and snap back to the top
+		// instead of ever reaching the bottom.
+		if (Math.random() < 0.5) {
+			snowflake.classList.add('wiggle');
+		}
+
 		// Rimuovi il fiocco quando l'animazione finisce
 		snowflake.addEventListener('animationend', () => {
 			if (snowflake.parentNode) {
@@ -61,7 +71,7 @@
 			const screenArea = window.innerWidth * window.innerHeight;
 			const referenceArea = 1920 * 1080;
 			const densityFactor = screenArea / referenceArea;
-			const initialFlakes = Math.max(12, Math.floor(40 * densityFactor));
+			const initialFlakes = Math.max(12, Math.floor(55 * densityFactor));
 
 			for (let i = 0; i < initialFlakes; i++) {
 				snowBurstTimeouts.push(setTimeout(() => createSnowflake(), i * 200));
@@ -69,7 +79,7 @@
 
 			snowInterval = setInterval(() => {
 				if (document.hidden) return;
-				if (Math.random() > 0.78) {
+				if (Math.random() > 0.68) {
 					createSnowflake();
 				}
 			}, 500);
@@ -159,7 +169,7 @@
 	}
 
 	/* Variazioni di movimento per rendere più naturale */
-	:global(.snowflake:nth-child(2n)) {
+	:global(.snowflake.wiggle) {
 		animation-name: snowfall-wiggle;
 	}
 

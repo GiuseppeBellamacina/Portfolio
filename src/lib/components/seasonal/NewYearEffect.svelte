@@ -48,16 +48,36 @@
 		let raf: number;
 		let paused = false;
 		let offscreen = false;
-		const sparkSprite = document.createElement('canvas');
-		sparkSprite.width = sparkSprite.height = 32;
-		const sparkCtx = sparkSprite.getContext('2d');
-		if (!sparkCtx) return;
-		const sparkGradient = sparkCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
-		sparkGradient.addColorStop(0, '#fff');
-		sparkGradient.addColorStop(0.3, 'rgba(255, 220, 120, .8)');
-		sparkGradient.addColorStop(1, 'rgba(255, 160, 40, 0)');
-		sparkCtx.fillStyle = sparkGradient;
-		sparkCtx.fillRect(0, 0, 32, 32);
+
+		// A palette of pre-rendered sprites, one per hue bucket, instead of a
+		// single hardcoded white-to-gold sprite: previously every spark's actual
+		// visible glow (this sprite, drawn at up to 8x its trail's size) ignored
+		// the spark's own randomized hue entirely — only the thin trail dots
+		// used it — so every firework read as the same white/gold regardless of
+		// how many different hues the launch logic picked. Bucketing (not one
+		// gradient per spark per frame) keeps this a one-time cost.
+		const HUE_BUCKETS = 16;
+		const sparkSprites: HTMLCanvasElement[] = [];
+		for (let i = 0; i < HUE_BUCKETS; i++) {
+			const hue = (360 / HUE_BUCKETS) * i;
+			const sprite = document.createElement('canvas');
+			sprite.width = sprite.height = 32;
+			const sctx = sprite.getContext('2d');
+			if (!sctx) continue;
+			const gradient = sctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+			gradient.addColorStop(0, '#fff');
+			gradient.addColorStop(0.3, `hsla(${hue}, 95%, 70%, 0.85)`);
+			gradient.addColorStop(1, `hsla(${hue}, 95%, 55%, 0)`);
+			sctx.fillStyle = gradient;
+			sctx.fillRect(0, 0, 32, 32);
+			sparkSprites.push(sprite);
+		}
+		if (sparkSprites.length === 0) return;
+		function spriteForHue(hue: number): HTMLCanvasElement {
+			const normalized = ((hue % 360) + 360) % 360;
+			const idx = Math.round(normalized / (360 / HUE_BUCKETS)) % HUE_BUCKETS;
+			return sparkSprites[idx];
+		}
 
 		const rockets: Rocket[] = [];
 		const sparks: Spark[] = [];
@@ -190,7 +210,13 @@
 				// Draw spark
 				if (s.life > 0) {
 					ctx!.globalAlpha = s.life;
-					ctx!.drawImage(sparkSprite, s.x - s.size * 4, s.y - s.size * 4, s.size * 8, s.size * 8);
+					ctx!.drawImage(
+						spriteForHue(s.hue),
+						s.x - s.size * 4,
+						s.y - s.size * 4,
+						s.size * 8,
+						s.size * 8
+					);
 					ctx!.globalAlpha = 1;
 				}
 

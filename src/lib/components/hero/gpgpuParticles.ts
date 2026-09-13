@@ -34,7 +34,10 @@ export async function initGpgpuParticles(
 		Vector3,
 		Timer,
 		Color,
-		AdditiveBlending
+		AdditiveBlending,
+		Sprite,
+		SpriteMaterial,
+		CanvasTexture
 	} = THREE;
 
 	let W = container.offsetWidth;
@@ -337,6 +340,52 @@ export async function initGpgpuParticles(
 		renderMaterial.uniforms.uColorC10.value.copy(getCSSColor('--galaxy-c10', '#8a7ace'));
 		renderMaterial.uniforms.uColorC11.value.copy(getCSSColor('--galaxy-c11', '#9d9ad4'));
 		renderMaterial.uniforms.uColorC12.value.copy(getCSSColor('--galaxy-c12', '#b8b8e0'));
+		// c2, not c1: c1 is pure white in every variant, which as a big soft
+		// sprite reads as a flat white blob — c2 carries each palette's actual
+		// tint (the "just past white" tone) so the glow still looks tinted.
+		if (coreGlowMat) coreGlowMat.color.copy(getCSSColor('--galaxy-c2', '#f5f0ff'));
+	}
+
+	// ── Core glow sprite (desktop only): a soft radial bloom over the galactic
+	// bulge, additive-blended under the fine particle detail so the center
+	// reads as a luminous haze instead of just a denser cluster of dots. A
+	// Sprite (not a rotated plane) always faces the camera with no per-frame
+	// orientation math, which is all that's needed since the camera is static.
+	function createGlowTexture() {
+		const size = 128;
+		const canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+		const ctx = canvas.getContext('2d')!;
+		const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+		gradient.addColorStop(0, 'rgba(255,255,255,1)');
+		gradient.addColorStop(0.15, 'rgba(255,255,255,0.5)');
+		gradient.addColorStop(0.4, 'rgba(255,255,255,0.12)');
+		gradient.addColorStop(1, 'rgba(255,255,255,0)');
+		ctx.fillStyle = gradient;
+		ctx.fillRect(0, 0, size, size);
+		const texture = new CanvasTexture(canvas);
+		texture.needsUpdate = true;
+		return texture;
+	}
+
+	let coreGlowTex: InstanceType<typeof CanvasTexture> | null = null;
+	let coreGlowMat: InstanceType<typeof SpriteMaterial> | null = null;
+	let coreGlow: InstanceType<typeof Sprite> | null = null;
+	if (!isMobile) {
+		coreGlowTex = createGlowTexture();
+		coreGlowMat = new SpriteMaterial({
+			map: coreGlowTex,
+			color: getCSSColor('--galaxy-c2', '#f5f0ff'),
+			transparent: true,
+			blending: AdditiveBlending,
+			depthWrite: false,
+			depthTest: false,
+			opacity: 0
+		});
+		coreGlow = new Sprite(coreGlowMat);
+		coreGlow.scale.set(4.2, 4.2, 1);
+		scene.add(coreGlow);
 	}
 
 	// ── Render shader ──
@@ -374,6 +423,7 @@ export async function initGpgpuParticles(
             varying vec3 vLocalPos;
             varying float vVelocity;
             varying float vScale;
+            varying float vCamDist;
 
             vec2 hash(vec2 p) {
                 p = vec2(dot(p,vec2(2127.1,81.17)), dot(p,vec2(1269.5,283.37)));
@@ -386,6 +436,11 @@ export async function initGpgpuParticles(
                 vVelocity = pos.w;
 
                 vec2 seed = hash(uv);
+                // Second, decorrelated hash pass: a per-particle "intrinsic
+                // luminosity" so the field isn't made of uniformly-sized dots —
+                // some particles read as brighter foreground stars, others as
+                // faint background dust, independent of position or lifecycle.
+                vec2 seed2 = hash(seed + 7.31);
 
                 float lifeEnd, lifeTime, animScale;
                 if (uIsMobile > 0.5) {
@@ -397,13 +452,15 @@ export async function initGpgpuParticles(
                     lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
                     animScale = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
                 }
-                
-                vScale = animScale + (vVelocity * 1.5);
+
+                float sizeVariance = 0.55 + seed2.x * 1.2;
+                vScale = (animScale + (vVelocity * 1.5)) * sizeVariance;
 
                 vec4 viewSpace = modelViewMatrix * vec4(pos.xyz, 1.0);
                 gl_Position = projectionMatrix * viewSpace;
 
-                float depthFade = 1.0 / -viewSpace.z;
+                vCamDist = -viewSpace.z;
+                float depthFade = 1.0 / vCamDist;
                 float basePtSize = uIsMobile > 0.5 ? 25.0 : 35.0;
                 gl_PointSize = (vScale * basePtSize) * uPixelRatio * uParticleScale * depthFade;
             }
@@ -414,6 +471,7 @@ export async function initGpgpuParticles(
             varying vec3 vLocalPos;
             varying float vScale;
             varying float vVelocity;
+            varying float vCamDist;
 
             uniform vec3 uColorC1;
             uniform vec3 uColorC2;
@@ -457,6 +515,17 @@ export async function initGpgpuParticles(
                 // Reduced from 0.8: this term brightened every particle regardless
                 // of position, fighting the dark edge colors above.
                 col += vec3(vVelocity * 0.4);
+
+                // Depth cueing (desktop galaxy only — the disc tilts through a
+                // camera-distance range of roughly 1.3 to 14.5 units from near
+                // edge to far edge, center ~7.9): particles nearer the camera
+                // read brighter, farther ones dimmer, on top of the size falloff
+                // already in the vertex shader — together they sell the tilt, so
+                // the disc reads as a plane in space instead of a flat sheet.
+                if (uIsMobile < 0.5) {
+                    float depthDim = clamp(1.0 + (7.9 - vCamDist) * 0.045, 0.55, 1.35);
+                    col *= depthDim;
+                }
 
                 // Two-term falloff instead of one hard cone: a tight bright core
                 // (what makes a point read as a crisp star) plus a wide, dim halo
@@ -565,6 +634,12 @@ export async function initGpgpuParticles(
 		if (fadeStart === 0) fadeStart = performance.now();
 		const fadeT = Math.min(1, (performance.now() - fadeStart) / FADE_MS);
 		renderMaterial.uniforms.uAlpha.value = fadeT * fadeT;
+
+		if (coreGlowMat) {
+			// Same fade-in curve as the particles, plus a small hover boost so the
+			// core visibly brightens together with the particle ring interaction.
+			coreGlowMat.opacity = fadeT * fadeT * (0.3 + hoverProgress * 0.12);
+		}
 
 		renderer.render(scene, camera);
 
@@ -675,6 +750,9 @@ export async function initGpgpuParticles(
 		posTex.dispose();
 		if (rayPlaneGeo) rayPlaneGeo.dispose();
 		if (rayPlaneMat) rayPlaneMat.dispose();
+		if (coreGlow) scene.remove(coreGlow);
+		if (coreGlowMat) coreGlowMat.dispose();
+		if (coreGlowTex) coreGlowTex.dispose();
 		canvas.remove();
 	};
 }
