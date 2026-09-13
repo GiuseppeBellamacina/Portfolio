@@ -14,7 +14,12 @@
 	let { onCommandExecuted }: Props = $props();
 
 	let inputValue = $state('');
+	// Seeded with baseTranslation (always English, matching the prerendered
+	// static build), not the client's real language: otherwise this state's
+	// first value already equals the correction effect's target, so nothing
+	// visibly changes and the English markup adopted at hydration never repaints.
 	let history = $state<HistoryEntry[]>(buildInitialHistory(baseTranslation));
+	let terminalEl: HTMLElement;
 	let terminalBody: HTMLElement;
 	let inputEl: HTMLInputElement;
 	let commandHistory: string[] = [];

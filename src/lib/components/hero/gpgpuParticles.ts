@@ -139,8 +139,10 @@ export async function initGpgpuParticles(
 				// Il moltiplicatore (ad es. 1.8) decide quanto si "avvolgono" i bracci
 				theta = armOffset + r * 1.8;
 
-				// Dispersione attorno al braccio teorico (cresce allontanandosi dal centro)
-				const spread = 0.2 + r * 0.15;
+				// Dispersione attorno al braccio teorico (cresce allontanandosi dal centro).
+				// Tight enough that the 3 arms read as distinct bands rather than
+				// blurring into a uniform disc (they're ~2.1 rad apart at any radius).
+				const spread = 0.12 + r * 0.06;
 				const jitterX = gauss() * spread;
 				const jitterY = gauss() * spread;
 
@@ -456,10 +458,14 @@ export async function initGpgpuParticles(
                 // of position, fighting the dark edge colors above.
                 col += vec3(vVelocity * 0.4);
 
-                vec2 uv = gl_PointCoord.xy - 0.5;
-                float pDist = length(uv);
-                float alpha = max(0.0, 0.5 - pDist) * 2.0;
-                alpha = pow(alpha, 1.8) * vScale * uAlpha; 
+                // Two-term falloff instead of one hard cone: a tight bright core
+                // (what makes a point read as a crisp star) plus a wide, dim halo
+                // (what makes it glow) — additive blending piles the halos up into
+                // a soft bloom wherever particles cluster, with no postprocessing pass.
+                float pDist = length(gl_PointCoord.xy - 0.5) * 2.0;
+                float core = pow(max(0.0, 1.0 - pDist), 4.0);
+                float halo = pow(max(0.0, 1.0 - pDist), 1.2) * 0.35;
+                float alpha = (core + halo) * vScale * uAlpha;
 
                 if (alpha < 0.01) discard;
 
