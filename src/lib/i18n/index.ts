@@ -338,7 +338,6 @@ const translations = {
 } as const;
 
 export type Translations = (typeof translations)['en'];
-/** The active translation (the union of every language's dictionary) */
 export type Translation = (typeof translations)[Lang];
-
 export const t = derived(lang, ($lang) => translations[$lang]);
+export const baseTranslation: Translation = translations.en;

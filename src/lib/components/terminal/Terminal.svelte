@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { get } from 'svelte/store';
-	import { t as tStore } from '$lib/i18n';
+	import { t as tStore, baseTranslation } from '$lib/i18n';
 	import type { Translation } from '$lib/i18n';
 	import './terminal.css';
 	import { type HistoryEntry, completableCommands, buildInitialHistory } from './terminalData';
@@ -14,10 +14,7 @@
 	let { onCommandExecuted }: Props = $props();
 
 	let inputValue = $state('');
-	// Initialized at component time (NOT onMount): boot + bio must be in the
-	// prerendered HTML for SEO/no-JS. During SSR get(tStore) returns the EN dict.
-	let history = $state<HistoryEntry[]>(buildInitialHistory(get(tStore)));
-	let terminalEl: HTMLElement;
+	let history = $state<HistoryEntry[]>(buildInitialHistory(baseTranslation));
 	let terminalBody: HTMLElement;
 	let inputEl: HTMLInputElement;
 	let commandHistory: string[] = [];
