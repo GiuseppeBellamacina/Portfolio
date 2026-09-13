@@ -23,9 +23,13 @@
 					return CHUNK_ERROR.test(String(msg));
 				}
 				function reloadOnce() {
-					var last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
-					if (Date.now() - last < 10000) return;
-					sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+					try {
+						var last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+						if (Date.now() - last < 10000) return;
+						sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+					} catch (err) {
+						/* sessionStorage unavailable (private mode, blocked site data): reload anyway */
+					}
 					location.reload();
 				}
 				window.addEventListener('unhandledrejection', function (e) {
