@@ -3,6 +3,39 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// A tab left open across a deploy still holds the OLD html, which
+			// references the OLD build's content-hashed chunk filenames — once a
+			// new deploy replaces those files, any further import from that stale
+			// page (including the very entry script that boots the app) 404s.
+			// Nothing from the app is running yet to catch that, so this runs
+			// first and reloads to fetch the current html/chunks. Rate-limited
+			// (by timestamp, not a one-shot flag) so a genuinely broken deploy
+			// reloads at most once per 10s instead of looping, while still
+			// letting the mechanism fire again for a later, separate incident
+			// in the same tab session.
+			(function () {
+				var RELOAD_KEY = 'stale-chunk-reload-at';
+				var CHUNK_ERROR =
+					/fetch dynamically imported module|error loading dynamically imported module|importing a module script failed/i;
+				function isStaleChunkError(reason) {
+					var msg = reason && (reason.message || reason.reason || reason);
+					return CHUNK_ERROR.test(String(msg));
+				}
+				function reloadOnce() {
+					var last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+					if (Date.now() - last < 10000) return;
+					sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+					location.reload();
+				}
+				window.addEventListener('unhandledrejection', function (e) {
+					if (isStaleChunkError(e.reason)) reloadOnce();
+				});
+				window.addEventListener('error', function (e) {
+					if (isStaleChunkError(e.error || e.message)) reloadOnce();
+				});
+			})();
+		</script>
 		<!-- Inline, network-independent: paints the dark ground immediately, before
 		     app.css (and the season/day-night classes it keys off) has loaded, so a
 		     reload never shows the browser's default white canvas first. The exact
