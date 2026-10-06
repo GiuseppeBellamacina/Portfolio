@@ -56,7 +56,8 @@ export const projects: Project[] = [
 		techTags: ['Python', 'Telegram', 'OpenCode', 'AI Agents', 'Playwright'],
 		descriptionIt:
 			"<strong>Agent Telegram Link &amp; Alert System</strong>: un bridge bidirezionale tra un bot <strong>Telegram</strong> e un agente di coding <strong>OpenCode</strong> locale, per guidare e monitorare gli agenti dal telefono.<br><strong>Funzionalità:</strong><ul><li><strong>Proxy</strong> — i messaggi Telegram diventano prompt per l'agente; le risposte tornano indietro quando la sessione va in idle (stream SSE <code>/event</code>)</li><li><strong>Human-in-the-loop</strong> — richieste di permesso e domande a scelta multipla dell'agente diventano tastiere inline Telegram (consenti una volta / sempre / nega, risposte multi-domanda)</li><li><strong>Daemon watchdog</strong> — avvisi sui cambi di stato e sugli errori degli agenti, con emoji per agente</li><li><strong>Comandi slash</strong> — plugin auto-registranti per stato, attività, costi, log, report git, commit, review, build/test, screenshot (Playwright)</li><li><strong>Notifiche di fine task</strong> — report dettagliati con branch/commit git rilevati automaticamente e durata misurata</li></ul>Python puro con threading e <code>requests</code>, senza framework asincroni.",
-		githubUrl: 'https://github.com/GiuseppeBellamacina/atlas'
+		githubUrl: 'https://github.com/GiuseppeBellamacina/atlas',
+		image: '/assets/projects/atlas.webp'
 	},
 	{
 		title: 'Render Multi-Service Manager',
