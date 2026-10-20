@@ -210,7 +210,6 @@ export const skillCategories: SkillCategory[] = [
 			{ name: 'uv', icon: 'uv.svg', url: 'https://docs.astral.sh/uv/' },
 			{ name: 'Ruff', icon: 'ruff.svg', url: 'https://docs.astral.sh/ruff/' },
 			{ name: 'Pyright', icon: 'pyright.png', url: 'https://microsoft.github.io/pyright/' },
-			{ name: 'gopls', icon: 'gopls.svg', url: 'https://pkg.go.dev/golang.org/x/tools/gopls' },
 			{ name: 'Playwright', icon: 'playwright.svg', url: 'https://playwright.dev/' }
 		]
 	},

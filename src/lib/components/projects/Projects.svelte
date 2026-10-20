@@ -504,6 +504,9 @@
 								{/if}
 							</div>
 							<div class="carousel-card-overlay"></div>
+							{#if project.isWip}
+								<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
+							{/if}
 							{#if project.isHackathonWinner}
 								<span class="carousel-badge">{$t.proj_winner}</span>
 							{/if}
@@ -548,6 +551,9 @@
 						</div>
 						<div class="pcard-overlay"></div>
 						<div class="pcard-shine"></div>
+						{#if project.isWip}
+							<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
+						{/if}
 						{#if project.isHackathonWinner}
 							<span class="carousel-badge">{$t.proj_winner}</span>
 						{/if}
@@ -595,6 +601,9 @@
 						{/if}
 					</div>
 					<div class="pcard-overlay"></div>
+					{#if project.isWip}
+						<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
+					{/if}
 					{#if project.isHackathonWinner}
 						<span class="pcard-badge">{$t.proj_winner}</span>
 					{/if}
@@ -639,6 +648,9 @@
 					: `background:${getCardBgForProject(expandedProject)}`}
 			>
 				<div class="exp-voverlay"></div>
+				{#if expandedProject.isWip}
+					<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
+				{/if}
 				<button class="exp-close" onclick={closePanel} aria-label="Close">✕</button>
 				{#if expandedProject.isHackathonWinner}
 					<span class="exp-trophy">{$t.proj_hackathonWinner}</span>

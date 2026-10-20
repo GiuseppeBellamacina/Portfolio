@@ -352,6 +352,39 @@
 	padding: 2px 9px;
 	border-radius: var(--radius-pill);
 }
+/* Construction tape for in-progress projects (Project.isWip), shared by every card variant */
+.wip-tape {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 3;
+	display: flex;
+	justify-content: center;
+	padding: 4px 0;
+	background: repeating-linear-gradient(-45deg, #fbbf24 0 12px, #111 12px 24px);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+	pointer-events: none;
+}
+.wip-tape > span {
+	font-size: 0.6rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #fbbf24;
+	background: rgba(10, 10, 14, 0.92);
+	padding: 2px 10px;
+	border-radius: var(--radius-pill);
+}
+.wip-tape ~ .carousel-badge,
+.wip-tape ~ .pcard-badge,
+.wip-tape ~ .exp-trophy,
+.wip-tape ~ .carousel-stars,
+.wip-tape ~ .pcard-stars,
+.wip-tape ~ .exp-close {
+	margin-top: 1.6rem;
+}
+
 .exp-title-area {
 	position: absolute;
 	bottom: 0.85rem;

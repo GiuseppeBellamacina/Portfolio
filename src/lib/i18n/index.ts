@@ -109,6 +109,7 @@ const translations = {
 		proj_demo: 'Demo',
 		proj_winner: '🏆 Winner',
 		proj_hackathonWinner: '🏆 Hackathon Winner',
+		proj_wip: 'Work in progress',
 		proj_stars: 'stars',
 
 		// Contact
@@ -261,6 +262,7 @@ const translations = {
 		proj_demo: 'Demo',
 		proj_winner: '🏆 Vincitore',
 		proj_hackathonWinner: '🏆 Vincitore Hackathon',
+		proj_wip: 'Lavori in corso',
 		proj_stars: 'stelle',
 
 		// Contact

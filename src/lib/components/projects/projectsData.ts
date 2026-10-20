@@ -9,6 +9,7 @@ export interface Project {
 	image?: string;
 	accentColor?: string;
 	isHackathonWinner?: boolean;
+	isWip?: boolean;
 	externalLink?: {
 		url: string;
 		type: 'demo' | 'download' | 'youtube' | 'hackathon';
@@ -29,6 +30,42 @@ export const cardGradients = [
 ];
 
 export const projects: Project[] = [
+	{
+		title: 'PitWall AI',
+		description:
+			'An <strong>AI Formula 1 race engineer</strong>, real-time and fully local: real Grands Prix from <strong>OpenF1</strong> are replayed in an endless playlist through a Docker microservice pipeline.<br><strong>How it works:</strong><ul><li><strong>Streaming</strong> — every race is republished on <strong>Kafka</strong> (KRaft); <strong>Spark Structured Streaming</strong> computes gaps, tyre degradation, undercut, pit probability and DRS-range battles</li><li><strong>Commentary</strong> — a local LLM (<strong>Ollama</strong>, Gemma) narrates the race in Italian, paced by the voice (Piper / Chatterbox TTS, voice cloning)</li><li><strong>Race engineer</strong> — a tool-calling agent answers questions like <em>"who is at risk of the undercut?"</em> from live data</li><li><strong>3D world</strong> — the track rebuilt in the real place from satellite imagery, terrain and OSM buildings, with a TV-style camera director, onboard HUD and ghost lap</li></ul><strong>Architecture:</strong> event-driven choreography on a race-lifecycle topic, CQRS views, circuit breaker with template fallback, DLQ, competing consumers. Bun gateway + React/three.js UI, Logstash → Elasticsearch → Kibana for history and dashboards.',
+		techTags: ['Kafka', 'Spark', 'Ollama', 'Three.js', 'React', 'Docker'],
+		descriptionIt:
+			'Un <strong>ingegnere di pista di Formula 1 basato su AI</strong>, in tempo reale e completamente locale: Gran Premi reali da <strong>OpenF1</strong> rigiocati in una playlist infinita attraverso una pipeline di microservizi Docker.<br><strong>Come funziona:</strong><ul><li><strong>Streaming</strong> — ogni gara viene ripubblicata su <strong>Kafka</strong> (KRaft); <strong>Spark Structured Streaming</strong> calcola distacchi, degrado delle gomme, undercut, probabilità di pit stop e duelli in zona DRS</li><li><strong>Telecronaca</strong> — un LLM locale (<strong>Ollama</strong>, Gemma) racconta la gara in italiano, al ritmo della voce (TTS Piper / Chatterbox, con clonazione vocale)</li><li><strong>Race engineer</strong> — un agente con tool calling risponde a domande come <em>"chi rischia l\'undercut?"</em> sui dati live</li><li><strong>Mondo 3D</strong> — il circuito ricostruito nel luogo reale da immagini satellitari, rilievo ed edifici OSM, con regia televisiva automatica, HUD onboard e ghost lap</li></ul><strong>Architettura:</strong> coreografia event-driven su un topic di ciclo di vita della gara, viste CQRS, circuit breaker con fallback a template, DLQ, competing consumers. Gateway Bun + UI React/three.js, Logstash → Elasticsearch → Kibana per storico e dashboard.',
+		githubUrl: 'https://github.com/GiuseppeBellamacina/Pitwall-AI',
+		image: '/assets/projects/pitwall.webp',
+		isWip: true
+	},
+	{
+		title: 'Babbol',
+		description:
+			'Android app for Italian adults who want to go from "school" English (<strong>A2</strong>) to a real <strong>B2</strong>, across reading, listening, writing and speaking.<br><strong>The course:</strong><ul><li><strong>Placement test</strong>, then 3 levels × 10 units, each with 7 lessons (grammar, vocabulary, reading, listening, real-life situation, writing &amp; speaking, test)</li><li><strong>Exam simulations</strong> in the style of A2 Key, B1 Preliminary and B2 First, timed, with an indicative Cambridge-scale estimate</li><li>Dozens of exercise types: key word transformation, word formation, cloze, multi-voice listening, dictation, spoken answers…</li><li><strong>Spaced repetition</strong> (1–60 days), grammar sheets, dictionary, phrasal verbs, false friends</li></ul><strong>Tech:</strong> dependency-free HTML/CSS/JS in a native Android WebView shell with phone <strong>TTS</strong> and speech recognition (no paid APIs). Accounts, progress sync and lesson content on <strong>Supabase</strong> (RLS, delta updates by revision), so new content ships without publishing a new app version. End-to-end tested in a headless browser, built entirely in Docker.',
+		techTags: ['Android', 'Supabase', 'JavaScript', 'PostgreSQL'],
+		descriptionIt:
+			"App Android per adulti italiani che vogliono passare da un inglese \"scolastico\" (<strong>A2</strong>) a un <strong>B2</strong> vero, in lettura, ascolto, scrittura e parlato.<br><strong>Il corso:</strong><ul><li><strong>Test d'ingresso</strong>, poi 3 livelli × 10 unità, ognuna con 7 lezioni (grammatica, lessico, lettura, ascolto, situazione reale, scrittura e parlato, test)</li><li><strong>Simulazioni d'esame</strong> in stile A2 Key, B1 Preliminary e B2 First, a tempo, con stima indicativa sulla scala Cambridge</li><li>Decine di tipi di esercizio: key word transformation, word formation, cloze, ascolti a più voci, dettati, risposte orali…</li><li><strong>Ripetizione spaziata</strong> (1–60 giorni), schede di grammatica, dizionario, phrasal verbs, falsi amici</li></ul><strong>Tecnologia:</strong> HTML/CSS/JS senza dipendenze in un guscio Android nativo (WebView) con <strong>TTS</strong> e riconoscimento vocale del telefono (nessuna API a pagamento). Account, sincronizzazione dei progressi e contenuti delle lezioni su <strong>Supabase</strong> (RLS, aggiornamenti delta per revisione), così i nuovi contenuti arrivano senza pubblicare una nuova versione dell'app. Test end-to-end in un browser headless, build interamente in Docker.",
+		githubUrl: 'https://github.com/GiuseppeBellamacina/babbol',
+		image: '/assets/projects/babbol.webp'
+	},
+	{
+		title: 'profile-forge',
+		description:
+			'<strong>One animated card for your GitHub profile README</strong>: rank, stats, streaks, top languages, trophies and contribution heatmap in a single design that never breaks.<br><strong>How it works:</strong><ul><li>A scheduled <strong>GitHub Action</strong> in your profile repo fetches your data through the <strong>GraphQL API</strong>, renders dark/light <strong>SVG</strong> cards and commits them — no server, no shared rate limits</li><li>Ranks E → S+ (animated top 1%), classic trophies plus 66 secret ones, a snake that eats your heatmap, 13 avatar frames, 73 themes, 8 languages</li><li>Zero runtime dependencies (Node ≥ 20); optional PNG/GIF export from the same animation timeline</li></ul><strong>Web configurator</strong> (React + TypeScript + Vite): live preview with the real renderer, theme gallery, drag-and-drop free grid, presets, shareable links, and one-click publish of config, workflow and assets to your repo after a GitHub sign-in (Cloudflare Worker OAuth).',
+		techTags: ['Node.js', 'GitHub Actions', 'SVG', 'GraphQL', 'React', 'TypeScript'],
+		descriptionIt:
+			"<strong>Un'unica card animata per il README del profilo GitHub</strong>: rank, statistiche, streak, linguaggi principali, trofei e heatmap dei contributi in un solo design che non si rompe mai.<br><strong>Come funziona:</strong><ul><li>Una <strong>GitHub Action</strong> pianificata nel repo del profilo legge i dati tramite l'<strong>API GraphQL</strong>, genera le card <strong>SVG</strong> dark/light e le committa — nessun server, nessun rate limit condiviso</li><li>Rank da E a S+ (top 1% animato), trofei classici più 66 segreti, un serpente che mangia la heatmap, 13 cornici per l'avatar, 73 temi, 8 lingue</li><li>Zero dipendenze a runtime (Node ≥ 20); export opzionale PNG/GIF dalla stessa timeline di animazione</li></ul><strong>Configuratore web</strong> (React + TypeScript + Vite): anteprima live con il renderer reale, galleria dei temi, griglia libera con drag-and-drop, preset, link condivisibili e pubblicazione in un clic di config, workflow e asset nel tuo repo dopo il login GitHub (OAuth tramite Cloudflare Worker).",
+		githubUrl: 'https://github.com/GiuseppeBellamacina/profile-forge',
+		externalLink: {
+			url: 'https://giuseppebellamacina.github.io/profile-forge-configurator/',
+			type: 'demo',
+			icon: 'fas fa-external-link-alt'
+		},
+		image: '/assets/projects/profile-forge.webp'
+	},
 	{
 		title: 'Let It Flyppen',
 		description:
