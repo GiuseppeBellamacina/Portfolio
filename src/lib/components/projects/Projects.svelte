@@ -384,6 +384,17 @@
 	);
 	let panelExpanded = $state(false);
 
+	// Lock page scroll while a project panel is open
+	$effect(() => {
+		if (!expandedProject) return;
+		const root = document.documentElement;
+		const prev = root.style.overflow;
+		root.style.overflow = 'hidden';
+		return () => {
+			root.style.overflow = prev;
+		};
+	});
+
 	function onGridCardClick(p: Project) {
 		expandedProjectIndex = projects.indexOf(p);
 		panelExpanded = false;
@@ -471,6 +482,7 @@
 	id="projects"
 	class="projects"
 	class:grid-active={viewMode === 'grid'}
+	class:panel-open={expandedProject !== null}
 	bind:this={sectionEl}
 >
 	<div class="container">
