@@ -13,14 +13,6 @@
 	overflow: visible;
 	justify-content: flex-start;
 }
-
-/* performance.css containment makes the section the containing block of the fixed panel:
-   drop it while the panel is open so the panel centers on the viewport, not the section */
-.projects.panel-open {
-	contain: none;
-	content-visibility: visible;
-}
-
 /* Subtle ambient glow */
 .projects::before {
 	content: '';

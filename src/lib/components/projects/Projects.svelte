@@ -384,6 +384,13 @@
 	);
 	let panelExpanded = $state(false);
 
+	// The section's containment (performance.css) would make it the containing block of the
+	// fixed panel, centering it on the section: render the panel in <body> instead
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return { destroy: () => node.remove() };
+	}
+
 	// Lock page scroll while a project panel is open
 	$effect(() => {
 		if (!expandedProject) return;
@@ -482,7 +489,6 @@
 	id="projects"
 	class="projects"
 	class:grid-active={viewMode === 'grid'}
-	class:panel-open={expandedProject !== null}
 	bind:this={sectionEl}
 >
 	<div class="container">
@@ -647,70 +653,72 @@
 
 	<!-- Expanded card panel -->
 	{#if expandedProject}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="exp-backdrop" class:is-visible={panelExpanded} onclick={closePanel}></div>
+		<div use:portal>
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="exp-backdrop" class:is-visible={panelExpanded} onclick={closePanel}></div>
 
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<aside class="exp-panel" class:is-open={panelExpanded}>
-			<div
-				class="exp-visual"
-				style={expandedProject.image
-					? `background-image:url('${expandedProject.image}')`
-					: `background:${getCardBgForProject(expandedProject)}`}
-			>
-				<div class="exp-voverlay"></div>
-				{#if expandedProject.isWip}
-					<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
-				{/if}
-				<button class="exp-close" onclick={closePanel} aria-label="Close">✕</button>
-				{#if expandedProject.isHackathonWinner}
-					<span class="exp-trophy">{$t.proj_hackathonWinner}</span>
-				{/if}
-				<div class="exp-title-area">
-					<h3 class="exp-title">{expandedProject.title}</h3>
-				</div>
-			</div>
-
-			<div class="exp-body">
-				<p class="exp-desc">{@html expandedProject.description}</p>
-				<div class="exp-tags">
-					{#each expandedProject.techTags as t}
-						<span class="exp-tag">{t}</span>
-					{/each}
-				</div>
-				<div class="exp-footer">
-					{#if expandedProject.starsLoaded && expandedProject.stars !== undefined}
-						<span class="exp-stars">⭐ {expandedProject.stars} {$t.proj_stars}</span>
-					{:else}
-						<span></span>
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<aside class="exp-panel" class:is-open={panelExpanded}>
+				<div
+					class="exp-visual"
+					style={expandedProject.image
+						? `background-image:url('${expandedProject.image}')`
+						: `background:${getCardBgForProject(expandedProject)}`}
+				>
+					<div class="exp-voverlay"></div>
+					{#if expandedProject.isWip}
+						<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
 					{/if}
-					<div class="exp-links">
-						{#if expandedProject.externalLink}
-							<a
-								href={expandedProject.externalLink.url}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="exp-link"
-								download={expandedProject.externalLink.type === 'download' ? true : undefined}
-							>
-								<i class={expandedProject.externalLink.icon}></i>
-								{getLinkLabel(expandedProject.externalLink.type)}
-							</a>
-						{/if}
-						<a
-							href={expandedProject.githubUrl}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="exp-link exp-link-primary"
-						>
-							<i class="fab fa-github"></i>
-							{$t.proj_viewOnGithub}
-						</a>
+					<button class="exp-close" onclick={closePanel} aria-label="Close">✕</button>
+					{#if expandedProject.isHackathonWinner}
+						<span class="exp-trophy">{$t.proj_hackathonWinner}</span>
+					{/if}
+					<div class="exp-title-area">
+						<h3 class="exp-title">{expandedProject.title}</h3>
 					</div>
 				</div>
-			</div>
-		</aside>
+
+				<div class="exp-body">
+					<p class="exp-desc">{@html expandedProject.description}</p>
+					<div class="exp-tags">
+						{#each expandedProject.techTags as t}
+							<span class="exp-tag">{t}</span>
+						{/each}
+					</div>
+					<div class="exp-footer">
+						{#if expandedProject.starsLoaded && expandedProject.stars !== undefined}
+							<span class="exp-stars">⭐ {expandedProject.stars} {$t.proj_stars}</span>
+						{:else}
+							<span></span>
+						{/if}
+						<div class="exp-links">
+							{#if expandedProject.externalLink}
+								<a
+									href={expandedProject.externalLink.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="exp-link"
+									download={expandedProject.externalLink.type === 'download' ? true : undefined}
+								>
+									<i class={expandedProject.externalLink.icon}></i>
+									{getLinkLabel(expandedProject.externalLink.type)}
+								</a>
+							{/if}
+							<a
+								href={expandedProject.githubUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="exp-link exp-link-primary"
+							>
+								<i class="fab fa-github"></i>
+								{$t.proj_viewOnGithub}
+							</a>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
 	{/if}
 
 	<div class="container">
