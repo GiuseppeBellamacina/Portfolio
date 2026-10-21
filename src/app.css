@@ -544,6 +544,8 @@ body {
 html {
 	scrollbar-color: rgba(var(--primary-rgb), 0.25) var(--bg-dark);
 	scrollbar-width: thin;
+	/* Keep the scrollbar's space when scroll is locked (project panel), so the page doesn't shift */
+	scrollbar-gutter: stable;
 }
 
 /* Heading font — Outfit for all display/title elements */
