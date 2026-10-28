@@ -200,16 +200,11 @@ export const projects: Project[] = [
 	{
 		title: 'Warehouse Swarm Intelligence System',
 		description:
-			'Designing a multi-agent system for optimizing warehouse operations.<br>Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor. Deployed on Render + Vercel.',
+			'Designing a multi-agent system for optimizing warehouse operations.<br>Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor.',
 		techTags: ['Python', 'Swarm Intelligence', 'Multi-Agent', 'Optimization'],
 		descriptionIt:
-			"Progettazione di un sistema multi-agente per l'ottimizzazione delle operazioni di magazzino.<br>Simulazione swarm in tempo reale — progetto del corso di Sistemi Multi-Agente.<br><strong>Tre ruoli agente specializzati:</strong><ul><li>🟢 <strong>Scout</strong> — esplora la mappa, segnala la posizione degli oggetti ai coordinatori</li><li>🔵 <strong>Coordinator</strong> — assegna compiti di recupero, gestisce la ricarica degli agenti</li><li>🟡 <strong>Retriever</strong> — naviga verso gli oggetti, li trasporta nella zona di deposito</li></ul><strong>Algoritmi principali:</strong> A* con riplanning dinamico · esplorazione basata su frontiera e random-walk · collision avoidance prioritario · protocollo di negoziazione ClearWayMessage · coda FIFO con ottimizzazione multi-carry.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> con Canvas HTML5, pannelli ridimensionabili e map editor integrato. Deploy su Render + Vercel.",
+			"Progettazione di un sistema multi-agente per l'ottimizzazione delle operazioni di magazzino.<br>Simulazione swarm in tempo reale — progetto del corso di Sistemi Multi-Agente.<br><strong>Tre ruoli agente specializzati:</strong><ul><li>🟢 <strong>Scout</strong> — esplora la mappa, segnala la posizione degli oggetti ai coordinatori</li><li>🔵 <strong>Coordinator</strong> — assegna compiti di recupero, gestisce la ricarica degli agenti</li><li>🟡 <strong>Retriever</strong> — naviga verso gli oggetti, li trasporta nella zona di deposito</li></ul><strong>Algoritmi principali:</strong> A* con riplanning dinamico · esplorazione basata su frontiera e random-walk · collision avoidance prioritario · protocollo di negoziazione ClearWayMessage · coda FIFO con ottimizzazione multi-carry.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> con Canvas HTML5, pannelli ridimensionabili e map editor integrato.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Warehouse-Swarm-Intelligence-System',
-		externalLink: {
-			url: 'https://warehouse-swarm-intelligence-system.vercel.app',
-			type: 'demo',
-			icon: 'fas fa-external-link-alt'
-		},
 		image: '/assets/projects/warehouse-swarm.webp'
 	},
 	{
@@ -240,11 +235,6 @@ export const projects: Project[] = [
 		descriptionIt:
 			"App di semantic web che costruisce e interroga un'<strong>ontologia OWL 2</strong> sui videogiochi (dal 2015 ad oggi) tramite una pipeline NL-to-SPARQL alimentata da <strong>GPT-4.1 mini</strong>.<br><strong>Architettura:</strong><ul><li><strong>Frontend (React + Tailwind + react-force-graph-2d)</strong> — grafo di conoscenza interattivo, search bar, pannelli di dettaglio dei nodi</li><li><strong>Backend (FastAPI)</strong> — agente SPARQL con retry automatico (max 3 tentativi), OntologyService con rdflib, graph builder</li><li><strong>Ontologia (OWL 2)</strong> — classi: VideoGame, Developer, Publisher, Genre, Platform, Character, Franchise, Award; dati da Wikidata</li></ul><strong>Agente SPARQL:</strong> converte linguaggio naturale → SPARQL, valida la sintassi, effettua retry su errore, mostra la query generata.<br><strong>Grafo di conoscenza:</strong> force graph 2D physics-based, nodi colorati per tipo, click → pannello dettaglio, hover → evidenzia connessioni.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Videogame-Semantic-Search',
-		externalLink: {
-			url: 'https://videogame-semantic-search.vercel.app',
-			type: 'demo',
-			icon: 'fas fa-external-link-alt'
-		},
 		image: '/assets/projects/videogame-semantic.webp'
 	},
 	{
