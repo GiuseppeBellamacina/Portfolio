@@ -178,6 +178,7 @@
 	let size = 170;
 	let radius = 48;
 	let compact = false;
+	let phone = false;
 	let section: SectionId = 'home';
 	let hits = 0;
 	let restMs = 0;
@@ -204,6 +205,8 @@
 		const b = bounds();
 		if (placed) return { x: placed.fx * b.width, y: placed.fy * b.height };
 		const margin = size / 2 + 12;
+		// Phones: top-right, under the navbar, where it covers the least
+		if (phone) return { x: b.width - margin + 8, y: NAV_H + margin };
 		// Below ~1360px the content leaves no side margin: park in the bottom-left corner
 		if (compact) return { x: margin, y: innerHeight - margin - 12 };
 		const a = anchors[section];
@@ -583,6 +586,7 @@
 		visible = saved !== 'off';
 
 		compact = innerWidth < 1360;
+		phone = innerWidth < 640;
 		// The model fills ~78% of the box: the rest is room to lean, squash and shake
 		size = innerWidth < 640 ? 132 : compact ? 166 : 214;
 		radius = Math.round(size * 0.25);
