@@ -3,8 +3,6 @@ import { browser } from '$app/environment';
 
 export type TimeOfDay = 'day' | 'night';
 
-const STORAGE_KEY = 'portfolio-tod-override';
-
 /**
  * Day between sunrise and sunset for the date, not fixed hours: a fixed 7–19
  * window stayed "day" for two dark hours every autumn/winter evening.
@@ -36,13 +34,8 @@ function timeOfDayNow(): TimeOfDay {
 	return isDaytime(new Date()) ? 'day' : 'night';
 }
 
-function readManualOverride(): TimeOfDay | null {
-	if (!browser) return null;
-	const saved = sessionStorage.getItem(STORAGE_KEY);
-	return saved === 'day' || saved === 'night' ? saved : null;
-}
-
-let manualOverride: TimeOfDay | null = readManualOverride();
+// In memory only: a reload always goes back to the real sunrise/sunset
+let manualOverride: TimeOfDay | null = null;
 
 /**
  * Mirrors the inline script in app.html (sets tod-day/tod-night on <body>
@@ -71,16 +64,14 @@ export function initTimeOfDay() {
 	);
 }
 
-/** Force a time of day for this tab session (terminal `day`/`night` commands), until resetTimeOfDay(). */
+/** Force a time of day until reload or resetTimeOfDay() (terminal `day`/`night` commands). */
 export function setTimeOfDay(mode: TimeOfDay) {
 	manualOverride = mode;
-	if (browser) sessionStorage.setItem(STORAGE_KEY, mode);
 	timeOfDay.set(mode);
 }
 
 /** Clear the manual override and go back to clock-based detection (terminal `default`/`autotheme`). */
 export function resetTimeOfDay() {
 	manualOverride = null;
-	if (browser) sessionStorage.removeItem(STORAGE_KEY);
 	timeOfDay.set(timeOfDayNow());
 }

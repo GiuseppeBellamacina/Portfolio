@@ -159,32 +159,33 @@
 				else if (m >= 5 && m <= 7) season = 'summer';
 				if (season !== 'default') document.body.classList.add('season-' + season);
 
-				// Override from the terminal's day/night commands: session-only. It used
-				// to live in localStorage, which pinned a browser to one mode forever.
-				localStorage.removeItem('portfolio-tod-override');
-				var saved = sessionStorage.getItem('portfolio-tod-override');
-				var mode = saved === 'day' || saved === 'night' ? saved : null;
-				if (!mode) {
-					// Sunrise/sunset for the date in Italy (see isDaytime in timeOfDayStore.ts)
-					var rad = Math.PI / 180;
-					var doy = Math.floor((d - new Date(d.getFullYear(), 0, 1)) / 864e5) + 1;
-					var decl = 23.44 * rad * Math.sin((2 * Math.PI * (284 + doy)) / 365);
-					var lat = 42 * rad;
-					var halfDay =
-						Math.acos(
-							(Math.sin(-0.833 * rad) - Math.sin(lat) * Math.sin(decl)) /
-								(Math.cos(lat) * Math.cos(decl))
-						) /
-						rad /
-						15;
-					var std = Math.max(
-						new Date(d.getFullYear(), 0, 1).getTimezoneOffset(),
-						new Date(d.getFullYear(), 6, 1).getTimezoneOffset()
-					);
-					var noon = 12 + 10 / 60 + (std - d.getTimezoneOffset()) / 60;
-					var h = d.getHours() + d.getMinutes() / 60;
-					mode = h >= noon - halfDay && h < noon + halfDay ? 'day' : 'night';
+				// The terminal's day/night override lasts until reload; drop the keys older
+				// versions stored it under, so a reload never inherits a forced mode
+				try {
+					localStorage.removeItem('portfolio-tod-override');
+					sessionStorage.removeItem('portfolio-tod-override');
+				} catch (e) {
+					/* storage blocked: nothing was saved either */
 				}
+				// Sunrise/sunset for the date in Italy (see isDaytime in timeOfDayStore.ts)
+				var rad = Math.PI / 180;
+				var doy = Math.floor((d - new Date(d.getFullYear(), 0, 1)) / 864e5) + 1;
+				var decl = 23.44 * rad * Math.sin((2 * Math.PI * (284 + doy)) / 365);
+				var lat = 42 * rad;
+				var halfDay =
+					Math.acos(
+						(Math.sin(-0.833 * rad) - Math.sin(lat) * Math.sin(decl)) /
+							(Math.cos(lat) * Math.cos(decl))
+					) /
+					rad /
+					15;
+				var std = Math.max(
+					new Date(d.getFullYear(), 0, 1).getTimezoneOffset(),
+					new Date(d.getFullYear(), 6, 1).getTimezoneOffset()
+				);
+				var noon = 12 + 10 / 60 + (std - d.getTimezoneOffset()) / 60;
+				var h = d.getHours() + d.getMinutes() / 60;
+				var mode = h >= noon - halfDay && h < noon + halfDay ? 'day' : 'night';
 				document.body.classList.add('tod-' + mode);
 			})();
 		</script>
