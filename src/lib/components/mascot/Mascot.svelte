@@ -13,11 +13,14 @@
 		categoryLine,
 		allSkillsLine,
 		complaints,
-		grabLines,
+		angryLines,
 		backLines,
 		placeLines,
 		clickLines,
+		seasonLines,
 		unmuteLine,
+		type Line,
+		type Season,
 		type SectionId
 	} from './mascotData';
 	import type { VoxelMascot } from './voxelEngine';
@@ -36,6 +39,9 @@
 	let muted = $state(false);
 	let typed = $state('');
 	let speaking = $state(false);
+	/** Gliding to a new spot: the bubble hides, new lines wait for the arrival */
+	let traveling = $state(false);
+	let queued: { line: string; face: Expression } | null = null;
 
 	let engine: VoxelMascot | null = null;
 	let reducedMotion = false;
@@ -57,11 +63,42 @@
 	}
 	const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
+	let character: CharacterId = 'turi';
+	const lineCursor: Partial<Record<SectionId, number>> = {};
+
+	function fill(text: string) {
+		const name = character === 'turi' ? 'Turi' : get(lang) === 'it' ? 'l’Arancino' : 'the Arancino';
+		return text.replace('{n}', String(TOTAL_SKILLS)).replace('{name}', name);
+	}
+
+	// Section lines take turns, so coming back to a section doesn't repeat the same one
+	function sectionLine(id: SectionId): Line {
+		const lines = sectionLines[get(lang)][id];
+		const i = lineCursor[id] ?? 0;
+		lineCursor[id] = (i + 1) % lines.length;
+		return lines[i];
+	}
+
+	function season(): Season | null {
+		// Hats and seasonal quips are Turi's thing
+		if (character !== 'turi') return null;
+		const c = document.body.classList;
+		if (c.contains('season-snow')) return 'christmas';
+		if (c.contains('season-newyear')) return 'newyear';
+		if (c.contains('tod-night')) return 'night';
+		if (c.contains('season-summer')) return 'summer';
+		return null;
+	}
+
 	// ── Speech bubble ──
 	let typeTimer: ReturnType<typeof setInterval> | undefined;
 	let hideTimer: ReturnType<typeof setTimeout> | undefined;
 
 	function say(line: string, face: Expression = 'normal') {
+		if (traveling) {
+			queued = { line, face };
+			return;
+		}
 		engine?.setExpression(face);
 		if (muted || !visible) return;
 		clearInterval(typeTimer);
@@ -141,6 +178,12 @@
 		};
 	}
 
+	// Docked moves glide: a soft spring with a speed cap, so a far section never turns
+	// into a dash across the screen
+	const GLIDE_K = 9;
+	const GLIDE_MAX = 900; // px/s
+	const ARRIVED = 40; // px
+
 	function onImpact(speed: number) {
 		hits++;
 		engine?.bump(Math.min(1, speed / 2500));
@@ -152,7 +195,7 @@
 
 	function place() {
 		el.style.transform = `translate3d(${body.x - size / 2}px, ${body.y - size / 2}px, 0)`;
-		if (!bubbleEl || !speaking) return;
+		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
 		const onLeft = body.x > innerWidth / 2;
@@ -192,15 +235,29 @@
 				body.y = a.y;
 				body.vx = body.vy = 0;
 			} else {
-				const k = mode === 'returning' ? 30 : 20;
+				const k = mode === 'returning' ? 20 : GLIDE_K;
 				const c = 2 * Math.sqrt(k);
 				body.vx += ((a.x - body.x) * k - body.vx * c) * dt;
 				body.vy += ((a.y - body.y) * k - body.vy * c) * dt;
+				const v = Math.hypot(body.vx, body.vy);
+				if (v > GLIDE_MAX) {
+					body.vx *= GLIDE_MAX / v;
+					body.vy *= GLIDE_MAX / v;
+				}
 				body.x += body.vx * dt;
 				body.y += body.vy * dt;
 			}
 			body.angle *= Math.exp(-6 * dt);
-			if (mode === 'returning' && Math.hypot(a.x - body.x, a.y - body.y) < 6) {
+			const far = Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED;
+			if (far !== traveling) {
+				traveling = far;
+				if (!far && queued) {
+					const q = queued;
+					queued = null;
+					say(q.line, q.face);
+				}
+			}
+			if (mode === 'returning' && !far) {
 				mode = 'docked';
 				hits = 0;
 			}
@@ -220,6 +277,12 @@
 	let grabDY = 0;
 	let dragging = false;
 	let samples: { x: number; y: number; t: number }[] = [];
+	let lastRant = 0;
+
+	function rant() {
+		lastRant = performance.now();
+		say(pick(angryLines[get(lang)]), 'angry');
+	}
 
 	function onPointerDown(e: PointerEvent) {
 		if (e.button !== 0) return;
@@ -239,9 +302,14 @@
 			if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) return;
 			dragging = true;
 			mode = 'held';
-			say(pick(grabLines[get(lang)]), 'wow');
+			traveling = false;
+			queued = null;
+			engine?.setAngry(true);
+			rant();
 		}
 		const now = performance.now();
+		// Keeps grumbling while it is carried around
+		if (now - lastRant > 3200) rant();
 		samples.push({ x: e.clientX, y: e.clientY, t: now });
 		while (samples.length > 2 && now - samples[0].t > 90) samples.shift();
 		const first = samples[0];
@@ -261,6 +329,7 @@
 			return;
 		}
 		dragging = false;
+		engine?.setAngry(false);
 		const MAX = 4500;
 		const speed = Math.hypot(body.vx, body.vy);
 		if (speed > MAX) {
@@ -289,7 +358,9 @@
 			store(MUTE_KEY, null);
 			say(unmuteLine[get(lang)], 'happy');
 		} else {
-			say(pick(clickLines[get(lang)]), 'happy');
+			const s = season();
+			const lines = s && Math.random() < 0.4 ? seasonLines[get(lang)][s] : clickLines[get(lang)];
+			say(pick(lines), 'happy');
 		}
 	}
 
@@ -298,23 +369,44 @@
 	}
 
 	// ── Page events: section in view, carousel and skills changes, terminal command ──
-	let sectionTimer: ReturnType<typeof setTimeout> | undefined;
-	function enterSection(id: SectionId) {
-		if (id === section) return;
-		section = id;
-		clearTimeout(sectionTimer);
-		// Wait for the scroll to settle so fast scrolling doesn't chatter
-		sectionTimer = setTimeout(() => {
-			if (section !== id || mode !== 'docked') return;
-			const line = sectionLines[get(lang)][id];
-			say(line.text.replace('{n}', String(TOTAL_SKILLS)), line.face);
-		}, 450);
+	// The section under the viewport centre is applied only once scrolling stops, so a
+	// fast scroll or a jump from the navbar is one glide to the end, not a tour.
+	let inView: SectionId = 'home';
+	let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function onScroll() {
+		clearTimeout(settleTimer);
+		settleTimer = setTimeout(settle, 280);
 	}
 
+	function settle() {
+		if (inView === section) return;
+		section = inView;
+		if (mode !== 'docked') return;
+		// Leave first, talk on arrival: the line is queued until the glide ends
+		const a = baseAnchor();
+		if (!reducedMotion && Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED) traveling = true;
+		const line = sectionLine(section);
+		say(fill(line.text), line.face);
+	}
+
+	let lastProjectLine = 0;
 	function onProjectActive(e: Event) {
-		if (section !== 'projects' || mode !== 'docked') return;
+		// The carousel advances every few seconds: comment at most every 12 s
+		if (section !== 'projects' || mode !== 'docked' || traveling) return;
+		if (performance.now() - lastProjectLine < 12000) return;
 		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
-		if (line) say(line, 'happy');
+		if (!line) return;
+		lastProjectLine = performance.now();
+		say(line, 'happy');
+	}
+
+	// A project opened from the carousel or the mosaic always gets a comment
+	function onProjectOpen(e: Event) {
+		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
+		if (!line || mode !== 'docked') return;
+		lastProjectLine = performance.now();
+		say(line, 'wow');
 	}
 
 	function onSkillsCategory(e: Event) {
@@ -336,6 +428,7 @@
 			return;
 		}
 		visible = true;
+		character = id;
 		if (engine) engine.setCharacter(id);
 		else void start(id); // it was saved as off: load three.js only now
 		say(pick(clickLines[get(lang)]), 'happy');
@@ -363,7 +456,9 @@
 		observer = new IntersectionObserver(
 			(entries) =>
 				entries.forEach((entry) => {
-					if (entry.isIntersecting) enterSection(entry.target.id as SectionId);
+					if (!entry.isIntersecting) return;
+					inView = entry.target.id as SectionId;
+					onScroll();
 				}),
 			{ rootMargin: '-45% 0px -45% 0px' }
 		);
@@ -373,8 +468,11 @@
 		}
 		raf = requestAnimationFrame(frame);
 		setTimeout(() => {
-			const line = sectionLines[get(lang)][section];
-			say(line.text.replace('{n}', String(TOTAL_SKILLS)), line.face);
+			const s = season();
+			const line = s
+				? { text: pick(seasonLines[get(lang)][s]), face: 'happy' as const }
+				: sectionLine(section);
+			say(fill(line.text), line.face);
 		}, 900);
 	}
 
@@ -383,13 +481,11 @@
 		muted = load(MUTE_KEY) === '1';
 		const param = new URLSearchParams(location.search).get('mascot');
 		const saved = param ?? load(CHAR_KEY);
-		const character = (CHARACTER_IDS as string[]).includes(saved ?? '')
-			? (saved as CharacterId)
-			: 'turi';
+		character = (CHARACTER_IDS as string[]).includes(saved ?? '') ? (saved as CharacterId) : 'turi';
 		visible = saved !== 'off';
 
 		compact = innerWidth < 1360;
-		size = innerWidth < 640 ? 104 : compact ? 130 : 170;
+		size = innerWidth < 640 ? 118 : compact ? 148 : 194;
 		radius = Math.round(size * 0.28);
 		el.style.width = el.style.height = `${size}px`;
 		// Fly in from the right edge
@@ -402,7 +498,9 @@
 		if (visible) idle(() => void start(character), { timeout: 3000 });
 
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
+		window.addEventListener('scroll', onScroll, { passive: true });
 		window.addEventListener('project-active', onProjectActive);
+		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('mascot-set', onMascotSet);
 		return () => {
@@ -410,12 +508,14 @@
 			cancelAnimationFrame(raf);
 			clearInterval(typeTimer);
 			clearTimeout(hideTimer);
-			clearTimeout(sectionTimer);
+			clearTimeout(settleTimer);
 			observer?.disconnect();
 			colorObserver?.disconnect();
 			engine?.dispose();
 			window.removeEventListener('pointermove', onWindowPointerMove);
+			window.removeEventListener('scroll', onScroll);
 			window.removeEventListener('project-active', onProjectActive);
+			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('mascot-set', onMascotSet);
 		};
@@ -443,7 +543,7 @@
 </div>
 
 {#if visible && speaking && !muted}
-	<div class="mascot-bubble" bind:this={bubbleEl}>
+	<div class="mascot-bubble" class:is-away={traveling} bind:this={bubbleEl}>
 		<p>{typed}</p>
 		<button class="mascot-mute" aria-label={$lang === 'it' ? 'Zittisci' : 'Mute'} onclick={mute}
 			>×</button
