@@ -74,7 +74,8 @@ export async function initGpgpuParticles(
 	}
 
 	// ── Camera ──
-	const camera = new PerspectiveCamera(45, W / H, 0.1, 1000);
+	const BASE_FOV = 45;
+	const camera = new PerspectiveCamera(BASE_FOV, W / H, 0.1, 1000);
 	if (isMobile) {
 		// Top-down view for wave field
 		camera.position.set(0, 0, 12);
@@ -83,6 +84,21 @@ export async function initGpgpuParticles(
 		camera.position.set(0, -6.5, 4.5); // Angolazione a ~45 gradi
 		camera.lookAt(0, 0, 0);
 	}
+
+	// The canvas hangs below the hero (it fades into About), so frame the scene as if
+	// it were hero-sized: same scale, centred on the hero, the extra strip below is
+	// just more of the same view.
+	function frameToHero() {
+		const heroH = interactionTarget.offsetHeight || H;
+		const ext = Math.max(0, H - heroH);
+		const fullH = heroH + 2 * ext;
+		const halfFov = ((BASE_FOV / 2) * Math.PI) / 180;
+		camera.fov = (2 * Math.atan((Math.tan(halfFov) * fullH) / heroH) * 180) / Math.PI;
+		camera.aspect = W / fullH;
+		camera.setViewOffset(W, fullH, 0, ext, W, H);
+		camera.updateProjectionMatrix();
+	}
+	frameToHero();
 
 	// ── Scene ──
 	const scene = new Scene();
@@ -703,8 +719,7 @@ export async function initGpgpuParticles(
 		H = container.offsetHeight;
 		renderer.setSize(W, H);
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-		camera.aspect = W / H;
-		camera.updateProjectionMatrix();
+		frameToHero();
 	}
 
 	interactionTarget.addEventListener('mousemove', onMouseMove);

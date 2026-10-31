@@ -284,10 +284,4 @@
 			</a>
 		</div>
 	</div>
-
-	<div class="scroll-indicator hero-stagger s6" class:hero-entered={mounted}>
-		<div class="scroll-mouse">
-			<div class="scroll-dot"></div>
-		</div>
-	</div>
 </section>

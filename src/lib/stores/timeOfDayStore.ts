@@ -5,13 +5,40 @@ export type TimeOfDay = 'day' | 'night';
 
 const STORAGE_KEY = 'portfolio-tod-override';
 
-function hoursToTimeOfDay(hours: number): TimeOfDay {
-	return hours >= 7 && hours < 19 ? 'day' : 'night';
+/**
+ * Day between sunrise and sunset for the date, not fixed hours: a fixed 7–19
+ * window stayed "day" for two dark hours every autumn/winter evening.
+ * Mirrored by the inline script in app.html — keep both in sync.
+ */
+// shortcut: fixed Italy position (~42°N, 12.5°E: solar noon ≈ 12:10 standard
+// time), within ~15 min there but off elsewhere (seasons inverted in the southern
+// hemisphere); use the Geolocation API if visitors abroad matter.
+export function isDaytime(d: Date): boolean {
+	const rad = Math.PI / 180;
+	const dayOfYear =
+		Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 864e5) + 1;
+	const decl = 23.44 * rad * Math.sin((2 * Math.PI * (284 + dayOfYear)) / 365);
+	const lat = 42 * rad;
+	const cosH =
+		(Math.sin(-0.833 * rad) - Math.sin(lat) * Math.sin(decl)) / (Math.cos(lat) * Math.cos(decl));
+	const halfDay = Math.acos(cosH) / rad / 15;
+	// Standard-time offset is the larger of January/July; the difference is the DST shift
+	const standardOffset = Math.max(
+		new Date(d.getFullYear(), 0, 1).getTimezoneOffset(),
+		new Date(d.getFullYear(), 6, 1).getTimezoneOffset()
+	);
+	const noon = 12 + 10 / 60 + (standardOffset - d.getTimezoneOffset()) / 60;
+	const h = d.getHours() + d.getMinutes() / 60;
+	return h >= noon - halfDay && h < noon + halfDay;
+}
+
+function timeOfDayNow(): TimeOfDay {
+	return isDaytime(new Date()) ? 'day' : 'night';
 }
 
 function readManualOverride(): TimeOfDay | null {
 	if (!browser) return null;
-	const saved = localStorage.getItem(STORAGE_KEY);
+	const saved = sessionStorage.getItem(STORAGE_KEY);
 	return saved === 'day' || saved === 'night' ? saved : null;
 }
 
@@ -25,12 +52,10 @@ let manualOverride: TimeOfDay | null = readManualOverride();
  */
 function computeTimeOfDay(): TimeOfDay {
 	if (!browser) return 'day';
-	return manualOverride ?? hoursToTimeOfDay(new Date().getHours());
+	return manualOverride ?? timeOfDayNow();
 }
 
 export const timeOfDay = writable<TimeOfDay>(computeTimeOfDay());
-
-let recheckInterval: ReturnType<typeof setInterval> | undefined;
 
 /** Call from onMount in the root layout to start the periodic re-check. */
 export function initTimeOfDay() {
@@ -38,24 +63,24 @@ export function initTimeOfDay() {
 
 	// Cheap periodic re-check so a tab left open across the day/night boundary
 	// updates on its own; a manual override takes precedence until cleared.
-	recheckInterval = setInterval(
+	setInterval(
 		() => {
-			timeOfDay.set(manualOverride ?? hoursToTimeOfDay(new Date().getHours()));
+			timeOfDay.set(manualOverride ?? timeOfDayNow());
 		},
 		5 * 60 * 1000
 	);
 }
 
-/** Force a time of day for the session (terminal `day`/`night` commands), sticky until resetTimeOfDay(). */
+/** Force a time of day for this tab session (terminal `day`/`night` commands), until resetTimeOfDay(). */
 export function setTimeOfDay(mode: TimeOfDay) {
 	manualOverride = mode;
-	if (browser) localStorage.setItem(STORAGE_KEY, mode);
+	if (browser) sessionStorage.setItem(STORAGE_KEY, mode);
 	timeOfDay.set(mode);
 }
 
 /** Clear the manual override and go back to clock-based detection (terminal `default`/`autotheme`). */
 export function resetTimeOfDay() {
 	manualOverride = null;
-	if (browser) localStorage.removeItem(STORAGE_KEY);
-	timeOfDay.set(hoursToTimeOfDay(new Date().getHours()));
+	if (browser) sessionStorage.removeItem(STORAGE_KEY);
+	timeOfDay.set(timeOfDayNow());
 }

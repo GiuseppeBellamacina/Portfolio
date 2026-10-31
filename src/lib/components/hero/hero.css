@@ -5,13 +5,11 @@
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	overflow: hidden;
-	background: linear-gradient(
-		160deg,
-		var(--hero-bg-1) 0%,
-		var(--hero-bg-2) 50%,
-		var(--hero-bg-3) 100%
-	);
+	/* clip sideways only: the galaxy canvas hangs below the hero into About */
+	overflow-x: clip;
+	overflow-y: visible;
+	/* The glow lives on .hero-canvas, which runs on into About and fades there */
+	background: var(--bg-dark);
 	padding-top: 80px;
 }
 
@@ -115,12 +113,6 @@
 	100% {
 		opacity: 0;
 	}
-}
-
-.tagline {
-	font-size: clamp(1rem, 0.8rem + 0.3vw, 1.2rem);
-	margin-bottom: 2rem;
-	color: var(--primary-color);
 }
 
 .hero-buttons {
@@ -417,11 +409,18 @@
 }
 
 /* ── Hero canvas ── */
+/* Taller than the hero: the galaxy keeps going under About and fades there, no box edge */
 .hero-canvas {
 	position: absolute;
-	inset: 0;
+	inset: 0 0 -45vh 0;
 	width: 100%;
-	height: 100%;
+	/* 145vh tall: centre at 40% of the hero, the tail reaches below its bottom edge */
+	background: radial-gradient(
+		ellipse 85% 60% at 50% 28%,
+		var(--hero-bg-2) 0%,
+		color-mix(in srgb, var(--hero-bg-2) 45%, transparent) 55%,
+		transparent 100%
+	);
 	z-index: 0;
 	pointer-events: none;
 	overflow: visible;
@@ -551,7 +550,7 @@
 		filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 /* Critical hero elements: visible via CSS animation (no JS dependency for LCP) */
-.hero-stagger:not(.s4):not(.s5):not(.s6) {
+.hero-stagger:not(.s4):not(.s5) {
 	animation: heroLcpReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .hero-stagger.s2 {
@@ -584,9 +583,6 @@
 .hero-stagger.s5 {
 	transition-delay: 0.6s;
 }
-.hero-stagger.s6 {
-	transition-delay: 0.8s;
-}
 
 /* ── Typing prefix ── */
 .typing-prefix {
@@ -596,49 +592,7 @@
 	opacity: 0.7;
 }
 
-/* ── Scroll indicator ── */
-.scroll-indicator {
-	position: absolute;
-	bottom: 30px;
-	left: 0;
-	right: 0;
-	display: flex;
-	justify-content: center;
-}
-.scroll-mouse {
-	width: 22px;
-	height: 34px;
-	border: 1.5px solid rgba(var(--primary-rgb), 0.4);
-	border-radius: 12px;
-	position: relative;
-}
-.scroll-dot {
-	position: absolute;
-	top: 6px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 4px;
-	height: 6px;
-	background: var(--primary-color);
-	border-radius: 2px;
-	animation: scrollBounce 2.5s ease-in-out infinite;
-	will-change: transform, opacity;
-}
-@keyframes scrollBounce {
-	0%,
-	100% {
-		transform: translateX(-50%) translateY(0);
-		opacity: 1;
-	}
-	50% {
-		transform: translateX(-50%) translateY(12px);
-		opacity: 0.3;
-	}
-}
 @media (max-width: 768px) {
-	.scroll-indicator {
-		display: none;
-	}
 	.holo-ring {
 		width: 100%;
 		height: 100%;
@@ -652,4 +606,50 @@
 	.holo-ring::before {
 		inset: -4px;
 	}
+}
+
+/* ── Legibility over the galaxy ──
+   A soft dark halo behind the text block, plus contrast on the name, the typed line
+   and the outlined buttons; the particles stay visible around it. */
+.hero-content {
+	position: relative;
+}
+.hero-content::before {
+	content: '';
+	position: absolute;
+	inset: 18% -18% -6%;
+	z-index: -1;
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse 50% 50% at 50% 55%,
+		rgba(var(--bg-dark-rgb), 0.72) 0%,
+		rgba(var(--bg-dark-rgb), 0.45) 45%,
+		transparent 75%
+	);
+}
+.hero .glitch {
+	filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+}
+.hero #typing-text {
+	color: color-mix(in srgb, var(--primary-color) 55%, #fff);
+	text-shadow:
+		0 1px 8px rgba(0, 0, 0, 0.85),
+		0 0 18px rgba(var(--primary-rgb), 0.35);
+}
+.hero .typing-prefix {
+	opacity: 1;
+}
+.hero-buttons .btn-secondary {
+	background: rgba(var(--bg-card-rgb), 0.72);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	border-color: rgba(var(--primary-rgb), 0.65);
+	color: var(--text-light);
+	text-shadow: none;
+}
+.hero-buttons .btn-secondary:hover {
+	background: rgba(var(--primary-rgb), 0.22);
+}
+.hero .social-links a {
+	filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.8));
 }

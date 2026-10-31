@@ -61,10 +61,10 @@
 	--galaxy-c6: #a78bfa;
 	--galaxy-c7: #8b5cf6;
 	--galaxy-c8: #7c3aed;
-	--galaxy-c9: #8a6fd0;
-	--galaxy-c10: #b08acc;
-	--galaxy-c11: #d4a679;
-	--galaxy-c12: #fbbf24;
+	--galaxy-c9: #7e5cdb;
+	--galaxy-c10: #8a7ace;
+	--galaxy-c11: #9d9ad4;
+	--galaxy-c12: #b8b8e0;
 
 	/* ── Design tokens ──────────────────────────────────────────────────────
 	   Shared scales so every section converges on the same rhythm instead of
@@ -620,6 +620,83 @@ body.tab-hidden::after {
 	animation-play-state: paused;
 }
 
+/* ── Seamless sections ──
+   Every section is transparent over the body's --bg-dark. Background effects fade
+   out at their top and bottom edges, so one section dissolves into the next. */
+.hero::before,
+.hero-spotlight {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 260px), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 260px), transparent);
+}
+/* The galaxy layer hangs 45vh below the hero and fades out inside About */
+.hero-canvas {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 70vh), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 70vh), transparent);
+}
+
+/* Section canvases stay inside their section and fade at its edges */
+.neural-canvas,
+.binary-canvas,
+.skills > canvas {
+	--edge-fade: min(30%, 320px);
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 var(--edge-fade),
+		#000 calc(100% - var(--edge-fade)),
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 var(--edge-fade),
+		#000 calc(100% - var(--edge-fade)),
+		transparent
+	);
+}
+
+/* Background washes reach 320px past their section on both sides (sections clip
+   only horizontally), so each fade-out crosses the next section's fade-in instead
+   of dropping to black in between */
+#main-content .about::before,
+#main-content .about::after,
+#main-content .experience::before,
+#main-content .experience::after,
+#main-content .projects::before,
+#main-content .skills::before,
+#main-content .skills::after,
+#main-content .contact::before {
+	top: -320px;
+	bottom: -320px;
+	height: auto;
+	pointer-events: none;
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 320px,
+		#000 calc(100% - 320px),
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 320px,
+		#000 calc(100% - 320px),
+		transparent
+	);
+}
+
+/* Night is pure OLED black: the soft colour washes and the moving data stream only
+   show up there as grey circles and bands, so they are switched off */
+body.tod-night .hero::before,
+body.tod-night .about::before,
+body.tod-night .experience::after,
+body.tod-night .projects::before,
+body.tod-night .skills::after,
+body.tod-night .contact::before {
+	display: none;
+}
+
 /* ── Section Entrance Animations ── */
 .about,
 .experience,
@@ -627,25 +704,6 @@ body.tab-hidden::after {
 .skills,
 .contact {
 	animation: sectionFadeIn 1s ease-out;
-}
-
-/* ── Section Dividers ── */
-.section-divider {
-	height: clamp(60px, 4rem + 1vw, 100px);
-	position: relative;
-	z-index: 1;
-	pointer-events: none;
-	overflow: hidden;
-	transform: translateY(var(--parallax-offset, 0px));
-	transition: transform 0.1s linear;
-}
-
-.divider-to-card {
-	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-card) 100%);
-}
-
-.divider-to-dark {
-	background: linear-gradient(180deg, var(--bg-card) 0%, #050510 100%);
 }
 
 @keyframes sectionFadeIn {
