@@ -260,15 +260,14 @@
 	// ── Auto-play: one step every AUTO_MS, the active dot fills as progress ──
 	const AUTO_MS = 5000;
 	let progress = $state(0);
-	// Separate flags: opening the panel moves the mouse off the carousel while focus stays
-	let hovered = false;
+	// Only keyboard focus pauses it: the mouse never does, and a click focuses the viewport
 	let focused = false;
 	let reducedMotion = false;
 	let autoPlayRaf: number | null = null;
 	let autoLastTime = 0;
 
 	function autoPlayLoop(time: number) {
-		if (autoLastTime > 0 && !hovered && !focused && !isDragging && expandedProjectIndex === null) {
+		if (autoLastTime > 0 && !focused && !isDragging && expandedProjectIndex === null) {
 			progress += (time - autoLastTime) / AUTO_MS;
 			if (progress >= 1) {
 				progress = 0;
@@ -342,6 +341,7 @@
 	});
 
 	function onGridCardClick(p: Project) {
+		window.dispatchEvent(new CustomEvent('project-open', { detail: p.title }));
 		expandedProjectIndex = projects.indexOf(p);
 		panelExpanded = false;
 		tick().then(() => {
@@ -446,9 +446,7 @@
 			aria-label={$t.nav_projects}
 			onpointerdown={onPointerDown}
 			onkeydown={onCarouselKeyDown}
-			onmouseenter={() => (hovered = true)}
-			onmouseleave={() => (hovered = false)}
-			onfocusin={() => (focused = true)}
+			onfocusin={(e) => (focused = (e.target as HTMLElement).matches(':focus-visible'))}
 			onfocusout={() => (focused = false)}
 		>
 			{#each featured as project, i (project.title)}
