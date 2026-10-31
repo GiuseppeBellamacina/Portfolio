@@ -37,7 +37,20 @@
 	let bubbleEl: HTMLDivElement | undefined = $state();
 	let visible = $state(false);
 	let muted = $state(false);
-	let typed = $state('');
+	// A line is split on **…** into plain and bold runs; typing reveals `shown` characters
+	type Run = { text: string; bold: boolean };
+	let runs = $state<Run[]>([]);
+	let shown = $state(0);
+	let typedRuns = $derived.by(() => {
+		const out: Run[] = [];
+		let left = shown;
+		for (const r of runs) {
+			if (left <= 0) break;
+			out.push({ text: r.text.slice(0, left), bold: r.bold });
+			left -= r.text.length;
+		}
+		return out;
+	});
 	let speaking = $state(false);
 	/** Gliding to a new spot: the bubble hides, new lines wait for the arrival */
 	let traveling = $state(false);
@@ -111,17 +124,21 @@
 				if (mode === 'docked') engine?.setExpression('normal');
 			}, 6500);
 		};
+		runs = line
+			.split('**')
+			.map((text, i) => ({ text, bold: i % 2 === 1 }))
+			.filter((r) => r.text);
+		const total = runs.reduce((n, r) => n + r.text.length, 0);
 		if (reducedMotion) {
-			typed = line;
+			shown = total;
 			done();
 			return;
 		}
-		typed = '';
+		shown = 0;
 		engine?.setTalking(true);
-		let i = 0;
 		typeTimer = setInterval(() => {
-			typed = line.slice(0, ++i);
-			if (i >= line.length) {
+			shown++;
+			if (shown >= total) {
 				clearInterval(typeTimer);
 				done();
 			}
@@ -183,8 +200,12 @@
 	const GLIDE_K = 30;
 	const GLIDE_MAX = 2600; // px/s: about 1.1 s across the screen
 	const ARRIVED = 40; // px
-	// It talks only when nearly still; above this speed the bubble waits
-	const TALK_SPEED = 90; // px/s
+	// It talks only when nearly still: above these speeds the bubble hides and lines wait
+	const TALK_SPEED = 90; // px/s, gliding
+	const HELD_TALK_SPEED = 260; // px/s, while carried
+	const QUIET_MS = 220; // still for this long before it speaks again
+	let quietMs = 0;
+	let lastDrag = 0;
 
 	function onImpact(speed: number) {
 		hits++;
@@ -200,12 +221,47 @@
 		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
+		const half = size * 0.36; // half the visible model, inside the padded box
 		const onLeft = body.x > innerWidth / 2;
-		let x = onLeft ? body.x - w + radius * 0.6 : body.x - radius * 0.6;
-		x = Math.max(8, Math.min(innerWidth - w - 8, x));
-		let y = body.y - radius - h - 6;
-		if (y < NAV_H + 8) y = body.y + radius + 10;
-		bubbleEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+		// The edge nearest the mascot is pinned, so a line growing as it types
+		// extends away from it, never over it
+		let edge = onLeft ? body.x + half * 0.5 : body.x - half * 0.5;
+		let y = body.y - half - h - 4;
+		if (y < NAV_H + 8) {
+			// No room above: beside it, on the side facing the page
+			edge = onLeft ? body.x - half - 4 : body.x + half + 4;
+			y = body.y - h / 2;
+		}
+		y = Math.max(NAV_H + 8, Math.min(innerHeight - h - 8, y));
+		const x = onLeft
+			? `max(8px, calc(${Math.min(innerWidth - 8, edge)}px - 100%))`
+			: `${Math.max(8, Math.min(innerWidth - w - 8, edge))}px`;
+		bubbleEl.style.transform = `translate3d(${x}, ${y}px, 0)`;
+	}
+
+	function updateQuiet(dtMs: number) {
+		const speed = Math.hypot(body.vx, body.vy);
+		let moving: boolean;
+		if (mode === 'flying') moving = true;
+		else if (mode === 'held') moving = speed > HELD_TALK_SPEED;
+		else {
+			const a = baseAnchor();
+			moving = Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED || speed > TALK_SPEED;
+		}
+		if (moving) {
+			quietMs = 0;
+			traveling = true;
+			return;
+		}
+		if (!traveling) return;
+		quietMs += dtMs;
+		if (quietMs < QUIET_MS) return;
+		traveling = false;
+		if (queued) {
+			const q = queued;
+			queued = null;
+			say(q.line, q.face);
+		}
 	}
 
 	let raf = 0;
@@ -228,7 +284,8 @@
 				mode = 'returning';
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
-				say(pick(backLines[get(lang)]), 'normal');
+				// A complaint from the landing beats the generic "back to my spot"
+				if (!queued) queued = { line: pick(backLines[get(lang)]), face: 'normal' };
 			}
 		} else if (mode === 'docked' || mode === 'returning') {
 			const a = anchor();
@@ -250,21 +307,15 @@
 				body.y += body.vy * dt;
 			}
 			body.angle *= Math.exp(-6 * dt);
-			const far = Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED;
-			const moving = far || Math.hypot(body.vx, body.vy) > TALK_SPEED;
-			if (moving !== traveling) {
-				traveling = moving;
-				if (!moving && queued) {
-					const q = queued;
-					queued = null;
-					say(q.line, q.face);
-				}
-			}
-			if (mode === 'returning' && !far) {
+			if (mode === 'returning' && Math.hypot(a.x - body.x, a.y - body.y) < ARRIVED) {
 				mode = 'docked';
 				hits = 0;
 			}
+		} else if (mode === 'held' && performance.now() - lastDrag > 90) {
+			// Held still: no pointer moves, so it is not moving either
+			body.vx = body.vy = 0;
 		}
+		updateQuiet(dtMs);
 		if (visible) {
 			place();
 			engine?.tick(dtMs, { vx: body.vx, vy: body.vy, angle: body.angle });
@@ -305,13 +356,16 @@
 			if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) return;
 			dragging = true;
 			mode = 'held';
-			traveling = false;
+			// The first rant waits until it is held still (see updateQuiet)
+			traveling = true;
+			quietMs = 0;
 			queued = null;
 			engine?.setAngry(true);
 			rant();
 		}
 		const now = performance.now();
-		// Keeps grumbling while it is carried around
+		lastDrag = now;
+		// Keeps grumbling while it is carried around (heard whenever it slows down)
 		if (now - lastRant > 3200) rant();
 		samples.push({ x: e.clientX, y: e.clientY, t: now });
 		while (samples.length > 2 && now - samples[0].t > 90) samples.shift();
@@ -376,10 +430,26 @@
 	// fast scroll or a jump from the navbar is one glide to the end, not a tour.
 	let inView: SectionId = 'home';
 	let settleTimer: ReturnType<typeof setTimeout> | undefined;
+	let scrollSpeed = 0; // px/s, smoothed
+	let lastScrollY = 0;
+	let lastScrollT = 0;
+	// Below this the reader is browsing: follow the section at once
+	const SLOW_SCROLL = 1400;
 
 	function onScroll() {
+		const now = performance.now();
+		const dt = now - lastScrollT;
+		const instant = dt > 0 && dt < 400 ? (Math.abs(scrollY - lastScrollY) / dt) * 1000 : 0;
+		scrollSpeed = scrollSpeed * 0.6 + instant * 0.4;
+		lastScrollY = scrollY;
+		lastScrollT = now;
 		clearTimeout(settleTimer);
 		settleTimer = setTimeout(settle, 280);
+	}
+
+	function onSectionInView(id: SectionId) {
+		inView = id;
+		if (scrollSpeed < SLOW_SCROLL) settle();
 	}
 
 	function settle() {
@@ -459,9 +529,7 @@
 		observer = new IntersectionObserver(
 			(entries) =>
 				entries.forEach((entry) => {
-					if (!entry.isIntersecting) return;
-					inView = entry.target.id as SectionId;
-					onScroll();
+					if (entry.isIntersecting) onSectionInView(entry.target.id as SectionId);
 				}),
 			{ rootMargin: '-45% 0px -45% 0px' }
 		);
@@ -548,7 +616,9 @@
 
 {#if visible && speaking && !muted}
 	<div class="mascot-bubble" class:is-away={traveling} bind:this={bubbleEl}>
-		<p>{typed}</p>
+		<p>
+			{#each typedRuns as r}{#if r.bold}<strong>{r.text}</strong>{:else}{r.text}{/if}{/each}
+		</p>
 		<button class="mascot-mute" aria-label={$lang === 'it' ? 'Zittisci' : 'Mute'} onclick={mute}
 			>×</button
 		>

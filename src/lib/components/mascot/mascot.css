@@ -66,6 +66,11 @@
 	margin: 0;
 	min-height: 1.3em;
 }
+/* Key words in the lines: bold, in a deep indigo that reads on the white bubble */
+.mascot-bubble strong {
+	font-weight: 700;
+	color: #3730a3;
+}
 .mascot-mute {
 	position: absolute;
 	top: 6px;
