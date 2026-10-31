@@ -86,6 +86,7 @@ const translations = {
 		skills_devtooling: 'Dev Tooling',
 		skills_ides: 'IDEs & Editors',
 		skills_os: 'Operating Systems & Security',
+		skills_all: 'All',
 
 		// Experience
 		exp_title: 'Experience & Education',
@@ -239,6 +240,7 @@ const translations = {
 		skills_devtooling: 'Strumenti di Sviluppo',
 		skills_ides: 'IDE & Editor',
 		skills_os: 'Sistemi Operativi & Sicurezza',
+		skills_all: 'Tutte',
 
 		// Experience
 		exp_title: 'Esperienza & Formazione',

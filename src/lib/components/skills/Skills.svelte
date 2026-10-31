@@ -1,92 +1,29 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
-	import type { Translations } from '$lib/i18n';
-	import { skillCategories } from './skillsData';
+	import { skillCategories, type SkillCategory } from './skillsData';
 	import { createCanvasConstellation } from './skillsConstellation';
 	import './skills.css';
 
 	let skillsSection: HTMLElement;
 	let isVisible = false;
 
-	function addParallaxEffect() {
-		const icons = document.querySelectorAll('.tech-icon') as NodeListOf<HTMLElement>;
-		const listeners: Array<{
-			icon: HTMLElement;
-			leave: () => void;
-			move: (event: MouseEvent) => void;
-		}> = [];
+	// Wall: every tech dealt round-robin into rows so categories mix along each row
+	const ROWS = 4;
+	const allIcons = skillCategories.flatMap((c) => c.icons);
+	const rows = Array.from({ length: ROWS }, (_, r) => allIcons.filter((_, i) => i % ROWS === r));
 
-		icons.forEach((icon) => {
-			// Magnetic hover: icon follows cursor within bounds
-			const leave = () => {
-				icon.style.transform = '';
-				icon.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-			};
+	let selectedIndex = $state<number | null>(null);
+	let selected = $derived(selectedIndex === null ? null : skillCategories[selectedIndex]);
 
-			const move = (e: MouseEvent) => {
-				const rect = icon.getBoundingClientRect();
-				const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
-				const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
-				icon.style.transition = 'transform 0.1s ease-out';
-				// scale/translateY match the lift-sm token in skills.css (--lift-sm-scale/-y)
-				icon.style.transform = `scale(1.06) translateY(-4px) translate(${x * 6}px, ${y * 6}px)`;
-			};
-			icon.addEventListener('mouseleave', leave);
-			icon.addEventListener('mousemove', move);
-			listeners.push({ icon, leave, move });
-		});
-		return () =>
-			listeners.forEach(({ icon, leave, move }) => {
-				icon.removeEventListener('mouseleave', leave);
-				icon.removeEventListener('mousemove', move);
-			});
-	}
-
-	function setupSkillsAnimations() {
-		const categories = document.querySelectorAll('.skills-category') as NodeListOf<HTMLElement>;
-		const categoryObserver = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						entry.target.classList.add('visible');
-					}
-				});
-			},
-			{ threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
-		);
-
-		categories.forEach((category) => {
-			categoryObserver.observe(category);
-		});
-
-		const icons = document.querySelectorAll('.tech-icon') as NodeListOf<HTMLElement>;
-		const iconObserver = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry, index) => {
-					if (entry.isIntersecting) {
-						setTimeout(() => {
-							entry.target.classList.add('visible');
-						}, index * 50);
-					}
-				});
-			},
-			{ threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-		);
-
-		icons.forEach((icon) => {
-			iconObserver.observe(icon);
-		});
-		return () => {
-			categoryObserver.disconnect();
-			iconObserver.disconnect();
-		};
+	function select(index: number | null) {
+		selectedIndex = index;
+		const key = index === null ? null : skillCategories[index].key;
+		window.dispatchEvent(new CustomEvent('skills-category', { detail: key }));
 	}
 
 	onMount(() => {
 		let cleanupCanvas: (() => void) | undefined;
-		let cleanupParallax: (() => void) | undefined;
-		let cleanupAnimations: (() => void) | undefined;
 		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -96,10 +33,6 @@
 						if (!isMobile) {
 							cleanupCanvas = createCanvasConstellation(skillsSection);
 						}
-						setTimeout(() => {
-							cleanupParallax = addParallaxEffect();
-							cleanupAnimations = setupSkillsAnimations();
-						}, 100);
 					}
 				});
 			},
@@ -111,34 +44,72 @@
 		}
 
 		return () => {
-			if (skillsSection) {
-				observer.disconnect();
-			}
-			cleanupParallax?.();
-			cleanupAnimations?.();
+			observer.disconnect();
 			cleanupCanvas?.();
 		};
 	});
 </script>
 
+{#snippet tile(icon: SkillCategory['icons'][number], i = 0)}
+	<a
+		href={icon.url}
+		target="_blank"
+		rel="noopener noreferrer"
+		class="tech-icon-link"
+		style="--i:{i}"
+	>
+		<div class="tech-icon visible" data-title={icon.name}>
+			<span class="tech-name">{icon.name}</span>
+			<img src="/assets/icons/{icon.icon}" alt={icon.name} loading="lazy" />
+		</div>
+	</a>
+{/snippet}
+
 <section id="skills" class="skills" bind:this={skillsSection}>
 	<div class="container">
 		<h2 class="section-title">{$t.skills_title}</h2>
 
-		{#each skillCategories as category}
-			<div class="skills-category">
-				<h3>{$t[category.key]}</h3>
-				<div class="skills-grid">
-					{#each category.icons as icon}
-						<a href={icon.url} target="_blank" rel="noopener noreferrer" class="tech-icon-link">
-							<div class="tech-icon" data-title={icon.name}>
-								<span class="tech-name">{icon.name}</span>
-								<img src="/assets/icons/{icon.icon}" alt={icon.name} loading="lazy" />
-							</div>
-						</a>
+		<div class="skills-cats" role="group" aria-label={$t.skills_title}>
+			<button class:on={!selected} aria-pressed={!selected} onclick={() => select(null)}>
+				{$t.skills_all} <span>{allIcons.length}</span>
+			</button>
+			{#each skillCategories as category, i}
+				<button
+					class:on={selectedIndex === i}
+					aria-pressed={selectedIndex === i}
+					onclick={() => select(i)}
+				>
+					{$t[category.key]} <span>{category.icons.length}</span>
+				</button>
+			{/each}
+		</div>
+	</div>
+
+	{#if selected}
+		<div class="container">
+			{#key selectedIndex}
+				<div class="skills-grid skills-focus">
+					{#each selected.icons as icon, i}
+						{@render tile(icon, i)}
 					{/each}
 				</div>
-			</div>
-		{/each}
-	</div>
+			{/key}
+		</div>
+	{:else}
+		<div class="skills-wall">
+			{#each rows as row, r}
+				<!-- Second copy makes the -50% loop seamless; hidden from AT and tab order -->
+				<div class="skills-row" class:rev={r % 2 === 1} style="--dur:{70 + r * 12}s">
+					{#each row as icon}
+						{@render tile(icon)}
+					{/each}
+					<div class="skills-row-copy" aria-hidden="true" inert>
+						{#each row as icon}
+							{@render tile(icon)}
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
 </section>
