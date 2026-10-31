@@ -150,7 +150,10 @@ export function createVoxelMascot(
 		const vs = model.voxels;
 		const min = new Vector3(Infinity, Infinity, Infinity);
 		const max = new Vector3(-Infinity, -Infinity, -Infinity);
+		// Frame the body only: hats, glasses and the glass vary per theme, and must not
+		// change the mascot's size
 		for (const v of vs) {
+			if (v.color) continue;
 			min.min(new Vector3(v.x, v.y, v.z));
 			max.max(new Vector3(v.x, v.y, v.z));
 		}
