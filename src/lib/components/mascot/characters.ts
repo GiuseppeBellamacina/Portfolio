@@ -6,7 +6,7 @@
 
 export type Role = 'base' | 'shade' | 'accent' | 'dark' | 'glow';
 export type CharacterId = 'turi' | 'arancino';
-export type Hat = 'propeller' | 'santa' | 'nightcap' | 'party' | 'sunglasses';
+export type Hat = 'propeller' | 'santa' | 'nightcap' | 'party' | 'straw';
 export type Expression = 'normal' | 'happy' | 'wink' | 'wow' | 'talk' | 'dizzy' | 'angry' | 'blink';
 
 export interface Voxel {
@@ -137,7 +137,7 @@ export function hatFor(classes: DOMTokenList): Hat {
 	if (classes.contains('season-snow')) return 'santa';
 	if (classes.contains('season-newyear')) return 'party';
 	if (classes.contains('tod-night')) return 'nightcap';
-	if (classes.contains('season-summer')) return 'sunglasses';
+	if (classes.contains('season-summer')) return 'straw';
 	return 'propeller';
 }
 
@@ -200,21 +200,16 @@ function addHat(head: Voxel[], hat: Hat): Voxel[] {
 					put(x, y, z, rim ? (y === 2 ? glass : '#fde68a') : bubble ? '#fffbeb' : '#facc15');
 				}
 	} else {
-		// Sunglasses sit one layer in front of the screen, over the eyes
-		const frame = '#f97316';
-		for (let x = -4; x <= 4; x++) out.push({ x, y: 1, z: 5, role: 'base', color: frame });
-		for (const side of [-1, 1])
-			for (let i = 1; i <= 3; i++)
-				for (const y of [0, -1])
-					out.push({
-						x: side * i,
-						y,
-						z: 5,
-						role: 'base',
-						color: i === 3 && y === 0 ? '#e2e8f0' : '#111827'
-					});
-		out.push({ x: 0, y: 0, z: 5, role: 'base', color: frame });
-		for (const side of [-4, 4]) out.push({ x: side, y: 0, z: 5, role: 'base', color: frame });
+		// Straw hat: wide brim, a ribbon round the crown and a little flower
+		const straw = (x: number, z: number) => (hash3(x, 5, z) > 0.6 ? '#d6a94a' : '#ecc977');
+		disc(out, taken, 5, 7.4, 6.6, straw);
+		disc(out, taken, 6, 3.6, 3.2, () => '#4f46e5');
+		disc(out, taken, 7, 3.6, 3.2, straw);
+		disc(out, taken, 8, 3, 2.6, straw);
+		put(3, 6, 3, '#f472b6');
+		put(4, 6, 2, '#f472b6');
+		put(3, 7, 3, '#f472b6');
+		put(4, 6, 3, '#fde047');
 	}
 	return out;
 }
@@ -239,7 +234,7 @@ function turi(hat: Hat): Character {
 		frameTop: 9,
 		palette: (css, night) => ({
 			base: css('--primary-color', '#818cf8'),
-			shade: css('--secondary-color', '#a78bfa'),
+			shade: css('--mascot-shade', css('--secondary-color', '#a78bfa')),
 			accent: css('--warm-accent', '#fbbf24'),
 			dark: '#0b0d1c',
 			glow: night ? '#ffffff' : '#a5f3fc'
@@ -293,7 +288,7 @@ export function faceCells(c: Character): number[] {
 			const y = c.face.y0 - fy;
 			let best = -1;
 			c.voxels.forEach((v, i) => {
-				// Accessories in front (sunglasses) are not part of the screen
+				// Accessories are not part of the screen
 				if (v.color || v.x !== x || v.y !== y) return;
 				if (best < 0 || v.z > c.voxels[best].z) best = i;
 			});

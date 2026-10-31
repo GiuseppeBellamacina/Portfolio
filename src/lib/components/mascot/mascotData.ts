@@ -313,7 +313,7 @@ export const seasonLines: Lines<Record<Season, string[]>> = {
 			'**Cin cin!** Attenzione, il tappo vola più lontano di me.'
 		],
 		summer: [
-			'Che caldo… meno male che ho gli **occhiali da sole**.',
+			'Che caldo… meno male che ho il **cappello di paglia**.',
 			'D’estate fluttuo più piano, per risparmiare la batteria.',
 			'Io vado al mare. Tanto sono impermeabile, credo.'
 		],
@@ -335,7 +335,7 @@ export const seasonLines: Lines<Record<Season, string[]>> = {
 			'**Cheers!** Careful, the cork flies further than me.'
 		],
 		summer: [
-			'So hot… good thing I brought **sunglasses**.',
+			'So hot… good thing I brought my **straw hat**.',
 			'In summer I float slower, to save battery.',
 			'I’m off to the beach. I think I’m waterproof.'
 		],
