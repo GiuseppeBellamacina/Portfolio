@@ -20,9 +20,8 @@
 			return () => cleanup();
 		}
 
-		// Enhanced parallax on section titles and dividers
+		// Parallax on section titles
 		const titles = document.querySelectorAll<HTMLElement>('.section-title');
-		const dividers = document.querySelectorAll<HTMLElement>('.section-divider');
 		let raf: number;
 
 		function updateParallax() {
@@ -34,18 +33,9 @@
 				const center = rect.top + rect.height / 2;
 				titleData.push({ el, offset: ((center - vh / 2) / vh) * -8 });
 			}
-			const dividerData: { el: HTMLElement; offset: number }[] = [];
-			for (const el of dividers) {
-				const rect = el.getBoundingClientRect();
-				const center = rect.top + rect.height / 2;
-				dividerData.push({ el, offset: ((center - vh / 2) / vh) * -10 });
-			}
 			// Pass 2: write all transforms
 			for (const { el, offset } of titleData) {
 				el.style.transform = `translateY(${offset}px) translateZ(0)`;
-			}
-			for (const { el, offset } of dividerData) {
-				el.style.setProperty('--parallax-offset', `${offset}px`);
 			}
 		}
 
@@ -71,11 +61,8 @@
 	<div id="main-content" tabindex="-1">
 		<Hero />
 		<About />
-		<div class="section-divider divider-to-card"></div>
 		<Experience />
-		<div class="section-divider divider-to-dark"></div>
 		<Projects />
-		<div class="section-divider divider-to-card"></div>
 		<Skills />
 		<Contact />
 	</div>

@@ -2,9 +2,9 @@
 .about {
 	min-height: 100vh;
 	padding: var(--section-padding) 0;
-	background: var(--bg-dark);
+	background: transparent; /* body paints --bg-dark; the hero galaxy bleeds through */
 	position: relative;
-	overflow: hidden;
+	overflow-x: clip;
 	display: flex;
 	align-items: center;
 	justify-content: center;

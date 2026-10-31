@@ -1,9 +1,9 @@
 /* Experience Section */
 .experience {
 	padding: var(--section-padding) 0;
-	background: var(--bg-card);
+	background: transparent;
 	position: relative;
-	overflow: hidden;
+	overflow-x: clip;
 }
 
 /* Circuit Board Pattern */
@@ -41,7 +41,7 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 300%;
+	width: 100%;
 	height: 100%;
 	background: linear-gradient(
 		90deg,
@@ -51,18 +51,20 @@
 		rgba(var(--indigo-rgb), 0.015) 55%,
 		transparent 100%
 	);
+	/* Scrolls the gradient, not the element: a promoted 300%-wide layer under the
+	   seam mask got rasterised in visible square tiles */
+	background-size: 300% 100%;
 	animation: dataStream 10s linear infinite;
 	z-index: 0;
 	pointer-events: none;
-	will-change: transform;
 }
 
 @keyframes dataStream {
 	0% {
-		transform: translateX(-66.66%);
+		background-position: 100% 0;
 	}
 	100% {
-		transform: translateX(0%);
+		background-position: 0% 0;
 	}
 }
 

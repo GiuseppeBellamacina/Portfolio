@@ -1,10 +1,10 @@
 /* Contact Section */
 .contact {
 	padding: var(--section-padding) 0;
-	background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark) 40%, var(--bg-card) 100%);
+	background: transparent;
 	text-align: center;
 	position: relative;
-	overflow: hidden;
+	overflow-x: clip;
 }
 
 /* Animated mesh gradient background */

@@ -12,15 +12,9 @@
 	contain: layout style;
 }
 
-/* ── content-visibility: skip rendering for off-screen sections ── */
-.about,
-.experience,
-.projects,
-.skills,
-.contact {
-	content-visibility: auto;
-	contain-intrinsic-size: auto 600px;
-}
+/* No content-visibility on sections: it implies paint containment, which would clip
+   the background washes that deliberately overlap the neighbouring sections.
+   The heavy canvases start only when their section scrolls into view anyway. */
 
 /* ── Hint al browser per animazioni smooth ── */
 .profile-image {
@@ -28,13 +22,8 @@
 }
 
 .profile-image:hover,
-.tech-icon:hover,
-.project-card:hover {
+.tech-icon:hover {
 	will-change: transform;
-}
-
-.neural-network-canvas {
-	will-change: contents;
 }
 
 /* ── Pause always-running CSS animations when tab is hidden ── */
