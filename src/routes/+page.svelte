@@ -10,6 +10,7 @@
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import ScrollProgress from '$lib/components/ScrollProgress.svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
+	import Mascot from '$lib/components/mascot/Mascot.svelte';
 	import { initSectionSnap } from '$lib/components/sectionSnap';
 
 	onMount(() => {
@@ -69,3 +70,4 @@
 </main>
 <Footer />
 <BackToTop />
+<Mascot />

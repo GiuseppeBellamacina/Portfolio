@@ -1,0 +1,94 @@
+/* Voxel mascot: fixed layer positioned by transform from Mascot.svelte */
+.mascot {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 950;
+	pointer-events: none;
+	will-change: transform;
+}
+.mascot.is-hidden {
+	display: none;
+}
+.mascot canvas {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+.mascot-hit {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 58%;
+	height: 58%;
+	transform: translate(-50%, -50%);
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	padding: 0;
+	cursor: grab;
+	pointer-events: auto;
+	touch-action: none;
+}
+.mascot-hit:active {
+	cursor: grabbing;
+}
+.mascot-hit:focus-visible {
+	outline: 2px solid var(--primary-color);
+	outline-offset: 4px;
+}
+
+.mascot-bubble {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 951;
+	max-width: min(290px, calc(100vw - 16px));
+	padding: 0.75rem 2.4rem 0.8rem 1rem;
+	border-radius: 18px;
+	background: #fff;
+	color: #12142a;
+	box-shadow: 5px 6px 0 rgba(var(--primary-rgb), 0.55);
+	font-size: 0.9rem;
+	line-height: 1.45;
+	animation: mascotBubbleIn 0.25s ease both;
+}
+.mascot-bubble p {
+	margin: 0;
+	min-height: 1.3em;
+}
+.mascot-mute {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 24px;
+	height: 24px;
+	display: grid;
+	place-items: center;
+	border: 0;
+	border-radius: 50%;
+	background: #12142a;
+	color: #fff;
+	font-size: 0.9rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+@keyframes mascotBubbleIn {
+	from {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mascot-bubble {
+		animation: none;
+	}
+}
+
+@media print {
+	.mascot,
+	.mascot-bubble {
+		display: none;
+	}
+}

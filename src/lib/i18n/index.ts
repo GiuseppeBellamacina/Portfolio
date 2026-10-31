@@ -135,6 +135,10 @@ const translations = {
 
 		// Terminal
 		term_helpTitle: 'Available commands:',
+		term_helpMascot: 'Switch the mascot (turi, arancino, off)',
+		term_mascotUsage: 'Usage: mascot',
+		term_mascotSet: 'Mascot:',
+		term_mascotOff: 'Mascot hidden. Type mascot turi to bring it back.',
 		term_helpHelp: 'Show this message',
 		term_helpAbout: 'Who is Giuseppe?',
 		term_helpSkills: 'List tech skills',
@@ -287,6 +291,10 @@ const translations = {
 
 		// Terminal
 		term_helpTitle: 'Comandi disponibili:',
+		term_helpMascot: 'Cambia la mascotte (turi, arancino, off)',
+		term_mascotUsage: 'Uso: mascot',
+		term_mascotSet: 'Mascotte:',
+		term_mascotOff: 'Mascotte nascosta. Scrivi mascot turi per riaverla.',
 		term_helpHelp: 'Mostra questo messaggio',
 		term_helpAbout: 'Chi è Giuseppe?',
 		term_helpSkills: 'Lista competenze tech',

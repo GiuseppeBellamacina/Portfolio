@@ -121,6 +121,7 @@ const helpCommand: CommandHandler = ({ tr }) => [
 		type: 'html',
 		text: `<span class="cmd-name">day</span> / <span class="cmd-name">night</span>   ${tr.term_helpDayNight}`
 	},
+	{ type: 'html', text: `<span class="cmd-name">mascot</span> [name]  ${tr.term_helpMascot}` },
 	{ type: 'output', text: '' },
 	{ type: 'output', text: tr.term_helpHidden }
 ];
@@ -549,6 +550,31 @@ const nightCommand: CommandHandler = ({ tr }) => {
 	];
 };
 
+const MASCOTS = ['turi', 'arancino', 'off'];
+
+// The mascot component listens for this event and stores the choice
+const mascotCommand: CommandHandler = ({ args, tr }) => {
+	const name = args[0]?.toLowerCase();
+	if (!name || !MASCOTS.includes(name)) {
+		return [
+			{
+				type: 'html',
+				text: `${tr.term_mascotUsage} ${MASCOTS.map((m) => `<span class="cmd-name">${m}</span>`).join(' · ')}`
+			}
+		];
+	}
+	window.dispatchEvent(new CustomEvent('mascot-set', { detail: name }));
+	return [
+		{
+			type: 'html',
+			text:
+				name === 'off'
+					? tr.term_mascotOff
+					: `🤖 ${tr.term_mascotSet} <span class="cmd-name">${name}</span>`
+		}
+	];
+};
+
 /* ── Registry (aliases map to the same handler) ── */
 
 export const commands: Record<string, CommandHandler> = {
@@ -607,5 +633,7 @@ export const commands: Record<string, CommandHandler> = {
 	day: dayCommand,
 	giorno: dayCommand,
 	night: nightCommand,
-	notte: nightCommand
+	notte: nightCommand,
+	mascot: mascotCommand,
+	mascotte: mascotCommand
 };
