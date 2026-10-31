@@ -201,7 +201,10 @@ export function createVoxelMascot(
 				? EXPRESSIONS.talk
 				: blinking
 					? EXPRESSIONS.blink
-					: EXPRESSIONS[expression];
+					: // Still fuming: the face stays angry until the red has mostly faded
+						anger > 0.35 && expression !== 'dizzy'
+						? EXPRESSIONS.angry
+						: EXPRESSIONS[expression];
 		const lit = new Set<number>();
 		rows.forEach((row, fy) =>
 			[...row].forEach((ch, fx) => {
@@ -368,7 +371,8 @@ export function createVoxelMascot(
 			root.rotation.set(0, 0, -motion.angle + lean + sway);
 			// Anger fades in and out; repaint only while it is changing
 			const prevAnger = anger;
-			anger += (angryTarget - anger) * (1 - Math.exp(-dt * (angryTarget ? 9 : 3)));
+			// Flares up in ~0.2 s, calms down over ~2.5 s
+			anger += (angryTarget - anger) * (1 - Math.exp(-dt * (angryTarget ? 9 : 1.1)));
 			if (Math.abs(anger - angryTarget) < 0.01) anger = angryTarget;
 			if (anger !== prevAnger) {
 				paint();
