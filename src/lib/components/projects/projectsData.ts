@@ -10,6 +10,10 @@ export interface Project {
 	accentColor?: string;
 	isHackathonWinner?: boolean;
 	isWip?: boolean;
+	/** 3 = in the carousel and a 2×2 mosaic tile, 2 = a 2×1 tile, default 1 */
+	importance?: 2 | 3;
+	/** Headline result, only when verified (README/CV) */
+	metric?: string;
 	externalLink?: {
 		url: string;
 		type: 'demo' | 'download' | 'youtube' | 'hackathon';
@@ -32,6 +36,7 @@ export const cardGradients = [
 export const projects: Project[] = [
 	{
 		title: 'omniboard',
+		importance: 3,
 		description:
 			"A <strong>Claude Code plugin</strong> that shows where the agent is in its plan, and lets you <strong>change the plan while it works</strong>.<br><strong>What it does:</strong><ul><li><strong>Live board</strong> — a local web page with the plan as an outline: edit any step in place, add micro-steps, skip, restore and reorder; parallel steps sit in one block, finished work is locked</li><li><strong>Steering</strong> — every edit reaches the agent exactly once, on its next action; it cannot close the plan while a step you added is still open</li><li><strong>Activity</strong> — the subagents and background tasks running right now, and one row above the prompt with progress, cost, agent time and tokens</li><li><strong>Statistics</strong> — sessions, cost, tokens and agent time per project, sparklines, a stacked daily chart and a 12-week activity map, with past sessions imported from the transcripts</li></ul><strong>Tech:</strong> TypeScript/TSX hooks on Claude Code's plugin API (a tool the agent calls, UI above the prompt, tool-result context), a dependency-free Node server bound to 127.0.0.1 behind a random token, and a self-contained board page with light and dark themes.",
 		techTags: ['TypeScript', 'Claude Code', 'Node.js', 'SVG', 'AI Agents'],
@@ -42,6 +47,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'PitWall AI',
+		importance: 3,
 		description:
 			'An <strong>AI Formula 1 race engineer</strong>, real-time and fully local: real Grands Prix from <strong>OpenF1</strong> are replayed in an endless playlist through a Docker microservice pipeline.<br><strong>How it works:</strong><ul><li><strong>Streaming</strong> — every race is republished on <strong>Kafka</strong> (KRaft); <strong>Spark Structured Streaming</strong> computes gaps, tyre degradation, undercut, pit probability and DRS-range battles</li><li><strong>Commentary</strong> — a local LLM (<strong>Ollama</strong>, Gemma) narrates the race in Italian, paced by the voice (Piper / Chatterbox TTS, voice cloning)</li><li><strong>Race engineer</strong> — a tool-calling agent answers questions like <em>"who is at risk of the undercut?"</em> from live data</li><li><strong>3D world</strong> — the track rebuilt in the real place from satellite imagery, terrain and OSM buildings, with a TV-style camera director, onboard HUD and ghost lap</li></ul><strong>Architecture:</strong> event-driven choreography on a race-lifecycle topic, CQRS views, circuit breaker with template fallback, DLQ, competing consumers. Bun gateway + React/three.js UI, Logstash → Elasticsearch → Kibana for history and dashboards.',
 		techTags: ['Kafka', 'Spark', 'Ollama', 'Three.js', 'React', 'Docker'],
@@ -53,6 +59,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Babbol',
+		importance: 2,
 		description:
 			'Android app for Italian adults who want to go from "school" English (<strong>A2</strong>) to a real <strong>B2</strong>, across reading, listening, writing and speaking.<br><strong>The course:</strong><ul><li><strong>Placement test</strong>, then 3 levels × 10 units, each with 7 lessons (grammar, vocabulary, reading, listening, real-life situation, writing &amp; speaking, test)</li><li><strong>Exam simulations</strong> in the style of A2 Key, B1 Preliminary and B2 First, timed, with an indicative Cambridge-scale estimate</li><li>Dozens of exercise types: key word transformation, word formation, cloze, multi-voice listening, dictation, spoken answers…</li><li><strong>Spaced repetition</strong> (1–60 days), grammar sheets, dictionary, phrasal verbs, false friends</li></ul><strong>Tech:</strong> dependency-free HTML/CSS/JS in a native Android WebView shell with phone <strong>TTS</strong> and speech recognition (no paid APIs). Accounts, progress sync and lesson content on <strong>Supabase</strong> (RLS, delta updates by revision), so new content ships without publishing a new app version. End-to-end tested in a headless browser, built entirely in Docker.',
 		techTags: ['Android', 'Supabase', 'JavaScript', 'PostgreSQL'],
@@ -63,6 +70,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'profile-forge',
+		importance: 3,
 		description:
 			'<strong>One animated card for your GitHub profile README</strong>: rank, stats, streaks, top languages, trophies and contribution heatmap in a single design that never breaks.<br><strong>How it works:</strong><ul><li>A scheduled <strong>GitHub Action</strong> in your profile repo fetches your data through the <strong>GraphQL API</strong>, renders dark/light <strong>SVG</strong> cards and commits them — no server, no shared rate limits</li><li>Ranks E → S+ (animated top 1%), classic trophies plus 66 secret ones, a snake that eats your heatmap, 13 avatar frames, 73 themes, 8 languages</li><li>Zero runtime dependencies (Node ≥ 20); optional PNG/GIF export from the same animation timeline</li></ul><strong>Web configurator</strong> (React + TypeScript + Vite): live preview with the real renderer, theme gallery, drag-and-drop free grid, presets, shareable links, and one-click publish of config, workflow and assets to your repo after a GitHub sign-in (Cloudflare Worker OAuth).',
 		techTags: ['Node.js', 'GitHub Actions', 'SVG', 'GraphQL', 'React', 'TypeScript'],
@@ -78,6 +86,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Let It Flyppen',
+		importance: 2,
 		description:
 			"Five simulated <strong>fruit-fly brains</strong>, one per instrument (drums, bass, guitar, synth, vocals), learn to play Tame Impala's <em>Let It Happen</em> on a 3D stage in the browser.<br><strong>How it works:</strong><ul><li><strong>Brain</strong> — the <strong>FlyWire v783 connectome</strong> (139k neurons, 15M synapses) run as a leaky integrate-and-fire model on the GPU, pruned to the ~1,700 neurons the input can actually drive, in real time</li><li><strong>Ears</strong> — the 1,055 Johnston's organ neurons receive a spike code for the position in the song</li><li><strong>Learning</strong> — the connectome is frozen; only a linear readout from 616 output neurons is fitted online with <strong>recursive least squares</strong>: rehearsal 1 is chaos, rehearsal 2 reaches F1 ≈ 1.0</li><li><strong>Notes</strong> — extracted from the mp3 with <strong>Demucs</strong> stem separation and <strong>basic-pitch</strong> transcription</li></ul><strong>Stage:</strong> Three.js 3D venue and Tone.js audio over WebSocket, with live F1 per member, piano roll, output-neuron raster and learning chart.",
 		techTags: ['PyTorch', 'Connectome', 'Spiking NN', 'Three.js', 'Tone.js', 'Demucs'],
@@ -88,6 +97,8 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Neuro-Symbolic T2G',
+		importance: 3,
+		metric: 'ROUGE-L 0.137 → 0.974',
 		description:
 			'Neuro-symbolic <strong>Text-to-Gloss</strong> translation: a small LLM (<strong>Qwen2.5-0.5B</strong>) learns to turn English sentences into <strong>ASL gloss sequences</strong>.<br><strong>Key ideas:</strong><ul><li><strong>Constrained decoding</strong> — a <code>LogitsProcessor</code> backed by a dual-root token <strong>Trie</strong> masks every non-gloss token, so the model can only emit valid glosses (~15K vocabulary)</li><li><strong>GRPO</strong> reinforcement learning with <strong>deterministic rule-based rewards</strong> (ROUGE-L, BLEU-4, gloss order, RECIPE-inspired verifier scaling, format, repetition) — no neural reward model</li><li><strong>SFT → GRPO</strong> pipeline with LoRA / 4-bit QLoRA, fitting in ~11 GB VRAM</li></ul><strong>Research setup:</strong> 15-cell ablation matrix (baselines, SFT, GRPO, reward/loss/decoding ablations), four datasets (ASLG-PC12, RWTH-PHOENIX-Weather 2014T, WOS-46985, CoNLL-2003), SLURM cluster pipeline with live monitoring, W&B logging and a pytest suite.',
 		techTags: ['GRPO', 'SFT', 'Constrained Decoding', 'TRL', 'Unsloth', 'LoRA'],
@@ -98,6 +109,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'ATLAS',
+		importance: 2,
 		description:
 			'<strong>Agent Telegram Link &amp; Alert System</strong>: a bidirectional bridge between a <strong>Telegram</strong> bot and a local <strong>OpenCode</strong> coding agent, to drive and monitor agents from the phone.<br><strong>Features:</strong><ul><li><strong>Proxy</strong> — Telegram messages become agent prompts; replies are streamed back when the session goes idle (SSE <code>/event</code> stream)</li><li><strong>Human-in-the-loop</strong> — agent permission requests and multiple-choice questions become Telegram inline keyboards (allow once / always / deny, multi-question answers)</li><li><strong>Watchdog daemon</strong> — alerts on agent state changes and errors, with per-agent emoji</li><li><strong>Slash commands</strong> — self-registering plugins for status, activity, cost, logs, git report, commit, review, build/test, screenshots (Playwright)</li><li><strong>Task notifications</strong> — rich end-of-task reports with auto-detected git branch/commit and measured duration</li></ul>Pure Python with threading and <code>requests</code>, no async framework.',
 		techTags: ['Python', 'Telegram', 'OpenCode', 'AI Agents', 'Playwright'],
@@ -108,6 +120,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Render Multi-Service Manager',
+		importance: 2,
 		description:
 			'A single, <strong>config-driven service manager</strong> that runs multiple scheduled services inside one <strong>Render free-tier</strong> instance (512 MB).<br><strong>How it works:</strong><ul><li>An external cron calls <code>/tick</code> every 5 minutes; the manager runs each service according to its schedule, with an overlap lock</li><li>Service scripts are <strong>fetched daily from GitHub</strong> (public or private repos, hash-compared); on change the container restarts cleanly with the new code</li><li>One <code>services.yaml</code> manifest describes everything — sources, env, setup, schedules, actions — kept secret via env, private repo or Render Secret File, with <code>${VAR}</code> placeholders</li><li>Each service keeps its original <strong>FastAPI</strong> sub-app mounted 1:1, plus uniform <code>/services/{name}/{action}</code> endpoints</li></ul>Dockerized (<code>python:3.12-slim</code> + <code>openssh-client</code> + uv) so services can use <code>ssh</code>/<code>scp</code> at runtime. A bundled <strong>terminal UI</strong> monitors services, ticks and fetches live.',
 		techTags: ['Python', 'FastAPI', 'Docker', 'Render', 'Cron'],
@@ -128,6 +141,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'GRPO Strict Generation',
+		importance: 2,
 		description:
 			'Reinforcement Learning project for the RL university module.<br>Applies <strong>Group Relative Policy Optimization (GRPO)</strong> to fine-tune a small open-weight LLM (~0.5B–1.5B params) so that it generates <strong>syntactically valid JSON and Python code</strong>.<br><strong>Key design choices:</strong><ul><li>Programmatic reward functions via <code>json.loads</code> and <code>ast.parse</code> — strict binary signal, no neural reward model</li><li><strong>LoRA / PEFT</strong> for memory-efficient training</li><li><strong>Unsloth</strong> for fast fine-tuning, <strong>vLLM</strong> for high-throughput inference</li><li>Evaluation on <strong>Pass@k</strong> metrics comparing pre- and post-training syntactic adherence</li></ul>Synthetic dataset generated programmatically. Full architecture and results in the formal report.',
 		techTags: ['GRPO', 'TRL', 'Unsloth', 'vLLM', 'LoRA'],
@@ -158,6 +172,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Translatio',
+		importance: 3,
 		description:
 			'Translates whole books, <strong>EPUB and PDF</strong>, with LLMs while keeping the original format and layout: only the language changes.<br><strong>Agentic pipeline on LangGraph</strong> — each chunk runs through a <code>StateGraph</code>:<ul><li><strong>Context</strong> — picks the glossary terms and characters the passage (and the text right before it) mentions</li><li><strong>Translate</strong> — translates and, in the same call, reports new terms and facts about characters and places</li><li><strong>Review</strong> — flags only major issues (meaning, omissions, glossary, gender) and triggers a retranslation</li><li><strong>Learn / Finalize</strong> — merges terms without near-duplicates, enforces the glossary and checkpoints the chunk</li></ul><strong>Consistency:</strong> a per-book glossary and a <strong>compendium</strong> of characters with gender, aliases and notes, so Italian agreements stay right from the first page to the last; both carry over across a series.<br><strong>Features:</strong> same format in and out (PDF re-typeset in place with subset fonts) · queues of books on the server · resumable per-chunk checkpoints · live progress, ETA and cost · per-model cost estimate · OpenAI, Anthropic, OpenRouter, Ollama or any OpenAI-compatible endpoint.<br><strong>Stack:</strong> React 19 + Vite + Tailwind ↔ <strong>FastAPI</strong> + LangChain/LangGraph + SQLAlchemy (SQLite), WebSocket, Docker.',
 		techTags: ['LangGraph', 'FastAPI', 'React', 'LLM', 'EPUB', 'PDF'],
@@ -168,6 +183,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Guardian',
+		importance: 3,
 		description:
 			"🏆 Won <strong>NeoData Hackatania 2.0</strong> — Catania, November 2024.<br>Multimodal AI chatbot for Law Enforcement: processes text queries and <strong>license-plate images</strong> to retrieve sensitive real-time data.<br><strong>Key capabilities:</strong><ul><li>Instant access to criminal records and conviction history</li><li>Vehicle data from plate images via LLM vision</li><li>Graph-based navigation with <strong>GraphRAG</strong> on Neo4j (schools, employers, associates)</li><li>Pseudo <strong>risk coefficient</strong> computed from personal and associates' crime severity</li></ul>Agentic tool orchestration via <strong>LangChain + LangGraph</strong>. Developed with Salvatore Iurato.",
 		techTags: ['Neo4j', 'LangGraph', 'LLM'],
@@ -184,6 +200,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'The Legend of Turi',
+		importance: 2,
 		description:
 			'A <strong>top-down action-adventure</strong> game inspired by The Legend of Zelda — with a distinctly Sicilian soul, built entirely in <strong>Unity</strong> (C#).<br><strong>Features:</strong><ul><li>Hand-crafted tile maps and multi-room exploration</li><li>Enemy AI with patrol and chase behaviours</li><li>Combat system with weapons, hitboxes and health management</li><li>Dialogue system and interactive NPCs</li><li>Original story following the hero Turi across the Sicilian countryside</li></ul>Packaged as a standalone Windows executable — downloadable directly from the GitHub release.',
 		techTags: ['C#', 'Unity'],
@@ -199,6 +216,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Warehouse Swarm Intelligence System',
+		importance: 3,
 		description:
 			'Designing a multi-agent system for optimizing warehouse operations.<br>Real-time swarm simulation — Multi-Agent Systems course project.<br><strong>Three specialised agent roles:</strong><ul><li>🟢 <strong>Scout</strong> — explores the map, reports object locations to coordinators</li><li>🔵 <strong>Coordinator</strong> — assigns retrieval tasks, manages agent recharging</li><li>🟡 <strong>Retriever</strong> — navigates to objects, carries them to the deposit zone</li></ul><strong>Core algorithms:</strong> A* with dynamic replanning · frontier-based &amp; random-walk exploration · priority collision avoidance · ClearWayMessage negotiation protocol · FIFO task queue with multi-carry optimisation.<br>Stack: <strong>Python / FastAPI</strong> + Socket.IO → <strong>React / TypeScript</strong> with HTML5 Canvas, resizable panels and a built-in map editor.',
 		techTags: ['Python', 'Swarm Intelligence', 'Multi-Agent', 'Optimization'],

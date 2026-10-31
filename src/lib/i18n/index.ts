@@ -100,8 +100,9 @@ const translations = {
 
 		// Projects
 		proj_title: 'Personal Projects',
-		proj_showGrid: 'Show Grid',
-		proj_showCarousel: 'Show Carousel',
+		proj_showAll: 'All projects',
+		proj_showHighlights: 'Highlights',
+		proj_details: 'Details',
 		proj_viewAllRepos: 'View All Repos',
 		proj_viewOnGithub: 'View on GitHub',
 		proj_download: 'Download',
@@ -254,8 +255,9 @@ const translations = {
 
 		// Projects
 		proj_title: 'Progetti Personali',
-		proj_showGrid: 'Vista Griglia',
-		proj_showCarousel: 'Vista Carosello',
+		proj_showAll: 'Tutti i progetti',
+		proj_showHighlights: 'In evidenza',
+		proj_details: 'Dettagli',
 		proj_viewAllRepos: 'Tutti i Repository',
 		proj_viewOnGithub: 'Vedi su GitHub',
 		proj_download: 'Download',

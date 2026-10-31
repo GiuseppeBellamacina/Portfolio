@@ -90,7 +90,10 @@
 		starsLoading = false;
 	}
 
-	// ─── 3D Carousel ────────────────────────────────────────────────────────────
+	// ─── Carousel (highlights only) ────────────────────────────────────────────
+	// Concave 3D ring; each card is tinted with its own colour and a matching glow
+
+	let featured = $derived(projects.filter((p) => p.importance === 3));
 
 	let floatIndex = $state(0);
 	let targetIndex = $state(0);
@@ -106,6 +109,9 @@
 
 	const DRAG_SENSITIVITY = 300;
 	const CLICK_MOVE_THRESHOLD = 10;
+
+	const mod = (a: number, n: number) => ((a % n) + n) % n;
+	let activeIndex = $derived(featured.length ? mod(Math.round(floatIndex), featured.length) : 0);
 
 	// Spring physics
 	let snapRaf: number | null = null;
@@ -134,7 +140,6 @@
 			if (Math.abs(displacement) < SPRING_SETTLE && Math.abs(snapVelocity) < SPRING_SETTLE) {
 				floatIndex = targetIndex;
 				snapRaf = null;
-				startAutoPlay();
 				return;
 			}
 			snapRaf = requestAnimationFrame(springTick);
@@ -148,29 +153,50 @@
 		}
 	}
 
+	let vw = $state(1440);
+
+	// Card size, shared by the transforms below and the CSS (--card-w/--card-h)
+	let cardSize = $derived.by(() => {
+		if (vw <= 768) return { w: Math.min(vw * 0.78, 330), h: 430 };
+		const w = Math.min(640, vw * 0.44);
+		return { w, h: Math.round(w * 0.68) };
+	});
+
+	// Concave ring: the cards sit on the inside of a cylinder, so the neighbours turn
+	// towards you. The centre card is pushed back just enough to keep it large while
+	// the sides stay readable next to it.
 	function getCardStyle(i: number): string {
-		const n = projects.length;
+		const n = featured.length;
 		let diff = i - floatIndex;
 		diff = diff - n * Math.round(diff / n);
 		const absd = Math.abs(diff);
-		if (absd > 4.5) return 'visibility:hidden; opacity:0; pointer-events:none;';
+		if (absd > 2.6) return 'visibility:hidden; opacity:0;';
+		const mobile = vw <= 768;
+		const theta = mobile ? 34 : 28;
+		const R = (mobile ? 1.9 : 1.55) * cardSize.w;
+		const depth = mobile ? 160 : 260;
+		const a = (diff * theta * Math.PI) / 180;
+		const tx = R * Math.sin(a) * 1.08;
+		const tz = R * (1 - Math.cos(a)) * 0.55 - depth;
+		const ry = -diff * theta;
+		const brightness = Math.max(0.45, 1 - absd * 0.28);
+		const opacity = absd > 1.6 ? Math.max(0, 2.6 - absd) : 1;
+		return `transform: translate3d(${tx.toFixed(1)}px, 0, ${tz.toFixed(1)}px) rotateY(${ry.toFixed(1)}deg); opacity:${opacity.toFixed(3)}; filter: brightness(${brightness.toFixed(2)}); z-index:${10 - Math.round(absd)};`;
+	}
 
-		// Responsive concave math
-		const isMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
-		const isMid = typeof window !== 'undefined' && window.innerWidth <= 768 && !isMobile;
-		const theta = isMobile ? 30 : isMid ? 26 : 24;
-		const R = isMobile ? 600 : isMid ? 850 : 1100;
-		const xMul = isMobile ? 1.0 : 1.15;
+	function goTo(i: number) {
+		const n = featured.length;
+		let d = i - activeIndex;
+		d -= n * Math.round(d / n);
+		targetIndex = Math.round(floatIndex) + d;
+		progress = 0;
+		startSnapAnimation();
+	}
 
-		const angleDeg = diff * theta;
-		const angleRad = angleDeg * (Math.PI / 180);
-		const tx = R * Math.sin(angleRad) * xMul;
-		const tz = -R * Math.cos(angleRad) + 350;
-		const ry = -angleDeg;
-		const brightness = Math.max(0.4, 1 - absd * 0.15);
-		const opacity = absd > 3.5 ? Math.max(0, 1 - (absd - 3.5)) : 1;
-		const scale = 1 + Math.max(0, 0.08 - absd * 0.08);
-		return `transform: translateX(${tx.toFixed(1)}px) translateZ(${tz.toFixed(1)}px) rotateY(${ry.toFixed(1)}deg) scale(${scale.toFixed(3)}); opacity:${opacity}; filter: brightness(${brightness});`;
+	function onCardClick(i: number) {
+		if (dragMoved) return;
+		if (i === activeIndex) onGridCardClick(featured[i]);
+		else goTo(i);
 	}
 
 	// ── Drag ──
@@ -193,7 +219,7 @@
 			if (Math.abs(dx) < CLICK_MOVE_THRESHOLD) return;
 			isDragging = true;
 			dragMoved = true;
-			stopAutoPlay();
+			progress = 0;
 			stopSnapAnimation();
 			dragStartX = e.clientX;
 			dragStartIndex = floatIndex;
@@ -215,11 +241,10 @@
 		window.removeEventListener('pointerup', onPointerUpGlobal);
 		window.removeEventListener('pointercancel', onPointerUpGlobal);
 		if (!wasDragging) return;
-		const MAX_VELOCITY = 8;
+		const MAX_VELOCITY = 4;
 		const clampedV = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, velocity));
 		const coastDistance = (clampedV * Math.abs(clampedV)) / (SPRING_DAMPING * 2);
-		const projected = floatIndex + coastDistance;
-		targetIndex = Math.round(projected);
+		targetIndex = Math.round(floatIndex + coastDistance);
 		startSnapAnimation(clampedV);
 	}
 
@@ -229,26 +254,34 @@
 	function onCarouselKeyDown(e: KeyboardEvent) {
 		if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 		e.preventDefault();
-		targetIndex += e.key === 'ArrowRight' ? 1 : -1;
-		startSnapAnimation();
+		goTo(activeIndex + (e.key === 'ArrowRight' ? 1 : -1));
 	}
 
-	// ── Auto-play ──
+	// ── Auto-play: one step every AUTO_MS, the active dot fills as progress ──
+	const AUTO_MS = 5000;
+	let progress = $state(0);
+	// Separate flags: opening the panel moves the mouse off the carousel while focus stays
+	let hovered = false;
+	let focused = false;
+	let reducedMotion = false;
 	let autoPlayRaf: number | null = null;
 	let autoLastTime = 0;
-	const AUTO_SPEED = 0.25;
 
 	function autoPlayLoop(time: number) {
-		if (autoLastTime > 0) {
-			const dt = (time - autoLastTime) / 1000;
-			floatIndex += dt * AUTO_SPEED;
+		if (autoLastTime > 0 && !hovered && !focused && !isDragging && expandedProjectIndex === null) {
+			progress += (time - autoLastTime) / AUTO_MS;
+			if (progress >= 1) {
+				progress = 0;
+				targetIndex = Math.round(floatIndex) + 1;
+				startSnapAnimation();
+			}
 		}
 		autoLastTime = time;
 		autoPlayRaf = requestAnimationFrame(autoPlayLoop);
 	}
 	function startAutoPlay() {
 		stopAutoPlay();
-		autoLastTime = 0;
+		if (reducedMotion) return;
 		autoPlayRaf = requestAnimationFrame(autoPlayLoop);
 	}
 	function stopAutoPlay() {
@@ -259,122 +292,28 @@
 		autoLastTime = 0;
 	}
 
-	// ─── Mobile flat carousel ───────────────────────────────────────────────────
-	let mobileActiveIndex = $state(0);
-	let mobileOffset = $state(0);
-	let mobileDragStartX = 0;
-	let mobileDragStartOffset = 0;
-	let mobileDragging = false;
-	let mobileDragMoved = $state(false);
-
-	const MOBILE_CARD_WIDTH = 280;
-	const MOBILE_GAP = 16;
-	const MOBILE_STEP = MOBILE_CARD_WIDTH + MOBILE_GAP;
-
-	function getMobileTargetOffset(index: number): number {
-		if (typeof window === 'undefined') return 0;
-		const viewportW = window.innerWidth;
-		return viewportW / 2 - MOBILE_CARD_WIDTH / 2 - index * MOBILE_STEP;
-	}
-
-	function goToMobileSlide(index: number) {
-		mobileActiveIndex = Math.max(0, Math.min(projects.length - 1, index));
-		animateMobileToTarget();
-	}
-
-	let mobileSnapRaf: number | null = null;
-	function animateMobileToTarget() {
-		if (mobileSnapRaf) cancelAnimationFrame(mobileSnapRaf);
-		const target = getMobileTargetOffset(mobileActiveIndex);
-		let vel = 0;
-		let lastT = 0;
-		function tick(time: number) {
-			if (!lastT) {
-				lastT = time;
-				mobileSnapRaf = requestAnimationFrame(tick);
-				return;
-			}
-			const dt = Math.min((time - lastT) / 1000, 0.05);
-			lastT = time;
-			const disp = mobileOffset - target;
-			const force = -160 * disp - 18 * vel;
-			vel += force * dt;
-			mobileOffset += vel * dt;
-			if (Math.abs(disp) < 0.5 && Math.abs(vel) < 0.5) {
-				mobileOffset = target;
-				mobileSnapRaf = null;
-				return;
-			}
-			mobileSnapRaf = requestAnimationFrame(tick);
-		}
-		mobileSnapRaf = requestAnimationFrame(tick);
-	}
-
-	function onMobilePointerDown(e: PointerEvent) {
-		if (e.button !== 0) return;
-		mobileDragStartX = e.clientX;
-		mobileDragStartOffset = mobileOffset;
-		mobileDragging = false;
-		mobileDragMoved = false;
-		if (mobileSnapRaf) {
-			cancelAnimationFrame(mobileSnapRaf);
-			mobileSnapRaf = null;
-		}
-		window.addEventListener('pointermove', onMobilePointerMove);
-		window.addEventListener('pointerup', onMobilePointerUp);
-		window.addEventListener('pointercancel', onMobilePointerUp);
-	}
-	function onMobilePointerMove(e: PointerEvent) {
-		const dx = e.clientX - mobileDragStartX;
-		if (!mobileDragging && Math.abs(dx) < 8) return;
-		mobileDragging = true;
-		mobileDragMoved = true;
-		mobileOffset = mobileDragStartOffset + dx;
-	}
-	function onMobilePointerUp(e: PointerEvent) {
-		window.removeEventListener('pointermove', onMobilePointerMove);
-		window.removeEventListener('pointerup', onMobilePointerUp);
-		window.removeEventListener('pointercancel', onMobilePointerUp);
-		if (!mobileDragging) return;
-		mobileDragging = false;
-		const dx = e.clientX - mobileDragStartX;
-		if (Math.abs(dx) > 50) {
-			mobileActiveIndex =
-				dx < 0
-					? Math.min(projects.length - 1, mobileActiveIndex + 1)
-					: Math.max(0, mobileActiveIndex - 1);
-		}
-		animateMobileToTarget();
-	}
-
-	// Initialize mobile offset on mount
+	// Tell the mascot which highlight is on stage (stars refreshes re-run this, so dedupe)
+	let lastActiveTitle = '';
 	$effect(() => {
-		if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-			mobileOffset = getMobileTargetOffset(mobileActiveIndex);
+		const title = featured[activeIndex]?.title;
+		if (viewMode === 'carousel' && title && title !== lastActiveTitle) {
+			lastActiveTitle = title;
+			window.dispatchEvent(new CustomEvent('project-active', { detail: title }));
 		}
 	});
 
-	// ─── Grid view: parallax 3D tilt ────────────────────────────────────────────
-	let hoveredProject: Project | null = $state(null);
-	let tiltStyle = $state('');
+	// First paragraph of the long HTML description, as plain text
+	function summary(html: string): string {
+		return html
+			.split('<br>')[0]
+			.replace(/<[^>]+>/g, '')
+			.replace(/&amp;/g, '&')
+			.replace(/&nbsp;/g, ' ')
+			.trim();
+	}
 
-	function onGridCardEnter(p: Project) {
-		hoveredProject = p;
-	}
-	function onGridCardLeave() {
-		hoveredProject = null;
-		tiltStyle = '';
-	}
-	function onGridCardMouseMove(e: MouseEvent, p: Project) {
-		if (hoveredProject !== p) return;
-		const card = e.currentTarget as HTMLElement;
-		const rect = card.getBoundingClientRect();
-		const x = (e.clientX - rect.left) / rect.width;
-		const y = (e.clientY - rect.top) / rect.height;
-		const ry = (x - 0.5) * 16;
-		const rx = (0.5 - y) * 16;
-		tiltStyle = `--tilt-rx:${rx.toFixed(1)}deg;--tilt-ry:${ry.toFixed(1)}deg;--shine-x:${(x * 100).toFixed(0)}%;--shine-y:${(y * 100).toFixed(0)}%`;
-	}
+	// ─── All projects: mosaic, highlights first and twice as wide ──────────────
+	let mosaic = $derived([...projects].sort((a, b) => (b.importance ?? 1) - (a.importance ?? 1)));
 
 	// ─── Expand state (grid view) ───────────────────────────────────────────────
 	// Store the index so the panel reacts to language changes via $derived
@@ -420,11 +359,6 @@
 		}, 380);
 	}
 
-	function getCardBg(i: number): string {
-		const p = projects[i];
-		if (p.accentColor) return p.accentColor;
-		return cardGradients[i % cardGradients.length];
-	}
 	function getCardBgForProject(p: Project): string {
 		if (p.accentColor) return p.accentColor;
 		const idx = projects.indexOf(p);
@@ -456,6 +390,10 @@
 	}
 
 	onMount(() => {
+		reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		vw = window.innerWidth;
+		const onResize = () => (vw = window.innerWidth);
+		window.addEventListener('resize', onResize);
 		window.addEventListener('keydown', onKeyDown);
 		const io = new IntersectionObserver(
 			(entries) =>
@@ -475,6 +413,7 @@
 		io.observe(sectionEl);
 		return () => {
 			window.removeEventListener('keydown', onKeyDown);
+			window.removeEventListener('resize', onResize);
 			window.removeEventListener('pointermove', onPointerMoveGlobal);
 			window.removeEventListener('pointerup', onPointerUpGlobal);
 			window.removeEventListener('pointercancel', onPointerUpGlobal);
@@ -495,161 +434,145 @@
 		<h2 class="section-title">{$t.proj_title}</h2>
 	</div>
 
-	<!-- Desktop: Carousel / Grid -->
-	<div class="desktop-only">
-		{#if viewMode === 'carousel'}
-			<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
-			<!-- WAI-ARIA carousel pattern: focusable region so keyboard users can arrow-navigate -->
-			<div
-				class="carousel-viewport"
-				tabindex="0"
-				role="region"
-				aria-label={$t.nav_projects}
-				onpointerdown={onPointerDown}
-				onkeydown={onCarouselKeyDown}
-			>
-				<div class="carousel-stage">
-					{#each projects as project, i}
-						<div class="carousel-card" style={getCardStyle(i)}>
-							<div class="carousel-card-bg">
-								{#if project.image}
-									<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-								{:else}
-									<div
-										class="carousel-card-grad"
-										style="background:{getCardBgForProject(project)}"
-									></div>
-								{/if}
-							</div>
-							<div class="carousel-card-overlay"></div>
-							{#if project.isWip}
-								<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
-							{/if}
-							{#if project.isHackathonWinner}
-								<span class="carousel-badge">{$t.proj_winner}</span>
-							{/if}
-							{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-								<span class="carousel-stars">⭐ {project.stars}</span>
-							{:else if starsLoading}
-								<span class="carousel-stars loading">...</span>
-							{/if}
-							<div class="carousel-card-body">
-								<h3 class="carousel-card-title">{project.title}</h3>
-								<div class="carousel-card-tags">
-									{#each project.techTags.slice(0, 4) as t}
-										<span class="carousel-card-tag">{t}</span>
-									{/each}
-								</div>
-							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-		{:else}
-			<!-- Grid View -->
-			<div class="grid-container">
-				{#each projects as project, i}
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<article
-						class="pcard"
-						class:is-hovered={hoveredProject === project}
-						style={`${!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}${hoveredProject === project ? tiltStyle : ''}`}
-						onmouseenter={() => onGridCardEnter(project)}
-						onmouseleave={onGridCardLeave}
-						onmousemove={(e) => onGridCardMouseMove(e, project)}
-						onclick={() => onGridCardClick(project)}
-					>
-						<div class="pcard-bg">
-							{#if project.image}
-								<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
-							{:else}
-								<div class="pcard-grad"></div>
-							{/if}
-						</div>
-						<div class="pcard-overlay"></div>
-						<div class="pcard-shine"></div>
-						{#if project.isWip}
-							<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
-						{/if}
-						{#if project.isHackathonWinner}
-							<span class="carousel-badge">{$t.proj_winner}</span>
-						{/if}
-						{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-							<span class="pcard-stars">⭐ {project.stars}</span>
-						{/if}
-						<div class="pcard-body">
-							<h3 class="pcard-title">{project.title}</h3>
-							<div class="pcard-tags">
-								{#each project.techTags.slice(0, 3) as t}
-									<span class="pcard-tag">{t}</span>
-								{/each}
-							</div>
-						</div>
-					</article>
-				{/each}
-			</div>
-		{/if}
-	</div>
-
-	<!-- Mobile: flat carousel -->
-	<div class="mobile-carousel">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
+	{#if viewMode === 'carousel'}
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+		<!-- WAI-ARIA carousel pattern: focusable region so keyboard users can arrow-navigate -->
 		<div
-			class="mobile-carousel-track"
-			onpointerdown={onMobilePointerDown}
-			style="transform: translateX({mobileOffset}px)"
+			class="carousel-viewport"
+			style="--card-w:{cardSize.w}px; --card-h:{cardSize.h}px"
+			tabindex="0"
+			role="region"
+			aria-roledescription="carousel"
+			aria-label={$t.nav_projects}
+			onpointerdown={onPointerDown}
+			onkeydown={onCarouselKeyDown}
+			onmouseenter={() => (hovered = true)}
+			onmouseleave={() => (hovered = false)}
+			onfocusin={() => (focused = true)}
+			onfocusout={() => (focused = false)}
 		>
-			{#each projects as project, i}
-				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
+			{#each featured as project, i (project.title)}
+				{@const active = i === activeIndex}
+				<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 				<article
-					class="mobile-card"
-					class:is-active={mobileActiveIndex === i}
-					style={!project.image ? `--card-grad:${getCardBgForProject(project)};` : ''}
-					onclick={() => {
-						if (!mobileDragMoved) onGridCardClick(project);
-					}}
+					class="carousel-card"
+					class:is-active={active}
+					style={getCardStyle(i)}
+					aria-hidden={!active}
+					onclick={() => onCardClick(i)}
 				>
-					<div class="pcard-bg">
+					<div class="carousel-card-bg">
 						{#if project.image}
-							<img src={project.image} alt={project.title} loading="lazy" decoding="async" />
+							<img src={project.image} alt="" loading="lazy" decoding="async" draggable="false" />
 						{:else}
-							<div class="pcard-grad"></div>
+							<div
+								class="carousel-card-grad"
+								style="background:{getCardBgForProject(project)}"
+							></div>
 						{/if}
 					</div>
-					<div class="pcard-overlay"></div>
+					<div class="carousel-card-overlay"></div>
 					{#if project.isWip}
 						<span class="wip-tape"><span>🚧 {$t.proj_wip}</span></span>
 					{/if}
 					{#if project.isHackathonWinner}
-						<span class="pcard-badge">{$t.proj_winner}</span>
+						<span class="carousel-badge">🏆 {$t.proj_winner}</span>
 					{/if}
 					{#if project.starsLoaded && project.stars !== undefined && project.stars > 0}
-						<span class="pcard-stars">⭐ {project.stars}</span>
+						<span class="carousel-stars">★ {project.stars}</span>
 					{/if}
-					<div class="pcard-body">
-						<h3 class="pcard-title">{project.title}</h3>
-						<div class="pcard-tags">
-							{#each project.techTags.slice(0, 3) as t}
-								<span class="pcard-tag">{t}</span>
-							{/each}
+					<div class="carousel-card-body">
+						{#if project.metric}
+							<span class="carousel-metric">{project.metric}</span>
+						{/if}
+						<h3 class="carousel-card-title">{project.title}</h3>
+						<p class="carousel-card-desc">{summary(project.description)}</p>
+						<div class="carousel-card-actions">
+							<button
+								class="carousel-cta"
+								tabindex={active ? 0 : -1}
+								onclick={(e) => {
+									e.stopPropagation();
+									if (!dragMoved) onGridCardClick(project);
+								}}
+							>
+								{$t.proj_details}
+							</button>
+							<a
+								class="carousel-code"
+								href={project.githubUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								tabindex={active ? 0 : -1}
+								onclick={(e) => e.stopPropagation()}
+							>
+								<i class="fab fa-github"></i> GitHub
+							</a>
 						</div>
 					</div>
 				</article>
 			{/each}
 		</div>
-		<div class="mobile-carousel-dots">
-			{#each projects as _, i}
+		<div class="carousel-nav">
+			<button
+				class="carousel-arrow"
+				aria-label="Previous project"
+				onclick={() => goTo(activeIndex - 1)}
+			>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					><path d="M15 6l-6 6 6 6" /></svg
+				>
+			</button>
+			<div class="carousel-dots">
+				{#each featured as project, i}
+					<button
+						class="carousel-dot"
+						class:is-active={i === activeIndex}
+						style={i === activeIndex ? `--p:${progress}` : ''}
+						aria-label={project.title}
+						aria-current={i === activeIndex}
+						onclick={() => goTo(i)}
+					></button>
+				{/each}
+			</div>
+			<button
+				class="carousel-arrow"
+				aria-label="Next project"
+				onclick={() => goTo(activeIndex + 1)}
+			>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					><path d="M9 6l6 6-6 6" /></svg
+				>
+			</button>
+		</div>
+	{:else}
+		<!-- All projects: uniform mosaic; only the highlights are wider -->
+		<div class="grid-container">
+			{#each mosaic as project}
 				<button
-					class="mobile-dot"
-					class:active={mobileActiveIndex === i}
-					onclick={() => goToMobileSlide(i)}
-					aria-label={`${$t.nav_projects} — ${projects[i].title}`}
-				></button>
+					class="pcard"
+					class:is-featured={project.importance === 3}
+					onclick={() => onGridCardClick(project)}
+				>
+					{#if project.image}
+						<img src={project.image} alt="" loading="lazy" decoding="async" />
+					{:else}
+						<span class="pcard-grad" style="background:{getCardBgForProject(project)}"></span>
+					{/if}
+					<span class="pcard-shade"></span>
+					{#if project.isWip}
+						<span class="pcard-flag pcard-wip">WIP</span>
+					{:else if project.isHackathonWinner}
+						<span class="pcard-flag">🏆</span>
+					{/if}
+					<span class="pcard-body">
+						<span class="pcard-title">{project.title}</span>
+						<span class="pcard-sum">{summary(project.description)}</span>
+					</span>
+				</button>
 			{/each}
 		</div>
-	</div>
+	{/if}
 
 	<!-- Expanded card panel -->
 	{#if expandedProject}
@@ -733,9 +656,9 @@
 			</a>
 			<button class="btn btn-secondary" onclick={toggleView}>
 				{#if viewMode === 'carousel'}
-					<i class="fas fa-th"></i> {$t.proj_showGrid}
+					<i class="fas fa-th"></i> {$t.proj_showAll}
 				{:else}
-					<i class="fas fa-stream"></i> {$t.proj_showCarousel}
+					<i class="fas fa-stream"></i> {$t.proj_showHighlights}
 				{/if}
 			</button>
 		</div>
