@@ -8,12 +8,7 @@ import { t as tStore } from '$lib/i18n';
 import type { Translation } from '$lib/i18n';
 import { setSeason, resetSeason } from '$lib/stores/seasonStore';
 import { setTimeOfDay, resetTimeOfDay } from '$lib/stores/timeOfDayStore';
-import {
-	DEFAULT_DAY_VARIANTS,
-	applyPaletteVars,
-	clearPaletteOverrides,
-	setManualPaletteOverrideActive
-} from '$lib/stores/defaultVariants';
+import { applyPaletteVars, clearPaletteOverrides } from '$lib/stores/defaultVariants';
 import {
 	type HistoryEntry,
 	type Song,
@@ -443,14 +438,6 @@ const themesCommand: CommandHandler = ({ tr }) => [
 		text: '<span class="cmd-name">newyear</span> <span class="cmt">(capodanno)</span>    🎆 New Year Gold/Blue'
 	},
 	{ type: 'output', text: '' },
-	{
-		type: 'output',
-		text: 'Default-mode variants (one is picked at random each visit):'
-	},
-	{ type: 'html', text: '<span class="cmd-name">blue</span>       🔵 Electric Blue / Ivory' },
-	{ type: 'html', text: '<span class="cmd-name">emerald</span>    💚 Emerald / Cream' },
-	{ type: 'html', text: '<span class="cmd-name">violet</span>     🟣 Violet / Peach' },
-	{ type: 'output', text: '' },
 	{ type: 'output', text: tr.term_themesUsage },
 	{
 		type: 'html',
@@ -474,7 +461,6 @@ const rainbowCommand: CommandHandler = ({ tr }) => {
 		'--galaxy-c11': '#ff40ff',
 		'--galaxy-c12': '#cecece'
 	};
-	setManualPaletteOverrideActive(true);
 	applyPaletteVars(rainbowVars);
 	return [
 		{
@@ -489,7 +475,6 @@ const rainbowCommand: CommandHandler = ({ tr }) => {
 };
 
 const christmasCommand: CommandHandler = ({ tr }) => {
-	setManualPaletteOverrideActive(true);
 	clearPaletteOverrides();
 	setSeason('snow');
 	return [
@@ -505,7 +490,6 @@ const christmasCommand: CommandHandler = ({ tr }) => {
 };
 
 const summerCommand: CommandHandler = ({ tr }) => {
-	setManualPaletteOverrideActive(true);
 	clearPaletteOverrides();
 	setSeason('summer');
 	return [
@@ -521,7 +505,6 @@ const summerCommand: CommandHandler = ({ tr }) => {
 };
 
 const newyearCommand: CommandHandler = ({ tr }) => {
-	setManualPaletteOverrideActive(true);
 	clearPaletteOverrides();
 	setSeason('newyear');
 	return [
@@ -537,7 +520,6 @@ const newyearCommand: CommandHandler = ({ tr }) => {
 };
 
 const defaultCommand: CommandHandler = ({ tr }) => {
-	setManualPaletteOverrideActive(false);
 	clearPaletteOverrides();
 	resetSeason();
 	resetTimeOfDay();
@@ -566,27 +548,6 @@ const nightCommand: CommandHandler = ({ tr }) => {
 		{ type: 'html', text: `<span class="cmt">${tr.term_todTemp}</span>` }
 	];
 };
-
-/* ── Default-mode accent variants (manual override) ──
-   blue/emerald/violet are equal-weight siblings of the original palette —
-   one is picked at random on every page load (see +layout.svelte); these
-   commands let you force one manually. Data lives in defaultVariants.ts so
-   the automatic picker and these commands share one source of truth. */
-
-function makeVariantCommand(key: keyof typeof DEFAULT_DAY_VARIANTS, label: string): CommandHandler {
-	return ({ tr }) => {
-		setManualPaletteOverrideActive(true);
-		applyPaletteVars(DEFAULT_DAY_VARIANTS[key]);
-		return [
-			{ type: 'html', text: `🎨 ${tr.term_themeApplied} <span class="cmd-name">${label}</span>` },
-			{ type: 'html', text: `<span class="cmt">${tr.term_themesTemp}</span>` }
-		];
-	};
-}
-
-const paletteBlueCommand = makeVariantCommand('blue', 'Electric Blue');
-const paletteEmeraldCommand = makeVariantCommand('emerald', 'Emerald Cream');
-const paletteVioletCommand = makeVariantCommand('violet', 'Violet Peach');
 
 /* ── Registry (aliases map to the same handler) ── */
 
@@ -646,8 +607,5 @@ export const commands: Record<string, CommandHandler> = {
 	day: dayCommand,
 	giorno: dayCommand,
 	night: nightCommand,
-	notte: nightCommand,
-	blue: paletteBlueCommand,
-	emerald: paletteEmeraldCommand,
-	violet: paletteVioletCommand
+	notte: nightCommand
 };

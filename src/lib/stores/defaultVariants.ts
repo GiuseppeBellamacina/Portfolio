@@ -1,13 +1,12 @@
 /**
- * "Default mode" accent variants — blue/emerald/violet are equal-weight
- * siblings of the original violet/indigo palette, applied only when no
- * season is active. One is picked at random on every page load (see
- * +layout.svelte); terminal commands (blue/emerald/violet, and the
- * season/rainbow commands) can also apply one manually.
+ * Inline CSS-variable overrides on <body>, used by the terminal's temporary
+ * palette commands (rainbow, seasons): applyPaletteVars / clearPaletteOverrides.
  *
- * Night mode is intentionally NOT part of this: --primary-color etc. only
- * ever get overridden while in day mode — body.tod-night's own CSS handles
- * night uniformly regardless of which day variant was showing.
+ * ARCHIVED_DAY_VARIANTS keeps the three alternative day palettes (blue,
+ * emerald, violet) that used to be picked at random on every visit. The site
+ * now has one day palette (app.css :root) plus the night one; these presets are
+ * kept, unused, so they can be restored later: `applyPaletteVars(
+ * ARCHIVED_DAY_VARIANTS.blue)` applies one on top of the day palette.
  */
 
 export const PALETTE_OVERRIDE_KEYS = [
@@ -41,7 +40,7 @@ export const PALETTE_OVERRIDE_KEYS = [
 	...Array.from({ length: 12 }, (_, i) => `--galaxy-c${i + 1}`)
 ];
 
-export const DEFAULT_DAY_VARIANTS: Record<string, Record<string, string>> = {
+export const ARCHIVED_DAY_VARIANTS: Record<string, Record<string, string>> = {
 	blue: {
 		'--primary-color': '#0057ff',
 		'--secondary-color': '#bec4cf',
@@ -178,15 +177,4 @@ export function applyPaletteVars(vars: Record<string, string>) {
 	for (const [key, value] of Object.entries(vars)) {
 		document.body.style.setProperty(key, value);
 	}
-}
-
-/** True once any manual terminal command (season/rainbow/palette) has been
- *  invoked — the automatic random day-variant effect backs off until the
- *  `default` command clears it, so it never clobbers a manual choice. */
-let manualOverrideActive = false;
-export function setManualPaletteOverrideActive(active: boolean) {
-	manualOverrideActive = active;
-}
-export function isManualPaletteOverrideActive() {
-	return manualOverrideActive;
 }
