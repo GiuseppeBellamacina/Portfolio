@@ -225,6 +225,8 @@ body.season-snow .glitch {
 body.season-summer {
 	--primary-color: #38bdf8;
 	--secondary-color: #fbbf24;
+	/* Turi's body shade: a deeper sky blue, not the amber, so the head reads as one colour */
+	--mascot-shade: #0ea5e9;
 	--accent-color: #fb923c;
 	--neon-pink: #f97316;
 	--neon-blue: #22d3ee;
