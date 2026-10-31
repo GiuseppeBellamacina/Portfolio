@@ -234,7 +234,8 @@
 		function scheduleLaunch() {
 			const delay = 400 + Math.random() * 2000;
 			launchTimeout = setTimeout(() => {
-				if (!showNewYear || paused) {
+				// Off screen nothing is drawn, so launching would only pile rockets up for the return
+				if (!showNewYear || paused || offscreen) {
 					scheduleLaunch();
 					return;
 				}
@@ -266,7 +267,10 @@
 		document.addEventListener('visibilitychange', onVisibilityChange);
 		const observer = new IntersectionObserver(([entry]) => {
 			offscreen = !entry.isIntersecting;
-			if (!offscreen && !document.hidden) raf = requestAnimationFrame(draw);
+			if (offscreen) {
+				rockets.length = 0;
+				sparks.length = 0;
+			} else if (!document.hidden) raf = requestAnimationFrame(draw);
 		});
 		observer.observe(canvas);
 
