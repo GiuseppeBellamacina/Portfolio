@@ -180,9 +180,11 @@
 
 	// Docked moves glide: a soft spring with a speed cap, so a far section never turns
 	// into a dash across the screen
-	const GLIDE_K = 9;
-	const GLIDE_MAX = 900; // px/s
+	const GLIDE_K = 30;
+	const GLIDE_MAX = 2600; // px/s: about 1.1 s across the screen
 	const ARRIVED = 40; // px
+	// It talks only when nearly still; above this speed the bubble waits
+	const TALK_SPEED = 90; // px/s
 
 	function onImpact(speed: number) {
 		hits++;
@@ -249,9 +251,10 @@
 			}
 			body.angle *= Math.exp(-6 * dt);
 			const far = Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED;
-			if (far !== traveling) {
-				traveling = far;
-				if (!far && queued) {
+			const moving = far || Math.hypot(body.vx, body.vy) > TALK_SPEED;
+			if (moving !== traveling) {
+				traveling = moving;
+				if (!moving && queued) {
 					const q = queued;
 					queued = null;
 					say(q.line, q.face);
@@ -485,8 +488,9 @@
 		visible = saved !== 'off';
 
 		compact = innerWidth < 1360;
-		size = innerWidth < 640 ? 118 : compact ? 148 : 194;
-		radius = Math.round(size * 0.28);
+		// The model fills ~78% of the box: the rest is room to lean, squash and shake
+		size = innerWidth < 640 ? 132 : compact ? 166 : 214;
+		radius = Math.round(size * 0.25);
 		el.style.width = el.style.height = `${size}px`;
 		// Fly in from the right edge
 		body.x = innerWidth + size;
