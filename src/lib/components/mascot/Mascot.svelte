@@ -18,6 +18,7 @@
 		placeLines,
 		clickLines,
 		seasonLines,
+		shoutLines,
 		unmuteLine,
 		type Line,
 		type Season,
@@ -52,6 +53,9 @@
 		return out;
 	});
 	let speaking = $state(false);
+	/** Short scream shown while it flies, when normal lines are held back */
+	let shout = $state<string | null>(null);
+	let shoutEl: HTMLDivElement | undefined = $state();
 	/** Gliding to a new spot: the bubble hides, new lines wait for the arrival */
 	let traveling = $state(false);
 	let queued: { line: string; face: Expression } | null = null;
@@ -74,7 +78,21 @@
 			/* storage blocked: the choice just won't persist */
 		}
 	}
-	const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+	// Round robin per list: every line comes out once, in shuffled order, before any repeats
+	const bags = new Map<string[], number[]>();
+	const lastPicked = new Map<string[], number>();
+	function pick(arr: string[]): string {
+		let bag = bags.get(arr);
+		if (!bag?.length) {
+			bag = arr.map((_, i) => i).sort(() => Math.random() - 0.5);
+			// A new round never opens with the line that closed the previous one
+			if (bag.length > 1 && bag[bag.length - 1] === lastPicked.get(arr)) bag.unshift(bag.pop()!);
+			bags.set(arr, bag);
+		}
+		const i = bag.pop()!;
+		lastPicked.set(arr, i);
+		return arr[i];
+	}
 
 	let character: CharacterId = 'turi';
 	const lineCursor: Partial<Record<SectionId, number>> = {};
@@ -218,6 +236,12 @@
 
 	function place() {
 		el.style.transform = `translate3d(${body.x - size / 2}px, ${body.y - size / 2}px, 0)`;
+		if (shoutEl) {
+			const w = shoutEl.offsetWidth;
+			const x = Math.max(8, Math.min(innerWidth - w - 8, body.x - w / 2));
+			const y = Math.max(NAV_H + 8, body.y - size * 0.36 - shoutEl.offsetHeight - 6);
+			shoutEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+		}
 		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
@@ -282,6 +306,7 @@
 			restMs = isResting(body, bounds()) ? restMs + dtMs : 0;
 			if (restMs > 700) {
 				mode = 'returning';
+				shout = null;
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
 				// A complaint from the landing beats the generic "back to my spot"
@@ -356,6 +381,7 @@
 			if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) return;
 			dragging = true;
 			mode = 'held';
+			shout = null;
 			// The first rant waits until it is held still (see updateQuiet)
 			traveling = true;
 			quietMs = 0;
@@ -406,6 +432,7 @@
 		hits = 0;
 		restMs = 0;
 		mode = 'flying';
+		if (!muted) shout = pick(shoutLines[get(lang)]);
 	}
 
 	function onTap() {
@@ -613,6 +640,10 @@
 		}}
 	></button>
 </div>
+
+{#if visible && shout}
+	<div class="mascot-shout" bind:this={shoutEl} aria-hidden="true">{shout}</div>
+{/if}
 
 {#if visible && speaking && !muted}
 	<div class="mascot-bubble" class:is-away={traveling} bind:this={bubbleEl}>

@@ -62,6 +62,31 @@
 	opacity: 0;
 	pointer-events: none;
 }
+/* Scream during a throw: big, tilted, no bubble chrome */
+.mascot-shout {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 10001;
+	pointer-events: none;
+	font-family: 'Sora', sans-serif;
+	font-size: 1.35rem;
+	font-weight: 800;
+	color: #fff;
+	text-shadow:
+		0 2px 0 #f2552c,
+		0 4px 14px rgba(0, 0, 0, 0.7);
+	white-space: nowrap;
+	animation: mascotShout 0.18s ease-in-out infinite alternate;
+}
+@keyframes mascotShout {
+	from {
+		rotate: -6deg;
+	}
+	to {
+		rotate: 6deg;
+	}
+}
 .mascot-bubble p {
 	margin: 0;
 	min-height: 1.3em;
