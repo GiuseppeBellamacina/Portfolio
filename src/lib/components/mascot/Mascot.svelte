@@ -237,14 +237,28 @@
 		say(pick(complaints[get(lang)]), hits >= 3 || speed > 2600 ? 'dizzy' : 'angry');
 	}
 
-	function place() {
+	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, so it
+	// moves at a fraction of the mascot's speed and stays readable during a fast throw
+	const SHOUT_FOLLOW = 4;
+	let shoutX: number | null = null;
+	let shoutY = 0;
+
+	function place(dt = 0) {
 		el.style.transform = `translate3d(${body.x - size / 2}px, ${body.y - size / 2}px, 0)`;
 		if (shoutEl) {
 			const w = shoutEl.offsetWidth;
-			const x = Math.max(8, Math.min(innerWidth - w - 8, body.x - w / 2));
-			const y = Math.max(NAV_H + 8, body.y - size * 0.36 - shoutEl.offsetHeight - 6);
-			shoutEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-		}
+			const tx = Math.max(8, Math.min(innerWidth - w - 8, body.x - w / 2));
+			const ty = Math.max(NAV_H + 8, body.y - size * 0.36 - shoutEl.offsetHeight - 6);
+			if (shoutX === null) {
+				shoutX = tx;
+				shoutY = ty;
+			} else {
+				const k = 1 - Math.exp(-SHOUT_FOLLOW * dt);
+				shoutX += (tx - shoutX) * k;
+				shoutY += (ty - shoutY) * k;
+			}
+			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
+		} else shoutX = null;
 		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
@@ -345,7 +359,7 @@
 		}
 		updateQuiet(dtMs);
 		if (visible) {
-			place();
+			place(dt);
 			engine?.tick(dtMs, { vx: body.vx, vy: body.vy, angle: body.angle });
 		}
 		raf = requestAnimationFrame(frame);
