@@ -69,8 +69,6 @@ const translations = {
 			'I have experience building and deploying AI systems using frameworks such as <strong>LangGraph</strong> and <strong>LangChain</strong>, with a strong focus on scalability, reliability, and system behaviour under real-world conditions.',
 		about_p5:
 			'On the infrastructure side, I have worked with on-premise multi-GPU environments (<strong>H100</strong>, <strong>L40S</strong>), inference services with <strong>vLLM</strong> and <strong>Unsloth</strong>, vector databases such as <strong>FAISS</strong> and <strong>Chroma</strong>, graph databases such as <strong>Neo4j</strong>, and REST APIs built with <strong>FastAPI</strong>. I also have experience with <strong>AWS</strong>-based cloud systems.',
-		about_p6:
-			'Beyond AI systems, I bring solid software engineering expertise in <strong>Python</strong>, <strong>C/C++</strong>, asynchronous and multithreaded programming, distributed systems, Docker orchestration, CI/CD pipelines, and backend development.',
 
 		// Skills
 		skills_title: 'Tech Stack',
@@ -86,6 +84,7 @@ const translations = {
 		skills_devtooling: 'Dev Tooling',
 		skills_ides: 'IDEs & Editors',
 		skills_os: 'Operating Systems & Security',
+		skills_all: 'All',
 
 		// Experience
 		exp_title: 'Experience & Education',
@@ -99,8 +98,9 @@ const translations = {
 
 		// Projects
 		proj_title: 'Personal Projects',
-		proj_showGrid: 'Show Grid',
-		proj_showCarousel: 'Show Carousel',
+		proj_showAll: 'All projects',
+		proj_showHighlights: 'Highlights',
+		proj_details: 'Details',
 		proj_viewAllRepos: 'View All Repos',
 		proj_viewOnGithub: 'View on GitHub',
 		proj_download: 'Download',
@@ -151,7 +151,6 @@ const translations = {
 		term_helpHidden: '...and maybe some hidden ones 👀',
 		term_aboutName: '👋 Giuseppe Bellamacina',
 		term_aboutRole: 'AI Engineer',
-		term_aboutPassion: 'Passionate about AI/ML & Cybersecurity',
 		term_sudo: "Nice try. You don't have root access here 😏",
 		term_rmrf: '🚨 NICE TRY! This portfolio is rm-proof.',
 		term_rmDenied: 'Permission denied. This is a read-only filesystem.',
@@ -222,8 +221,6 @@ const translations = {
 			"Ho esperienza nello sviluppo e nell'implementazione di sistemi di IA usando framework come <strong>LangGraph</strong> e <strong>LangChain</strong>, con una forte attenzione alla scalabilità, all'affidabilità e al comportamento del sistema in condizioni reali.",
 		about_p5:
 			'Dal punto di vista infrastrutturale, ho lavorato con ambienti on-premise multi-GPU (<strong>H100</strong>, <strong>L40S</strong>), servizi di inferenza con <strong>vLLM</strong> e <strong>Unsloth</strong>, database vettoriali come <strong>FAISS</strong> e <strong>Chroma</strong>, database a grafo come <strong>Neo4j</strong> e API REST create con <strong>FastAPI</strong>. Ho anche esperienza con sistemi cloud basati su <strong>AWS</strong>.',
-		about_p6:
-			'Oltre ai sistemi di intelligenza artificiale, possiedo una solida esperienza di ingegneria del software in <strong>Python</strong>, <strong>C/C++</strong>, programmazione asincrona e multithread, sistemi distribuiti, orchestrazione Docker, pipeline CI/CD e sviluppo backend.',
 
 		// Skills
 		skills_title: 'Tech Stack',
@@ -239,6 +236,7 @@ const translations = {
 		skills_devtooling: 'Strumenti di Sviluppo',
 		skills_ides: 'IDE & Editor',
 		skills_os: 'Sistemi Operativi & Sicurezza',
+		skills_all: 'Tutte',
 
 		// Experience
 		exp_title: 'Esperienza & Formazione',
@@ -252,8 +250,9 @@ const translations = {
 
 		// Projects
 		proj_title: 'Progetti Personali',
-		proj_showGrid: 'Vista Griglia',
-		proj_showCarousel: 'Vista Carosello',
+		proj_showAll: 'Tutti i progetti',
+		proj_showHighlights: 'In evidenza',
+		proj_details: 'Dettagli',
 		proj_viewAllRepos: 'Tutti i Repository',
 		proj_viewOnGithub: 'Vedi su GitHub',
 		proj_download: 'Download',
@@ -304,7 +303,6 @@ const translations = {
 		term_helpHidden: '...e forse qualcuno nascosto 👀',
 		term_aboutName: '👋 Giuseppe Bellamacina',
 		term_aboutRole: 'AI Engineer',
-		term_aboutPassion: 'Appassionato di AI/ML e Cybersecurity',
 		term_sudo: 'Bel tentativo. Non hai accesso root qui 😏',
 		term_rmrf: '🚨 BEL TENTATIVO! Questo portfolio è a prova di rm.',
 		term_rmDenied: 'Permesso negato. Questo è un filesystem in sola lettura.',

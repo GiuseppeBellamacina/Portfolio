@@ -172,45 +172,6 @@
 	pointer-events: none;
 }
 
-.skills-category {
-	margin-bottom: clamp(1.5rem, 1rem + 1vw, 3rem);
-	position: relative;
-	z-index: 1;
-	opacity: 0;
-	transform: translateY(30px);
-	transition:
-		opacity 0.6s ease,
-		transform 0.6s ease;
-}
-
-.skills-category.visible {
-	opacity: 1;
-	transform: translateY(0);
-}
-
-.skills-category h3 {
-	font-size: var(--fs-4);
-	margin-bottom: clamp(1.2rem, 1rem + 0.5vw, 2rem);
-	color: var(--primary-color);
-	letter-spacing: -0.01em;
-	font-weight: 600;
-}
-
-@keyframes titlePulse {
-	0%,
-	100% {
-		text-shadow:
-			0 0 20px var(--primary-color),
-			0 0 40px var(--neon-pink);
-	}
-	50% {
-		text-shadow:
-			0 0 30px var(--neon-pink),
-			0 0 60px var(--primary-color),
-			0 0 80px var(--neon-purple);
-	}
-}
-
 /* Tech Icons Grid */
 .skills-grid {
 	display: flex;
@@ -271,13 +232,6 @@
 	transform: translateY(0) scale(1);
 }
 
-@keyframes gentleFloat {
-	0%,
-	100% {
-		transform: translate(0, 0);
-	}
-}
-
 .tech-icon::before {
 	content: '';
 	position: absolute;
@@ -287,15 +241,6 @@
 	opacity: 0;
 	transition: opacity 0.25s ease;
 	z-index: -1;
-}
-
-@keyframes borderRotate {
-	0% {
-		background-position: 0% 50%;
-	}
-	100% {
-		background-position: 200% 50%;
-	}
 }
 
 .tech-icon:hover::before {
@@ -322,26 +267,128 @@
 	filter: drop-shadow(0 2px 6px rgba(var(--primary-rgb), 0.2)) brightness(1.05);
 }
 
-.skills-tags {
+/* ── Category pills ── */
+.skills-cats {
+	position: relative;
+	z-index: 1;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 1rem;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: clamp(1.8rem, 1.2rem + 1vw, 2.6rem);
 }
 
-.skill-tag {
+.skills-cats button {
+	min-height: 36px;
+	padding: 0 0.9rem;
+	border-radius: 999px;
+	border: 1px solid rgba(var(--primary-rgb), 0.2);
 	background: rgba(var(--bg-card-rgb), 0.6);
-	color: var(--text-light);
-	padding: 10px 20px;
-	border-radius: 25px;
-	border: 1px solid rgba(var(--primary-rgb), 0.15);
-	transition: all 0.3s;
-	cursor: default;
+	color: var(--text-muted);
+	font: inherit;
+	font-size: 0.875rem;
+	cursor: pointer;
+	transition:
+		color 0.2s,
+		background 0.2s,
+		border-color 0.2s;
 }
 
-.skill-tag:hover {
-	background: rgba(var(--indigo-rgb), 0.1);
-	border-color: rgba(var(--primary-rgb), 0.3);
-	transform: translateY(-2px);
+.skills-cats button span {
+	opacity: 0.55;
+	margin-left: 0.2rem;
+	font-size: 0.8em;
+}
+
+.skills-cats button:hover {
+	color: var(--text-light);
+}
+
+.skills-cats button.on {
+	color: var(--text-light);
+	background: rgba(var(--primary-rgb), 0.18);
+	border-color: rgba(var(--primary-rgb), 0.6);
+}
+
+/* ── Animated wall: rows loop by -50% over two identical halves ── */
+.skills-wall {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	gap: 1rem;
+	padding: 0.5rem 0;
+	overflow: hidden;
+	mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+	-webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.skills-row {
+	--gap: 1rem;
+	display: flex;
+	width: max-content;
+	gap: var(--gap);
+	/* trailing gap so each half is exactly n × (tile + gap) wide */
+	padding-right: var(--gap);
+	animation: skillsMarquee var(--dur) linear infinite;
+}
+
+.skills-row.rev {
+	animation-direction: reverse;
+}
+
+.skills-row-copy {
+	display: contents;
+}
+
+/* Keyboard users can still stop it; mouse hover and clicks deliberately do not */
+.skills-wall:has(:focus-visible) .skills-row {
+	animation-play-state: paused;
+}
+
+.skills-row .tech-icon {
+	width: 104px;
+	min-width: 0;
+	max-width: none;
+}
+
+@keyframes skillsMarquee {
+	to {
+		transform: translateX(-50%);
+	}
+}
+
+/* ── Single category ── */
+.skills-focus {
+	position: relative;
+	z-index: 1;
+	justify-content: center;
+	max-width: 1000px;
+	margin: 0 auto;
+	min-height: 240px;
+	align-content: flex-start;
+}
+
+.skills-focus .tech-icon-link {
+	animation: skillsPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation-delay: calc(var(--i) * 35ms);
+}
+
+@keyframes skillsPop {
+	from {
+		opacity: 0;
+		transform: translateY(12px) scale(0.94);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skills-row,
+	.skills-focus .tech-icon-link {
+		animation: none;
+	}
+
+	.skills-wall {
+		overflow-x: auto;
+	}
 }
 
 /* ── Responsive ── */

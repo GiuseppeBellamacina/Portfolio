@@ -4,8 +4,11 @@
 	import { t as tStore, baseTranslation } from '$lib/i18n';
 	import type { Translation } from '$lib/i18n';
 	import './terminal.css';
-	import { type HistoryEntry, completableCommands, buildInitialHistory } from './terminalData';
+	import { type HistoryEntry, buildInitialHistory } from './terminalData';
 	import { commands, type CommandContext } from './commands';
+
+	// Every registered command (aliases included) completes on Tab
+	const completableCommands = Object.keys(commands).sort();
 
 	interface Props {
 		/** Fired after a valid, non-empty command is dispatched (About wires this to the neural net) */

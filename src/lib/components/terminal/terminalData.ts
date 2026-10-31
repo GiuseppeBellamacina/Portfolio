@@ -47,10 +47,7 @@ export function buildBioEntries(tr: Translation): HistoryEntry[] {
 		{ type: 'html', text: bioRow('now', tr.about_p2) },
 		{ type: 'html', text: bioRow('focus', tr.about_p3) },
 		{ type: 'html', text: bioRow('build', tr.about_p4) },
-		{ type: 'html', text: bioRow('infra', tr.about_p5) },
-		{ type: 'html', text: bioRow('eng', tr.about_p6) },
-		{ type: 'output', text: '' },
-		{ type: 'html', text: `<span class="cmt">${tr.term_aboutPassion}</span>` }
+		{ type: 'html', text: bioRow('infra', tr.about_p5) }
 	];
 }
 
@@ -66,39 +63,6 @@ export function buildInitialHistory(tr: Translation): HistoryEntry[] {
 		{ type: 'output', text: tr.term_bootHelp }
 	];
 }
-
-export const completableCommands = [
-	'help',
-	'about',
-	'skills',
-	'contact',
-	'projects',
-	'ls',
-	'socials',
-	'whoami',
-	'date',
-	'echo',
-	'clear',
-	'neofetch',
-	'anime',
-	'music',
-	'musica',
-	'themes',
-	'theme',
-	'temi',
-	'rainbow',
-	'arcobaleno',
-	'christmas',
-	'natale',
-	'summer',
-	'estate',
-	'newyear',
-	'capodanno',
-	'default',
-	'daftpunk',
-	'tameimpala',
-	'kavinsky'
-];
 
 export const musicCatalog: Record<string, Song[]> = {
 	daftpunk: [
