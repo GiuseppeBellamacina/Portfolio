@@ -47,6 +47,8 @@ export interface VoxelMascot {
 	setCharacter(id: CharacterId): void;
 	setExpression(e: Expression): void;
 	setTalking(on: boolean): void;
+	/** Held by the user: turns red, shakes and throws off sparks */
+	setAngry(on: boolean): void;
 	/** Pointer offset from the mascot centre, in px */
 	lookAt(dx: number, dy: number): void;
 	/** Squash on impact, strength 0..1 */
@@ -56,7 +58,7 @@ export interface VoxelMascot {
 	dispose(): void;
 }
 
-const PARTICLES = 48;
+const PARTICLES = 110;
 
 export function createVoxelMascot(
 	canvas: HTMLCanvasElement,
@@ -154,7 +156,7 @@ export function createVoxelMascot(
 		}
 		if (model.frameTop !== undefined) max.y = Math.max(max.y, model.frameTop);
 		center = min.clone().add(max).multiplyScalar(0.5);
-		radius = (Math.max(max.x - min.x, max.y - min.y, max.z - min.z) / 2 + 1) * 1.12;
+		radius = (Math.max(max.x - min.x, max.y - min.y, max.z - min.z) / 2 + 1) * 1.28; // room to lean and squash
 		mesh = new InstancedMesh(voxelGeo, voxelMat, vs.length);
 		// The sparks reuse dummy and leave it scaled to 0
 		dummy.rotation.set(0, 0, 0);
@@ -183,8 +185,14 @@ export function createVoxelMascot(
 		if (hatFor(document.body.classList) !== currentHat) return build(currentId);
 		palette = model.palette(css, document.body.classList.contains('tod-night'));
 		paint();
-		sparkMat.color.set(palette.glow);
+		sparkCalm.set(palette.glow);
+		sparkMat.color.copy(sparkCalm);
 	}
+
+	const rage = new Color('#f2552c');
+	const sparkCalm = new Color();
+	let anger = 0;
+	let angryTarget = 0;
 
 	function paint() {
 		if (!mesh) return;
@@ -203,6 +211,8 @@ export function createVoxelMascot(
 		);
 		model.voxels.forEach((v, i) => {
 			color.set(lit.has(i) ? palette[model.faceOn] : (v.color ?? palette[v.role]));
+			// Anger floods the body (not the face or the screen) with a hot red-orange
+			if (anger > 0 && !lit.has(i) && v.role !== 'dark') color.lerp(rage, anger * 0.75);
 			// ±7% lightness jitter so flat areas read as individual cubes
 			if (!lit.has(i))
 				color.offsetHSL(
@@ -263,15 +273,21 @@ export function createVoxelMascot(
 		if (!reducedMotion) {
 			const speed = Math.hypot(motion.vx, motion.vy);
 			// A few ambient sparkles, many more as a trail while it flies
-			spawnBudget += dt * (1.2 + Math.min(speed / 60, 30));
+			spawnBudget += dt * (1.2 + Math.min(speed / 60, 30) + anger * 75);
 			while (spawnBudget >= 1 && surface.length) {
 				spawnBudget -= 1;
 				const from = surface[Math.floor(Math.random() * surface.length)].clone();
 				from.applyEuler(body.rotation).applyEuler(root.rotation);
 				const drift =
-					speed > 250
-						? new Vector3(-motion.vx, motion.vy, 0).multiplyScalar(0.012)
-						: new Vector3((Math.random() - 0.5) * 2, 1.5 + Math.random(), 0);
+					anger > 0.3
+						? new Vector3(
+								(Math.random() - 0.5) * 9,
+								Math.random() * 7 - 1,
+								(Math.random() - 0.5) * 4
+							)
+						: speed > 250
+							? new Vector3(-motion.vx, motion.vy, 0).multiplyScalar(0.012)
+							: new Vector3((Math.random() - 0.5) * 2, 1.5 + Math.random(), 0);
 				emit(from, drift);
 			}
 		}
@@ -283,7 +299,8 @@ export function createVoxelMascot(
 			const k = Math.max(0, s.life);
 			dummy.position.copy(s.p);
 			dummy.rotation.set(0, 0, 0);
-			dummy.scale.setScalar(k);
+			// Angry sparks are bigger, so the burst reads at a glance
+			dummy.scale.setScalar(k * (1 + anger * 0.9));
 			dummy.updateMatrix();
 			sparks.setMatrixAt(i, dummy.matrix);
 		});
@@ -300,6 +317,9 @@ export function createVoxelMascot(
 			if (e === expression) return;
 			expression = e;
 			paint();
+		},
+		setAngry(on) {
+			angryTarget = on ? 1 : 0;
 		},
 		setTalking(on) {
 			talking = on;
@@ -346,7 +366,16 @@ export function createVoxelMascot(
 			// Lean into the direction of travel, plus the spin from the physics
 			const lean = Math.max(-0.5, Math.min(0.5, -motion.vx / 2500));
 			root.rotation.set(0, 0, -motion.angle + lean + sway);
-			root.position.set(0, bob, 0);
+			// Anger fades in and out; repaint only while it is changing
+			const prevAnger = anger;
+			anger += (angryTarget - anger) * (1 - Math.exp(-dt * (angryTarget ? 9 : 3)));
+			if (Math.abs(anger - angryTarget) < 0.01) anger = angryTarget;
+			if (anger !== prevAnger) {
+				paint();
+				sparkMat.color.copy(sparkCalm).lerp(rage, anger);
+			}
+			const shake = reducedMotion ? 0 : anger * 0.35;
+			root.position.set((Math.random() - 0.5) * shake, bob + (Math.random() - 0.5) * shake, 0);
 			squash = Math.max(0, squash - dt * 3);
 			const sq = Math.sin(squash * Math.PI) * 0.25;
 			const stretch = Math.min(speed / 4000, 0.12);

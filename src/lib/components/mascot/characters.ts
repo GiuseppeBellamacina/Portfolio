@@ -185,6 +185,20 @@ function addHat(head: Voxel[], hat: Hat): Voxel[] {
 		}
 		out.push({ x: 0, y: 11, z: 0, role: 'base', color: '#fbbf24' });
 		out.push({ x: 0, y: 12, z: 0, role: 'base', color: '#fde68a' });
+		// A glass of bubbly held at the right side: foot, stem, then a flute of wine
+		const glass = '#e2e8f0';
+		for (let x = 7; x <= 9; x++) for (let z = 1; z <= 3; z++) put(x, -5, z, glass);
+		put(8, -4, 2, glass);
+		put(8, -3, 2, glass);
+		for (let y = -2; y <= 2; y++)
+			for (let x = 7; x <= 9; x++)
+				for (let z = 1; z <= 3; z++) {
+					const rim = x !== 8 || z !== 2;
+					// Glass walls round a column of wine, with bubbles rising through it
+					if (y === 2 && !rim) continue;
+					const bubble = !rim && (y === -1 || y === 1);
+					put(x, y, z, rim ? (y === 2 ? glass : '#fde68a') : bubble ? '#fffbeb' : '#facc15');
+				}
 	} else {
 		// Sunglasses sit one layer in front of the screen, over the eyes
 		const frame = '#f97316';

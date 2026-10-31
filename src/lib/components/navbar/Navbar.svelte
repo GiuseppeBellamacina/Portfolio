@@ -38,104 +38,95 @@
 		closeMenu();
 	}
 
-	let isNavbarVisible = true;
-
-	// Canvas-based matrix rain effect — no DOM manipulation, single paint
+	// Matrix rain behind the navbar: sparse columns, each a bright head trailed by
+	// fading glyphs, crisp on high-DPI screens and tinted with the theme colour
 	let rainCanvas: HTMLCanvasElement;
-	let rainRaf = 0;
 
 	function initMatrixRain() {
 		if (!rainCanvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
 		const ctx = rainCanvas.getContext('2d');
 		if (!ctx) return;
 
-		const characters =
+		const GLYPHS =
 			'01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+		const CELL = 14; // px per glyph, both directions
+		const TRAIL = 7;
+		const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
 
-		interface RainDrop {
-			x: number;
-			y: number;
-			ch: string;
-			speed: number;
-			alpha: number;
-			size: number;
+		interface Column {
+			/** Head position in cells; negative while waiting to fall */
+			head: number;
+			speed: number; // cells per second
+			glyphs: string[];
 		}
+		let columns: Column[] = [];
+		let w = 0;
+		let h = 0;
+		let color = '#818cf8';
 
-		const MAX_DROPS = 14;
-		const drops: RainDrop[] = [];
-		const colors = ['#818cf8', '#a78bfa', '#6366f1'];
+		const newColumn = (): Column => ({
+			head: -Math.random() * 90, // long, random gaps keep the rain sparse
+			speed: 5 + Math.random() * 7,
+			glyphs: Array.from({ length: TRAIL }, randomGlyph)
+		});
 
 		function resize() {
-			rainCanvas.width = navbarElement?.offsetWidth || window.innerWidth;
-			rainCanvas.height = 60;
+			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			w = navbarElement.offsetWidth;
+			h = navbarElement.offsetHeight;
+			rainCanvas.width = Math.round(w * dpr);
+			rainCanvas.height = Math.round(h * dpr);
+			ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+			ctx!.font = `500 ${CELL - 2}px ui-monospace, 'Cascadia Code', Consolas, monospace`;
+			ctx!.textAlign = 'center';
+			ctx!.textBaseline = 'top';
+			const count = Math.ceil(w / CELL);
+			columns = Array.from({ length: count }, (_, i) => columns[i] ?? newColumn());
 		}
-		resize();
-
-		function spawnDrop() {
-			if (drops.length >= MAX_DROPS) return;
-			drops.push({
-				x: Math.random() * rainCanvas.width,
-				y: Math.random() * 30,
-				ch: characters[Math.floor(Math.random() * characters.length)],
-				speed: 4 + Math.random() * 6,
-				alpha: 0.02,
-				size: 10 + Math.random() * 6
-			});
+		function readColor() {
+			color = getComputedStyle(document.body).getPropertyValue('--primary-color').trim() || color;
 		}
 
-		const resizeObs = new ResizeObserver(() => resize());
+		const resizeObs = new ResizeObserver(resize);
 		resizeObs.observe(navbarElement);
+		// Seasons, night and terminal palettes all land on <body> class/style
+		const themeObs = new MutationObserver(readColor);
+		themeObs.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
+		resize();
+		readColor();
 
-		const spawnInterval = setInterval(() => {
-			if (!isNavbarVisible || document.hidden) return;
-			if (Math.random() > 0.35) spawnDrop();
-		}, 80);
-
-		function tick() {
-			if (!isNavbarVisible || document.hidden) {
-				rainRaf = requestAnimationFrame(tick);
-				return;
-			}
-
-			ctx!.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
-
-			for (let i = drops.length - 1; i >= 0; i--) {
-				const d = drops[i];
-				d.y += d.speed * 0.016;
-				d.alpha += 0.004;
-
-				if (d.alpha > 0.28) d.alpha = 0.28;
-
-				if (d.y > rainCanvas.height + 10) {
-					drops.splice(i, 1);
-					continue;
+		let raf = 0;
+		let last = 0;
+		function tick(time: number) {
+			raf = requestAnimationFrame(tick);
+			if (document.hidden) return;
+			const dt = last ? Math.min(time - last, 100) / 1000 : 0;
+			last = time;
+			ctx!.clearRect(0, 0, w, h);
+			const rows = Math.ceil(h / CELL);
+			ctx!.fillStyle = color;
+			columns.forEach((c, i) => {
+				c.head += c.speed * dt;
+				if (c.head - TRAIL > rows) Object.assign(c, newColumn());
+				// Glyphs flicker now and then, like the film
+				if (Math.random() < dt * 3) c.glyphs[Math.floor(Math.random() * TRAIL)] = randomGlyph();
+				const x = i * CELL + CELL / 2;
+				for (let k = 0; k < TRAIL; k++) {
+					const row = Math.floor(c.head) - k;
+					if (row < 0 || row >= rows) continue;
+					// Bright head, then a fading tail
+					ctx!.globalAlpha = k === 0 ? 0.5 : 0.26 * (1 - k / TRAIL);
+					ctx!.fillText(c.glyphs[(row + TRAIL * 99) % TRAIL], x, row * CELL);
 				}
-
-				ctx!.globalAlpha = d.alpha;
-				ctx!.font = `bold ${d.size}px ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace`;
-				ctx!.fillStyle = colors[Math.floor(Math.random() * colors.length)];
-				ctx!.shadowColor = 'rgba(129, 140, 248, 0.3)';
-				ctx!.shadowBlur = 4;
-				ctx!.fillText(d.ch, d.x, d.y);
-			}
-
+			});
 			ctx!.globalAlpha = 1;
-			ctx!.shadowBlur = 0;
-
-			if (drops.length < MAX_DROPS && Math.random() < 0.25) {
-				spawnDrop();
-			}
-
-			rainRaf = requestAnimationFrame(tick);
 		}
-
-		rainRaf = requestAnimationFrame(tick);
+		raf = requestAnimationFrame(tick);
 
 		return () => {
-			clearInterval(spawnInterval);
-			cancelAnimationFrame(rainRaf);
+			cancelAnimationFrame(raf);
 			resizeObs.disconnect();
+			themeObs.disconnect();
 		};
 	}
 

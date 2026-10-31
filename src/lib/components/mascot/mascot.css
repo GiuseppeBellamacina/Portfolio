@@ -3,7 +3,8 @@
 	position: fixed;
 	left: 0;
 	top: 0;
-	z-index: 950;
+	/* Above the project panel (9999), so it can comment on the project you opened */
+	z-index: 10000;
 	pointer-events: none;
 	will-change: transform;
 }
@@ -42,7 +43,7 @@
 	position: fixed;
 	left: 0;
 	top: 0;
-	z-index: 951;
+	z-index: 10001;
 	max-width: min(290px, calc(100vw - 16px));
 	padding: 0.75rem 2.4rem 0.8rem 1rem;
 	border-radius: 18px;
@@ -52,6 +53,14 @@
 	font-size: 0.9rem;
 	line-height: 1.45;
 	animation: mascotBubbleIn 0.25s ease both;
+}
+/* Hidden while the mascot glides to a new spot; it reappears once it arrives */
+.mascot-bubble {
+	transition: opacity 0.2s ease;
+}
+.mascot-bubble.is-away {
+	opacity: 0;
+	pointer-events: none;
 }
 .mascot-bubble p {
 	margin: 0;
