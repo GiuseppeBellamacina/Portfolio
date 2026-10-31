@@ -263,6 +263,12 @@ export const complaints: Lines<string[]> = {
 	]
 };
 
+// Screamed while it flies after a throw
+export const shoutLines: Lines<string[]> = {
+	it: ['AAAAAAH!', 'Wiiiiiii!', 'Aiutooo!', 'Mammaaaa!', 'Nooooo!', 'Perché?!'],
+	en: ['AAAAAAH!', 'Wheeeee!', 'Heeelp!', 'Mummyyy!', 'Nooooo!', 'Whyyyy?!']
+};
+
 export const backLines: Lines<string[]> = {
 	it: ['Va bene, torno al mio posto.', 'Ok, facciamo finta di niente.', 'Sto bene. Credo.'],
 	en: ['Fine, back to my spot.', 'Okay, let’s pretend that never happened.', 'I’m fine. I think.']
