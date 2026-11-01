@@ -67,6 +67,7 @@
 
 		let cleanupRain: (() => void) | undefined;
 		let itemObs: IntersectionObserver | undefined;
+		let focusObs: IntersectionObserver | undefined;
 
 		const sectionObs = new IntersectionObserver(
 			(entries) => {
@@ -111,11 +112,25 @@
 			);
 
 			items.forEach((item) => itemObs?.observe(item));
+
+			// The card crossing the middle of the screen: the mascot comments it
+			focusObs = new IntersectionObserver(
+				(entries) =>
+					entries.forEach((entry) => {
+						if (!entry.isIntersecting) return;
+						const idx = Number((entry.target as HTMLElement).dataset.idx);
+						if (!isNaN(idx))
+							window.dispatchEvent(new CustomEvent('experience-card', { detail: idx }));
+					}),
+				{ rootMargin: '-42% 0px -42% 0px' }
+			);
+			items.forEach((item) => focusObs?.observe(item));
 		}
 
 		return () => {
 			sectionObs.disconnect();
 			itemObs?.disconnect();
+			focusObs?.disconnect();
 			cleanupRain?.();
 			window.removeEventListener('resize', onResize);
 		};

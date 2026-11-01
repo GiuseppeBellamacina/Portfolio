@@ -34,6 +34,8 @@
 		seasonLines,
 		shoutLines,
 		unmuteLine,
+		parseLine,
+		experienceLines,
 		type Line,
 		type Season,
 		type SectionId
@@ -159,6 +161,7 @@
 		}
 		speakerEngine()?.setExpression(face);
 		if (muted || !visible) return;
+		lastSayAt = performance.now();
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
 		speaking = true;
@@ -189,6 +192,15 @@
 			}
 		}, 22);
 	}
+
+	// A line from the sets: it may carry its own face ('tired|text'), else `fallback`
+	function sayRaw(raw: string, fallback: Expression = 'normal') {
+		const l = parseLine(raw, fallback);
+		say(fill(l.text), l.face);
+	}
+
+	// The shout is plain text: no bold markers
+	const plain = (s: string) => s.replaceAll('**', '');
 
 	function mute() {
 		muted = true;
@@ -266,10 +278,8 @@
 		const now = performance.now();
 		if (now - lastComplaint < 900) return;
 		lastComplaint = now;
-		say(
-			pick(complaints[get(lang)]),
-			hits >= 3 || speed > 2600 ? 'dizzy' : oneOf(['angry', 'sad', 'tear', 'worried'])
-		);
+		const c = parseLine(pick(complaints[get(lang)]), 'angry');
+		say(c.text, hits >= 3 || speed > 2600 ? 'dizzy' : c.face);
 	}
 
 	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, and never
@@ -385,11 +395,10 @@
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
 				// A complaint from the landing beats the generic "back to my spot"
-				if (!queued)
-					queued = {
-						line: pick(backLines[get(lang)]),
-						face: oneOf(['sad', 'tired', 'shy', 'normal'])
-					};
+				if (!queued) {
+					const b = parseLine(pick(backLines[get(lang)]), 'normal');
+					queued = { line: b.text, face: b.face };
+				}
 			}
 		} else if (mode === 'docked' || mode === 'returning') {
 			const a = anchor();
@@ -472,7 +481,7 @@
 
 	function rant() {
 		lastRant = performance.now();
-		say(pick(angryLines[get(lang)]), 'angry');
+		sayRaw(pick(angryLines[get(lang)]), 'angry');
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -537,14 +546,14 @@
 			placed = { fx: body.x / b.width, fy: body.y / b.height };
 			body.vx = body.vy = 0;
 			mode = 'docked';
-			say(pick(placeLines[get(lang)]), oneOf(['happy', 'smug', 'wink']));
+			sayRaw(pick(placeLines[get(lang)]), 'happy');
 			return;
 		}
 		body.spin = (body.vx / radius) * 0.35;
 		hits = 0;
 		restMs = 0;
 		mode = 'flying';
-		if (!muted) shout = pick(shoutLines[get(lang)]);
+		if (!muted) shout = plain(pick(shoutLines[get(lang)]));
 	}
 
 	// Taps in a row (each within 2.5 s of the last) end in a line of their own
@@ -558,7 +567,7 @@
 		if (muted) {
 			muted = false;
 			store(MUTE_KEY, null);
-			say(unmuteLine[get(lang)], 'shy');
+			sayRaw(unmuteLine[get(lang)], 'shy');
 			return;
 		}
 		const now = performance.now();
@@ -583,25 +592,26 @@
 		}
 		// Between milestones, past the fifth tap, it has had enough
 		if (tapStreak > 5) {
-			say(pick(annoyedLines[l]), tapStreak > 8 ? 'angry' : oneOf(['angry', 'worried']));
+			sayRaw(pick(annoyedLines[l]), 'angry');
 			return;
 		}
 		const s = season();
 		const r = Math.random();
 		// The third tap always tells about the other bot, so nobody misses it
 		let pool = clickLines[l];
-		let face: Expression = oneOf(['happy', 'wink', 'smug', 'star', 'shy', 'love']);
+		// Every line brings its own face; this one is only for a line that has none
+		let face: Expression = 'happy';
 		if (totalTaps === 3 || r < 0.2) {
 			pool = friendLines[l][character];
 			face = 'smug'; // a bit of complicity: "psst, I have a friend"
 		} else if (r < 0.4) {
 			pool = ideaLines[l];
-			face = oneOf(['tired', 'worried', 'sad']);
+			face = 'tired';
 		} else if (s && r < 0.6) {
 			pool = seasonLines[l][s];
 			face = s === 'night' ? 'sleepy' : 'happy';
 		}
-		say(pick(pool), face);
+		sayRaw(pick(pool), face);
 	}
 
 	// ── Personality: it speaks up when left alone, and when you come back ──
@@ -648,10 +658,7 @@
 		lastIdleLine = now;
 		const l = get(lang);
 		const idea = Math.random() >= 0.7;
-		say(
-			pick(idea ? ideaLines[l] : idleLines[l]),
-			idea ? 'tired' : oneOf(['wink', 'think', 'smug', 'sleepy'])
-		);
+		sayRaw(pick(idea ? ideaLines[l] : idleLines[l]), idea ? 'tired' : 'wink');
 	}
 
 	function onActivity() {
@@ -666,7 +673,7 @@
 		}
 		touch(now);
 		if (hiddenAt && now - hiddenAt > 60000 && visible && !muted && mode === 'docked')
-			say(pick(backTabLines[get(lang)]), oneOf(['love', 'happy', 'star']));
+			sayRaw(pick(backTabLines[get(lang)]), 'happy');
 		hiddenAt = 0;
 	}
 
@@ -693,7 +700,8 @@
 		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
 		konamiKeys = [];
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
-		queued = { line: pick(konamiLines[get(lang)]), face: 'star' };
+		const k = parseLine(pick(konamiLines[get(lang)]), 'star');
+		queued = { line: k.text, face: k.face };
 		playful = true;
 		hits = 0;
 		restMs = 0;
@@ -741,6 +749,7 @@
 	function settle() {
 		// The page stopped: the ride is over, wherever it got to
 		if (riding) endRide();
+		if (pendingCard !== null) tryCardComment();
 		if (inView === section) return;
 		section = inView;
 		if (mode !== 'docked') return;
@@ -758,12 +767,12 @@
 	function onProjectOpen(e: Event) {
 		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
 		if (!line || mode !== 'docked') return;
-		say(line, 'wow');
+		sayRaw(line, 'wow');
 	}
 
 	function onProjectsView(e: Event) {
 		const view = (e as CustomEvent<'grid' | 'carousel'>).detail;
-		say(fill(pick(projectsViewLines[get(lang)][view])), view === 'grid' ? 'wow' : 'happy');
+		sayRaw(pick(projectsViewLines[get(lang)][view]), view === 'grid' ? 'wow' : 'happy');
 	}
 
 	// ── Back to top: a lift for a short hop, a rocket ride (and a scream) from far down ──
@@ -779,7 +788,7 @@
 		const l = get(lang);
 		quipUntil = performance.now() + 5000;
 		if (reducedMotion || from < innerHeight * 2) {
-			say(pick(elevatorLines[l]), 'happy');
+			sayRaw(pick(elevatorLines[l]), 'happy');
 			return;
 		}
 		riding = true;
@@ -790,7 +799,7 @@
 		engine.bump(0.7);
 		engine.setExpression('wow');
 		engine.setTalking(true);
-		if (!muted) shout = pick(rideShouts[l]);
+		if (!muted) shout = plain(pick(rideShouts[l]));
 		// Safety net: the page may never report that it stopped
 		rideTimer = setTimeout(endRide, 9000);
 	}
@@ -809,20 +818,69 @@
 			engine?.setRocket(false);
 			canvas.style.height = '';
 		}, 700);
-		say(pick(rideEndLines[get(lang)]), oneOf(['dizzy', 'star', 'tired']));
+		sayRaw(pick(rideEndLines[get(lang)]), 'dizzy');
+	}
+
+	// ── Experience cards: a comment on each as it passes the middle of the screen ──
+	const seenCards = new Set<number>();
+	let pendingCard: number | null = null;
+	let cardRetry: ReturnType<typeof setTimeout> | undefined;
+	let lastSayAt = 0;
+
+	function onExperienceCard(e: Event) {
+		pendingCard = (e as CustomEvent<number>).detail;
+		tryCardComment();
+	}
+
+	function tryCardComment() {
+		clearTimeout(cardRetry);
+		const idx = pendingCard;
+		if (idx === null || seenCards.has(idx) || !visible || muted) return;
+		const lines = experienceLines[get(lang)][idx];
+		// Left the section, or no lines for this card: nothing to say
+		if (!lines || inView !== 'experience') {
+			pendingCard = null;
+			return;
+		}
+		// Not while it is busy, the page rushes by, or it has just spoken: try again shortly
+		const busy =
+			mode !== 'docked' ||
+			swapping ||
+			riding ||
+			scrollSpeed >= SLOW_SCROLL ||
+			performance.now() - lastSayAt < 4500;
+		if (busy) {
+			cardRetry = setTimeout(tryCardComment, 1200);
+			return;
+		}
+		seenCards.add(idx);
+		pendingCard = null;
+		sayRaw(pick(lines), 'wink');
+	}
+
+	// Alive even when nobody is talking to it: a quick glance, a wink, then back to normal
+	let glanceTimer: ReturnType<typeof setInterval> | undefined;
+
+	function onGlance() {
+		if (document.hidden || !visible || mode !== 'docked' || traveling || speaking) return;
+		if (dozing || swapping || riding || Math.random() < 0.4) return;
+		engine?.setExpression(oneOf(['wink', 'think', 'happy', 'smug', 'shy', 'worried']));
+		setTimeout(() => {
+			if (!speaking && !dozing && mode === 'docked') engine?.setExpression('normal');
+		}, 1400);
 	}
 
 	function onSkillsCategory(e: Event) {
 		const key = (e as CustomEvent<keyof Translations | null>).detail;
 		const l = get(lang);
 		if (key === null) {
-			say(fill(pick(allSkillsLine[l])), 'star');
+			sayRaw(pick(allSkillsLine[l]), 'star');
 			return;
 		}
 		const n = skillCategories.find((c) => c.key === key)?.icons.length ?? 0;
 		const own = categoryLines[l][key];
 		const text = own ? pick(own).replace('{c}', String(n)) : categoryLine[l](get(t)[key], n);
-		say(text, oneOf(['wow', 'smug', 'happy', 'think', 'star']));
+		sayRaw(text, 'wow');
 	}
 
 	// ── Swapping bots: the new one flies in, they greet, the old one leaves on a rocket ──
@@ -875,13 +933,13 @@
 			const t0 = performance.now();
 			while (alive() && !cond() && performance.now() - t0 < max) await wait(60);
 		};
-		const speak = async (text: string, face: Expression, who: 'main' | 'guest', ms: number) => {
+		const speak = async (raw: string, fallback: Expression, who: 'main' | 'guest', ms: number) => {
 			await until(() => !traveling, 2500);
 			if (!alive()) return;
 			engine?.setTalking(false);
 			guestEngine?.setTalking(false);
 			speaker = who;
-			say(text, face);
+			sayRaw(raw, fallback);
 			await wait(ms);
 		};
 		try {
@@ -906,9 +964,9 @@
 			engine?.bump(0.5);
 			guestEngine.bump(0.5);
 			guestEngine.lookAt(body.x - guest.x, 0);
-			await speak(pick(lines.bye), oneOf(['love', 'sad', 'shy']), 'main', 2500);
+			await speak(pick(lines.bye), 'happy', 'main', 2500);
 			if (!alive()) return;
-			await speak(pick(lines.hello), oneOf(['star', 'smug', 'happy']), 'guest', 2300);
+			await speak(pick(lines.hello), 'happy', 'guest', 2300);
 			if (!alive()) return;
 
 			// Rocket on, countdown, lift-off
@@ -929,7 +987,7 @@
 			}
 			engine?.setThrust(true);
 			engine?.setExpression('star');
-			shout = pick(lines.go);
+			shout = plain(pick(lines.go));
 			await wait(450);
 			if (!alive()) return;
 			launchT = 0;
@@ -978,7 +1036,7 @@
 		const wasVisible = visible;
 		visible = true;
 		if (wasVisible && id === character) {
-			say(pick(clickLines[get(lang)]), 'happy');
+			sayRaw(pick(clickLines[get(lang)]), 'happy');
 			return;
 		}
 		// Both bots on screen and motion allowed: they swap with a little show
@@ -989,7 +1047,7 @@
 		character = id;
 		if (engine) engine.setCharacter(id);
 		else void start(id); // it was saved as off: load three.js only now
-		say(pick(clickLines[get(lang)]), 'happy');
+		sayRaw(pick(clickLines[get(lang)]), 'happy');
 	}
 
 	let cancelled = false;
@@ -1025,9 +1083,7 @@
 		raf = requestAnimationFrame(frame);
 		setTimeout(() => {
 			const s = season();
-			const line = s
-				? { text: pick(seasonLines[get(lang)][s]), face: 'happy' as const }
-				: sectionLine(section);
+			const line = s ? parseLine(pick(seasonLines[get(lang)][s]), 'happy') : sectionLine(section);
 			say(fill(line.text), line.face);
 		}, 900);
 	}
@@ -1061,6 +1117,8 @@
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('projects-view', onProjectsView);
 		window.addEventListener('back-to-top', onBackToTop);
+		window.addEventListener('experience-card', onExperienceCard);
+		glanceTimer = setInterval(onGlance, 7000);
 		window.addEventListener('mascot-set', onMascotSet);
 		window.addEventListener('keydown', onKey);
 		window.addEventListener('pointerdown', onActivity, { passive: true });
@@ -1084,6 +1142,9 @@
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('projects-view', onProjectsView);
 			window.removeEventListener('back-to-top', onBackToTop);
+			window.removeEventListener('experience-card', onExperienceCard);
+			clearInterval(glanceTimer);
+			clearTimeout(cardRetry);
 			clearTimeout(rideTimer);
 			clearTimeout(calmTimer);
 			window.removeEventListener('mascot-set', onMascotSet);
