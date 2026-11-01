@@ -65,11 +65,11 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 		],
 		projects: [
 			{
-				text: 'Nel carosello i **progetti di punta**. **Cliccane uno** e te lo commento, gratis.',
+				text: 'Nel carosello i **{h} progetti di punta**, in tutto ne ho **{p}**. **Cliccane uno** e te lo commento, gratis.',
 				face: 'happy'
 			},
 			{
-				text: 'Vuoi vederli tutti? C’è il pulsante **“Tutti i progetti”**. Sono una trentina, porta pazienza.',
+				text: 'Vuoi vederli tutti **{p}**? C’è il pulsante **“Tutti i progetti”**. Porta pazienza.',
 				face: 'wink'
 			},
 			{
@@ -133,11 +133,11 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 		],
 		projects: [
 			{
-				text: 'The carousel holds the **highlights**. **Click one** and I’ll comment it, on the house.',
+				text: 'The carousel holds the **{h} highlights**, there are **{p}** in all. **Click one** and I’ll comment it, on the house.',
 				face: 'happy'
 			},
 			{
-				text: 'Want them all? Hit **“All projects”**. There are about thirty, brace yourself.',
+				text: 'Want all **{p}** of them? Hit **“All projects”**. Brace yourself.',
 				face: 'wink'
 			},
 			{
@@ -410,6 +410,32 @@ export const clickLines: Lines<string[]> = {
 		'My favourite hobby? **Not getting rewritten.**',
 		'Know the difference between him and me? **I at least go on standby.**'
 	]
+};
+
+// The visitor switches between the carousel and the grid of every project
+export const projectsViewLines: Lines<Record<'grid' | 'carousel', string[]>> = {
+	it: {
+		grid: [
+			'Ecco tutti e **{p}**. I più grandi sono i **{h} di punta**.',
+			'Il mosaico: **{p} progetti**. Nessuno è nato da un piano, tutti da **“ho un’idea”**.',
+			'**{p} progetti** in una pagina. Ho le vertigini. Anche lui, quando li conta.'
+		],
+		carousel: [
+			'Di nuovo in **carosello**: i **{h} di punta**, uno alla volta.',
+			'Via il mosaico, tornano i **{h} migliori**. Più riposante, no?'
+		]
+	},
+	en: {
+		grid: [
+			'Here are all **{p}**. The biggest ones are the **{h} highlights**.',
+			'The grid: **{p} projects**. None came from a plan, all from **“I have an idea”**.',
+			'**{p} projects** on one page. I’m dizzy. So is he, when he counts them.'
+		],
+		carousel: [
+			'Back to the **carousel**: the **{h} highlights**, one at a time.',
+			'Grid gone, the **{h} best** are back. More restful, right?'
+		]
+	}
 };
 
 // Gags about Giuseppe's sudden ideas: mixed into taps and idle chatter

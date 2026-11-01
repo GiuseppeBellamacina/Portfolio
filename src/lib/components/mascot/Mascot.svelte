@@ -4,6 +4,7 @@
 	import { lang, t } from '$lib/i18n';
 	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from '$lib/components/skills/skillsData';
+	import { projects } from '$lib/components/projects/projectsData';
 	import { CHARACTER_IDS, type CharacterId, type Expression } from './characters';
 	import { step, isResting, type Body, type Bounds } from './physics';
 	import {
@@ -24,6 +25,7 @@
 		konamiLines,
 		friendLines,
 		swapLines,
+		projectsViewLines,
 		seasonLines,
 		shoutLines,
 		unmuteLine,
@@ -106,9 +108,16 @@
 	let character: CharacterId = 'turi';
 	const lineCursor: Partial<Record<SectionId, number>> = {};
 
+	const TOTAL_PROJECTS = projects.length;
+	const HIGHLIGHTS = projects.filter((p) => p.importance === 3).length;
+
 	function fill(text: string) {
 		const name = character === 'turi' ? 'Turi' : get(lang) === 'it' ? 'l’Arancino' : 'the Arancino';
-		return text.replace('{n}', String(TOTAL_SKILLS)).replace('{name}', name);
+		return text
+			.replace('{n}', String(TOTAL_SKILLS))
+			.replace('{p}', String(TOTAL_PROJECTS))
+			.replace('{h}', String(HIGHLIGHTS))
+			.replace('{name}', name);
 	}
 
 	// Section lines take turns, so coming back to a section doesn't repeat the same one
@@ -723,6 +732,11 @@
 		say(line, 'wow');
 	}
 
+	function onProjectsView(e: Event) {
+		const view = (e as CustomEvent<'grid' | 'carousel'>).detail;
+		say(fill(pick(projectsViewLines[get(lang)][view])), view === 'grid' ? 'wow' : 'happy');
+	}
+
 	function onSkillsCategory(e: Event) {
 		const key = (e as CustomEvent<keyof Translations | null>).detail;
 		const l = get(lang);
@@ -968,6 +982,7 @@
 		window.addEventListener('scroll', onScroll, { passive: true });
 		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
+		window.addEventListener('projects-view', onProjectsView);
 		window.addEventListener('mascot-set', onMascotSet);
 		window.addEventListener('keydown', onKey);
 		window.addEventListener('pointerdown', onActivity, { passive: true });
@@ -989,6 +1004,7 @@
 			window.removeEventListener('scroll', onScroll);
 			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
+			window.removeEventListener('projects-view', onProjectsView);
 			window.removeEventListener('mascot-set', onMascotSet);
 			window.removeEventListener('keydown', onKey);
 			window.removeEventListener('pointerdown', onActivity);

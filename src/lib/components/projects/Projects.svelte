@@ -363,6 +363,10 @@
 	}
 
 	function toggleView() {
+		// The mascot comments the switch
+		window.dispatchEvent(
+			new CustomEvent('projects-view', { detail: viewMode === 'carousel' ? 'grid' : 'carousel' })
+		);
 		if (viewMode === 'carousel') {
 			stopAutoPlay();
 			stopSnapAnimation();
