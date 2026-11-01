@@ -1437,3 +1437,19 @@ export const arancinoLines: Lines<{
 		]
 	}
 };
+
+// Rare hints about the Konami code, from a wink to the plain answer
+export const konamiHints: Lines<string[]> = {
+	it: [
+		'wink|Dicono che i vecchi videogiochi avessero un **codice segreto** con le frecce. Chissà se funziona anche qui.',
+		'smug|Una tastiera, due **su**, due **giù**… no, non ti dico altro. Hai già capito.',
+		'think|Sul sito c’è qualcosa di nascosto. Non nel terminale: sulla **tastiera**. Pensa a **Konami**.',
+		'wink|Nel terminale prova a scrivere **konami**. Anche da telefono. Non dire che non te l’ho detto.'
+	],
+	en: [
+		'wink|They say old video games had a **secret code** made of arrow keys. Wonder if it works here too.',
+		'smug|A keyboard, two **ups**, two **downs**… no, I won’t say more. You already got it.',
+		'think|There’s something hidden on this site. Not in the terminal: on the **keyboard**. Think **Konami**.',
+		'wink|In the terminal, try typing **konami**. Even on a phone. Don’t say I didn’t tell you.'
+	]
+};

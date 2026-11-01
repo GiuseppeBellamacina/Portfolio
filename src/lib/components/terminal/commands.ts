@@ -575,6 +575,12 @@ const mascotCommand: CommandHandler = ({ args, tr }) => {
 	];
 };
 
+// A hidden command: the same as typing the Konami code on the keyboard, for phones too
+const konamiCommand: CommandHandler = ({ tr }) => {
+	window.dispatchEvent(new CustomEvent('mascot-konami'));
+	return [{ type: 'output', text: tr.term_konami }];
+};
+
 /* ── Registry (aliases map to the same handler) ── */
 
 export const commands: Record<string, CommandHandler> = {
@@ -635,5 +641,6 @@ export const commands: Record<string, CommandHandler> = {
 	night: nightCommand,
 	notte: nightCommand,
 	mascot: mascotCommand,
-	mascotte: mascotCommand
+	mascotte: mascotCommand,
+	konami: konamiCommand
 };
