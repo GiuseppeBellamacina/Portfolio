@@ -352,7 +352,8 @@ export function createVoxelMascot(
 		model.voxels.forEach((v, i) => {
 			color.set(lit.has(i) ? palette[model.faceOn] : (v.color ?? palette[v.role]));
 			// Anger floods the body (not the face or the screen) with a hot red-orange
-			if (anger > 0 && !lit.has(i) && v.role !== 'dark') color.lerp(rage, anger * 0.75);
+			// Hats and other accessories (fixed colour) don't get angry, only the body
+			if (anger > 0 && !lit.has(i) && v.role !== 'dark' && !v.color) color.lerp(rage, anger * 0.75);
 			// Powered off: the whole body goes dull
 			if (gag === 'off' && !lit.has(i)) color.multiplyScalar(0.55);
 			// ±7% lightness jitter so flat areas read as individual cubes

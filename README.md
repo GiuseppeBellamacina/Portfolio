@@ -14,6 +14,8 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
   - 🌟 **Summer** (Jun-Aug)
   - 🎆 **New Year** (Dec 31-Jan 2)
 - **Terminal Theme Control** - Seasonal themes can also be selected with the terminal `theme` command
+- **GPGPU Galaxy** - A three.js particle galaxy on the hero (ping-pong float render targets), centred on the profile photo. Phones get a light profile (smaller simulation, 30 fps cap, capped pixel ratio) with a self-abort guard, and fall back to CSS orbs on weak devices
+- **Turi & Arancino, the voxel mascots** - Two three.js voxel bots that guide the visitor (see below)
 - **Neural Network Visualization** - Interactive canvas-based feedforward network with animated impulse propagation
 - **Binary Particle System** - Animated binary digits with neon glow effects
 - **Shooting Stars & Constellations** - Space-themed background animations
@@ -30,6 +32,7 @@ A modern, cyberpunk-themed portfolio website showcasing AI/ML engineering projec
 
 - **Mobile-First Approach** - Responsive across devices
 - **Futuristic Hamburger Menu** - Cyberpunk-styled mobile navigation
+- **Mascot Strip** - On phones Turi lives in a fixed strip under the navbar (its height is reserved through `--turi-strip`), so its lines never cover the page; the project panel, section snap and scroll offsets are adapted to it
 - **Touch-Optimized** - Smooth interactions on mobile devices
 - **Accessibility** - ARIA labels, keyboard navigation support, and semantic HTML
 
@@ -119,6 +122,7 @@ Dopo aver aggiunto icone Font Awesome, ri-esegui `bun scripts/subset-fontawesome
 │   │   │   ├── skills/      # Skills and constellation effects
 │   │   │   ├── projects/    # Projects and GitHub integration
 │   │   │   ├── navbar/      # Navigation and matrix effect
+│   │   │   ├── mascot/      # Turi and Arancino: voxel engine, models, lines, behaviour
 │   │   │   ├── terminal/    # Interactive terminal and command data
 │   │   │   ├── contact/
 │   │   │   ├── footer/
@@ -176,7 +180,15 @@ Timeline cards with binary rain background, gradient date styling, and responsiv
 
 ### Terminal
 
-Interactive terminal backed by a modular command registry, including navigation, project information, CV actions, and the `theme` command.
+Interactive terminal backed by a modular command registry, including navigation, project information, CV actions, the `theme` command and `mascot turi|arancino|off`. The first word is the command (green when it exists, red when it does not). On phones the body follows the visible height, so it stays usable with the keyboard up.
+
+### Mascot (Turi and Arancino)
+
+- **Engine** (`mascot/voxelEngine.ts`, `characters.ts`): instanced voxel meshes with 7×5 LED face expressions, a seasonal hat (propeller, santa, nightcap, party, straw; hats keep their colour when the bot is angry), sparks, a rocket and a few extra models (the two helmets and the synth of the DJ scene).
+- **Behaviour** (`Mascot.svelte`): docks next to each section and comments on it, on the project you open, on the experience cards and on the skills; can be carried and thrown (it screams, complains on impact, and gets angry if you tap or shake it too much); falls asleep when idle; rocket ride (or lift) from the back-to-top button; swaps with the other bot with a little show.
+- **Muting**: the × mutes it with a random gag (tape over the mouth, a crossed-out speaker, or powered off: it falls on its side, the propeller stops and it ignores the cursor).
+- **Konami code** (↑↑↓↓←→←→BA): a jump, or a DJ scene with two helmeted bots and a voxel synth.
+- **Lines** (`mascotData.ts`, Italian and English): every choice among several options (lines, faces, scenes, gags) comes from a shuffle bag; taps and quiet spells weigh each source (its own lines, curiosities and pop culture, ideas, the current section, the season, the other bot) and discourage lines already said, in memory only until the page is refreshed.
 
 ## 🌟 Performance Optimizations
 
@@ -188,6 +200,7 @@ Interactive terminal backed by a modular command registry, including navigation,
 - Debounced scroll handling
 - Lazy GitHub star-count requests
 - Responsive particle density
+- Light galaxy profile on phones, frame cap and self-abort guard; the mascot engine loads lazily and pauses offscreen
 - Static prerendering (SSG) and a self-hosted Font Awesome subset
 
 ## 📄 License
