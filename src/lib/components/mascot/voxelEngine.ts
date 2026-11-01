@@ -53,12 +53,27 @@ export interface VoxelMascot {
 	lookAt(dx: number, dy: number): void;
 	/** Squash on impact, strength 0..1 */
 	bump(strength: number): void;
+	/** A little voxel rocket under the bot (needs a taller canvas, see the host) */
+	setRocket(on: boolean): void;
+	/** Flames from the rocket nozzle */
+	setThrust(on: boolean): void;
 	refreshColors(): void;
 	tick(dtMs: number, motion: Motion): void;
 	dispose(): void;
 }
 
 const PARTICLES = 110;
+
+// Rocket voxels, rows from the nose (touching the bot) downwards; [dy, radius², colour]
+const ROCKET_ROWS: [number, number, string][] = [
+	[-1, 1, '#94a3b8'],
+	[-2, 3.3, '#f1f5f9'],
+	[-3, 5.3, '#f1f5f9'],
+	[-4, 5.3, '#ef4444'],
+	[-5, 5.3, '#f1f5f9'],
+	[-6, 5.3, '#f1f5f9'],
+	[-7, 2.3, '#334155']
+];
 
 export function createVoxelMascot(
 	canvas: HTMLCanvasElement,
@@ -129,8 +144,15 @@ export function createVoxelMascot(
 	let targetPitch = 0;
 	let squash = 0;
 	let spawnBudget = 0;
+	let flameBudget = 0;
 	let spinning: number[] = [];
 	let spinAngle = 0;
+	let rocket: InstancedMesh | null = null;
+	let rocketOn = false;
+	let thrust = 0;
+	let thrustTarget = 0;
+	/** Where the flames start, relative to the model centre */
+	const nozzle = new Vector3();
 
 	function css(name: string, fallback: string) {
 		return getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
@@ -170,6 +192,7 @@ export function createVoxelMascot(
 			mesh!.setMatrixAt(i, dummy.matrix);
 		});
 		body.add(mesh);
+		buildRocket(min.y);
 		spinning = vs.flatMap((v, i) => (v.spin ? [i] : []));
 		cells = faceCells(model);
 		// Voxels with an open neighbour emit the sparkles
@@ -183,16 +206,54 @@ export function createVoxelMascot(
 		refreshColors();
 	}
 
+	// A rocket under the lowest body voxel: grey nose, white body, red stripe and fins
+	function buildRocket(bottomY: number) {
+		if (rocket) {
+			body.remove(rocket);
+			rocket.dispose();
+		}
+		const cells: { x: number; y: number; z: number; c: string }[] = [];
+		for (const [dy, r2, c] of ROCKET_ROWS)
+			for (let x = -2; x <= 2; x++)
+				for (let z = -2; z <= 2; z++)
+					if (x * x + z * z <= r2) cells.push({ x, y: bottomY + dy, z, c });
+		// Fins on the four sides, longer than the body
+		for (const [fx, fz] of [
+			[3, 0],
+			[-3, 0],
+			[0, 3],
+			[0, -3]
+		])
+			for (let dy = -4; dy >= -7; dy--) cells.push({ x: fx, y: bottomY + dy, z: fz, c: '#dc2626' });
+		rocket = new InstancedMesh(voxelGeo, voxelMat, cells.length);
+		dummy.rotation.set(0, 0, 0);
+		dummy.scale.setScalar(1);
+		cells.forEach((v, i) => {
+			dummy.position.set(v.x - center.x, v.y - center.y, v.z - center.z);
+			dummy.updateMatrix();
+			rocket!.setMatrixAt(i, dummy.matrix);
+			rocket!.setColorAt(i, color.set(v.c));
+		});
+		rocket.visible = rocketOn;
+		body.add(rocket);
+		nozzle.set(0, bottomY - 8 - center.y, 0);
+	}
+
+	function tintSparks() {
+		sparkMat.color.copy(sparkCalm).lerp(rage, anger).lerp(flame, thrust);
+	}
+
 	function refreshColors() {
 		// Season and night swap Turi's hat, which changes the geometry
 		if (hatFor(document.body.classList) !== currentHat) return build(currentId);
 		palette = model.palette(css, document.body.classList.contains('tod-night'));
 		paint();
 		sparkCalm.set(palette.glow);
-		sparkMat.color.copy(sparkCalm);
+		tintSparks();
 	}
 
 	const rage = new Color('#f2552c');
+	const flame = new Color('#ffb020');
 	const sparkCalm = new Color();
 	let anger = 0;
 	let angryTarget = 0;
@@ -235,11 +296,13 @@ export function createVoxelMascot(
 		const w = canvas.clientWidth || 160;
 		const h = canvas.clientHeight || 160;
 		renderer.setSize(w, h, false);
-		const aspect = w / h;
-		camera.left = -radius * aspect;
-		camera.right = radius * aspect;
+		// The canvas is square at rest; a host that makes it taller (the rocket's flames) only
+		// adds room below, the bot keeps its scale and place
+		const perPx = (2 * radius) / w;
+		camera.left = -radius;
+		camera.right = radius;
 		camera.top = radius;
-		camera.bottom = -radius;
+		camera.bottom = radius - h * perPx;
 		camera.updateProjectionMatrix();
 	}
 
@@ -297,6 +360,25 @@ export function createVoxelMascot(
 				emit(from, drift);
 			}
 		}
+		if (thrust > 0.05 && rocketOn && !reducedMotion) {
+			// Flames: many fast cubes shot down from the nozzle
+			flameBudget += dt * 160 * thrust;
+			while (flameBudget >= 1) {
+				flameBudget -= 1;
+				const from = nozzle
+					.clone()
+					.add(new Vector3((Math.random() - 0.5) * 1.6, 0, (Math.random() - 0.5) * 1.6));
+				from.applyEuler(body.rotation).applyEuler(root.rotation);
+				emit(
+					from,
+					new Vector3(
+						(Math.random() - 0.5) * 2.4,
+						-(6 + Math.random() * 5),
+						(Math.random() - 0.5) * 2
+					)
+				);
+			}
+		}
 		sparkState.forEach((s, i) => {
 			if (s.life > 0) {
 				s.life -= dt * 0.9;
@@ -341,6 +423,14 @@ export function createVoxelMascot(
 		bump(strength) {
 			squash = Math.min(1, Math.max(squash, strength));
 		},
+		setRocket(on) {
+			rocketOn = on;
+			if (rocket) rocket.visible = on;
+			if (!on) thrustTarget = 0;
+		},
+		setThrust(on) {
+			thrustTarget = on && rocketOn ? 1 : 0;
+		},
 		refreshColors,
 		tick(dtMs, motion) {
 			const dt = Math.min(dtMs, 50) / 1000;
@@ -377,10 +467,11 @@ export function createVoxelMascot(
 			// Flares up in ~0.2 s, calms down over ~2.5 s
 			anger += (angryTarget - anger) * (1 - Math.exp(-dt * (angryTarget ? 9 : 1.1)));
 			if (Math.abs(anger - angryTarget) < 0.01) anger = angryTarget;
-			if (anger !== prevAnger) {
-				paint();
-				sparkMat.color.copy(sparkCalm).lerp(rage, anger);
-			}
+			if (anger !== prevAnger) paint();
+			const prevThrust = thrust;
+			thrust += (thrustTarget - thrust) * (1 - Math.exp(-dt * 10));
+			if (Math.abs(thrust - thrustTarget) < 0.01) thrust = thrustTarget;
+			if (anger !== prevAnger || thrust !== prevThrust) tintSparks();
 			const shake = reducedMotion ? 0 : anger * 0.35;
 			root.position.set((Math.random() - 0.5) * shake, bob + (Math.random() - 0.5) * shake, 0);
 			squash = Math.max(0, squash - dt * 3);
@@ -395,6 +486,7 @@ export function createVoxelMascot(
 		dispose() {
 			ro.disconnect();
 			mesh?.dispose();
+			rocket?.dispose();
 			voxelGeo.dispose();
 			voxelMat.dispose();
 			sparkGeo.dispose();
