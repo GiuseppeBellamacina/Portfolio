@@ -88,6 +88,8 @@
 	// Round robin per list: every line comes out once, in shuffled order, before any repeats
 	const bags = new Map<string[], number[]>();
 	const lastPicked = new Map<string[], number>();
+	const oneOf = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 	function pick(arr: string[]): string {
 		let bag = bags.get(arr);
 		if (!bag?.length) {
@@ -249,7 +251,10 @@
 		const now = performance.now();
 		if (now - lastComplaint < 900) return;
 		lastComplaint = now;
-		say(pick(complaints[get(lang)]), hits >= 3 || speed > 2600 ? 'dizzy' : 'angry');
+		say(
+			pick(complaints[get(lang)]),
+			hits >= 3 || speed > 2600 ? 'dizzy' : oneOf(['angry', 'sad', 'tear', 'worried'])
+		);
 	}
 
 	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, and never
@@ -365,7 +370,11 @@
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
 				// A complaint from the landing beats the generic "back to my spot"
-				if (!queued) queued = { line: pick(backLines[get(lang)]), face: 'normal' };
+				if (!queued)
+					queued = {
+						line: pick(backLines[get(lang)]),
+						face: oneOf(['sad', 'tired', 'shy', 'normal'])
+					};
 			}
 		} else if (mode === 'docked' || mode === 'returning') {
 			const a = anchor();
@@ -510,7 +519,7 @@
 			placed = { fx: body.x / b.width, fy: body.y / b.height };
 			body.vx = body.vy = 0;
 			mode = 'docked';
-			say(pick(placeLines[get(lang)]), 'happy');
+			say(pick(placeLines[get(lang)]), oneOf(['happy', 'smug', 'wink']));
 			return;
 		}
 		body.spin = (body.vx / radius) * 0.35;
@@ -530,7 +539,7 @@
 		if (muted) {
 			muted = false;
 			store(MUTE_KEY, null);
-			say(unmuteLine[get(lang)], 'happy');
+			say(unmuteLine[get(lang)], 'shy');
 			return;
 		}
 		const now = performance.now();
@@ -547,22 +556,39 @@
 		const s = season();
 		const r = Math.random();
 		// The third tap always tells about the other bot, so nobody misses it
-		const pool =
-			totalTaps === 3 || r < 0.2
-				? friendLines[l][character]
-				: r < 0.4
-					? ideaLines[l]
-					: s && r < 0.6
-						? seasonLines[l][s]
-						: clickLines[l];
-		say(pick(pool), 'happy');
+		let pool = clickLines[l];
+		let face: Expression = oneOf(['happy', 'wink', 'smug', 'star', 'shy', 'love']);
+		if (totalTaps === 3 || r < 0.2) {
+			pool = friendLines[l][character];
+			face = 'smug'; // a bit of complicity: "psst, I have a friend"
+		} else if (r < 0.4) {
+			pool = ideaLines[l];
+			face = oneOf(['tired', 'worried', 'sad']);
+		} else if (s && r < 0.6) {
+			pool = seasonLines[l][s];
+			face = s === 'night' ? 'sleepy' : 'happy';
+		}
+		say(pick(pool), face);
 	}
 
 	// ── Personality: it speaks up when left alone, and when you come back ──
 	const IDLE_MS = 30000; // no interaction for this long
 	const IDLE_GAP_MS = 45000; // and at most one such line per this
+	const DOZE_MS = 75000; // no interaction for this long and it dozes off
 	let lastActivity = performance.now();
 	let lastIdleLine = -IDLE_GAP_MS;
+	let dozing = false;
+
+	// Any sign of life: remember it, and wake up if it was dozing
+	function touch(now = performance.now()) {
+		lastActivity = now;
+		if (!dozing) return;
+		dozing = false;
+		engine?.setExpression('wow');
+		setTimeout(() => {
+			if (!dozing && !speaking && mode === 'docked') engine?.setExpression('normal');
+		}, 1400);
+	}
 	let hiddenAt = 0;
 	let idleTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -578,14 +604,25 @@
 			swapping
 		)
 			return;
+		if (!dozing && now - lastActivity > DOZE_MS) {
+			dozing = true;
+			engine?.setExpression('sleepy');
+			return;
+		}
+		// Asleep: no chatter until something wakes it
+		if (dozing) return;
 		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
 		lastIdleLine = now;
 		const l = get(lang);
-		say(pick(Math.random() < 0.7 ? idleLines[l] : ideaLines[l]), 'wink');
+		const idea = Math.random() >= 0.7;
+		say(
+			pick(idea ? ideaLines[l] : idleLines[l]),
+			idea ? 'tired' : oneOf(['wink', 'think', 'smug', 'sleepy'])
+		);
 	}
 
 	function onActivity() {
-		lastActivity = performance.now();
+		touch();
 	}
 
 	function onVisibility() {
@@ -594,9 +631,9 @@
 			hiddenAt = now;
 			return;
 		}
-		lastActivity = now;
+		touch(now);
 		if (hiddenAt && now - hiddenAt > 60000 && visible && !muted && mode === 'docked')
-			say(pick(backTabLines[get(lang)]), 'happy');
+			say(pick(backTabLines[get(lang)]), oneOf(['love', 'happy', 'star']));
 		hiddenAt = 0;
 	}
 
@@ -616,14 +653,14 @@
 	let konamiKeys: string[] = [];
 
 	function onKey(e: KeyboardEvent) {
-		lastActivity = performance.now();
+		touch();
 		const t = e.target as HTMLElement | null;
 		if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
 		konamiKeys = [...konamiKeys, e.key.toLowerCase()].slice(-KONAMI.length);
 		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
 		konamiKeys = [];
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
-		queued = { line: pick(konamiLines[get(lang)]), face: 'happy' };
+		queued = { line: pick(konamiLines[get(lang)]), face: 'star' };
 		playful = true;
 		hits = 0;
 		restMs = 0;
@@ -635,7 +672,7 @@
 	}
 
 	function onWindowPointerMove(e: PointerEvent) {
-		lastActivity = performance.now();
+		touch();
 		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
 	}
 
@@ -652,7 +689,7 @@
 
 	function onScroll() {
 		const now = performance.now();
-		lastActivity = now;
+		touch(now);
 		const dt = now - lastScrollT;
 		const instant = dt > 0 && dt < 400 ? (Math.abs(scrollY - lastScrollY) / dt) * 1000 : 0;
 		scrollSpeed = scrollSpeed * 0.6 + instant * 0.4;
@@ -690,7 +727,7 @@
 		const key = (e as CustomEvent<keyof Translations | null>).detail;
 		const l = get(lang);
 		if (key === null) {
-			say(allSkillsLine[l].replace('{n}', String(TOTAL_SKILLS)), 'happy');
+			say(allSkillsLine[l].replace('{n}', String(TOTAL_SKILLS)), 'star');
 			return;
 		}
 		const n = skillCategories.find((c) => c.key === key)?.icons.length ?? 0;
@@ -778,9 +815,9 @@
 			engine?.bump(0.5);
 			guestEngine.bump(0.5);
 			guestEngine.lookAt(body.x - guest.x, 0);
-			await speak(pick(lines.bye), 'happy', 'main', 2500);
+			await speak(pick(lines.bye), oneOf(['love', 'sad', 'shy']), 'main', 2500);
 			if (!alive()) return;
-			await speak(pick(lines.hello), 'happy', 'guest', 2300);
+			await speak(pick(lines.hello), oneOf(['star', 'smug', 'happy']), 'guest', 2300);
 			if (!alive()) return;
 
 			// Rocket on, countdown, lift-off
@@ -793,14 +830,14 @@
 			canvas.style.height = `${size + launchTail}px`;
 			engine?.setRocket(true);
 			engine?.bump(0.7);
-			engine?.setExpression('wow');
+			engine?.setExpression('worried');
 			for (const n of ['3…', '2…', '1…']) {
 				shout = n;
 				await wait(520);
 				if (!alive()) return;
 			}
 			engine?.setThrust(true);
-			engine?.setExpression('happy');
+			engine?.setExpression('star');
 			shout = pick(lines.go);
 			await wait(450);
 			if (!alive()) return;

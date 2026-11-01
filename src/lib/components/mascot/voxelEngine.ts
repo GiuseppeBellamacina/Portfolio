@@ -24,7 +24,9 @@ import {
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {
 	CHARACTERS,
+	BLINKS,
 	EXPRESSIONS,
+	TEAR_DROP,
 	faceCells,
 	hash3,
 	hatFor,
@@ -138,6 +140,8 @@ export function createVoxelMascot(
 	let mouthOpen = false;
 	let mouthMs = 0;
 	let blinkMs = 2500;
+	let tearMs = 0;
+	let tearDrop = false;
 	let blinking = false;
 	let time = 0;
 	let yaw = 0;
@@ -262,15 +266,23 @@ export function createVoxelMascot(
 
 	function paint() {
 		if (!mesh) return;
+		// Still fuming: the face stays angry until the red has mostly faded
+		const base =
+			anger > 0.35 && expression !== 'dizzy'
+				? EXPRESSIONS.angry
+				: expression === 'tear' && tearDrop
+					? TEAR_DROP
+					: EXPRESSIONS[expression];
+		// Eyes and brows keep the mood while talking (only the mouth moves) and while blinking
+		// (only the eyes close), so a sad bot talks sad
 		const rows =
-			talking && mouthOpen
-				? EXPRESSIONS.talk
+			talking && mouthOpen && expression !== 'talk'
+				? [...base.slice(0, 3), ...EXPRESSIONS.talk.slice(3)]
 				: blinking
-					? EXPRESSIONS.blink
-					: // Still fuming: the face stays angry until the red has mostly faded
-						anger > 0.35 && expression !== 'dizzy'
-						? EXPRESSIONS.angry
-						: EXPRESSIONS[expression];
+					? [...EXPRESSIONS.blink.slice(0, 3), ...base.slice(3)]
+					: talking && mouthOpen
+						? EXPRESSIONS.talk
+						: base;
 		const lit = new Set<number>();
 		rows.forEach((row, fy) =>
 			[...row].forEach((ch, fx) => {
@@ -410,6 +422,8 @@ export function createVoxelMascot(
 		setExpression(e) {
 			if (e === expression) return;
 			expression = e;
+			tearDrop = false;
+			tearMs = 0;
 			paint();
 		},
 		setAngry(on) {
@@ -449,8 +463,16 @@ export function createVoxelMascot(
 					paint();
 				}
 			} else if (!reducedMotion) {
+				if (expression === 'tear') {
+					tearMs += dtMs;
+					if (tearMs >= 650) {
+						tearMs = 0;
+						tearDrop = !tearDrop;
+						paint();
+					}
+				}
 				blinkMs -= dtMs;
-				const blinkNow = expression === 'normal' && blinkMs < 0;
+				const blinkNow = BLINKS.includes(expression) && blinkMs < 0;
 				if (blinkNow !== blinking) {
 					blinking = blinkNow;
 					paint();

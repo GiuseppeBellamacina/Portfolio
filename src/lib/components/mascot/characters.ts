@@ -7,7 +7,25 @@
 export type Role = 'base' | 'shade' | 'accent' | 'dark' | 'glow';
 export type CharacterId = 'turi' | 'arancino';
 export type Hat = 'propeller' | 'santa' | 'nightcap' | 'party' | 'straw';
-export type Expression = 'normal' | 'happy' | 'wink' | 'wow' | 'talk' | 'dizzy' | 'angry' | 'blink';
+export type Expression =
+	| 'normal'
+	| 'happy'
+	| 'wink'
+	| 'wow'
+	| 'talk'
+	| 'dizzy'
+	| 'angry'
+	| 'blink'
+	| 'sad'
+	| 'tear'
+	| 'smug'
+	| 'love'
+	| 'sleepy'
+	| 'think'
+	| 'shy'
+	| 'worried'
+	| 'star'
+	| 'tired';
 
 export interface Voxel {
 	x: number;
@@ -45,8 +63,34 @@ export const EXPRESSIONS: Record<Expression, string[]> = {
 	talk: ['.......', '.#...#.', '.#...#.', '..###..', '..###..'],
 	dizzy: ['#.#.#.#', '.#...#.', '#.#.#.#', '.......', '.#.#.#.'],
 	angry: ['#.....#', '.#...#.', '.#...#.', '..###..', '.#...#.'],
-	blink: ['.......', '.......', '##...##', '.......', '..###..']
+	blink: ['.......', '.......', '##...##', '.......', '..###..'],
+	// Brows slanting up towards the middle, a frown
+	sad: ['..#.#..', '.#...#.', '.#...#.', '..###..', '.#...#.'],
+	// Sad, with one tear on the left cheek (it rolls down: see TEAR_DROP)
+	tear: ['..#.#..', '.#...#.', '.#...#.', '#......', '..###..'],
+	// Half-lidded eyes and a smirk: "we both know"
+	smug: ['.......', '##...##', '.#...#.', '.....#.', '..###..'],
+	// Heart eyes
+	love: ['#.#.#.#', '###.###', '.#...#.', '.#...#.', '..###..'],
+	// Eyes shut, a small snore
+	sleepy: ['.....##', '.......', '##...##', '.......', '...#...'],
+	// Eyes up and to the side, mouth off to one corner: hmm
+	think: ['.#...#.', '.#...#.', '.......', '....##.', '.......'],
+	// Small eyes, blushing cheeks, a tiny smile
+	shy: ['.......', '.......', '.#...#.', '#.....#', '..###..'],
+	// Brows up, a wobbly mouth
+	worried: ['..#.#..', '.#...#.', '.#...#.', '.......', '.#.#.#.'],
+	// Sparkling eyes, a wide smile
+	star: ['.#...#.', '###.###', '.#...#.', '.#...#.', '..###..'],
+	// Heavy lids, a drop of sweat, a flat wobble
+	tired: ['.....#.', '##...##', '.......', '.......', '.#.#.#.']
 };
+
+// The tear's second frame: it has rolled down next to the mouth
+export const TEAR_DROP = ['..#.#..', '.#...#.', '.#...#.', '.......', '#.###..'];
+
+// Expressions whose eyes can blink (the others have their eyes shut, or are drawn on purpose)
+export const BLINKS: Expression[] = ['normal', 'think', 'smug', 'shy', 'worried', 'star', 'love'];
 
 // Deterministic per-voxel noise, so shading is stable across reloads
 export function hash3(x: number, y: number, z: number): number {
