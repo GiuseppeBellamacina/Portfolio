@@ -87,6 +87,19 @@
 }
 
 /* ── Total work experience badge ── */
+@media (max-width: 768px) {
+	/* Label on its own line, the duration under it: never "3 anni e 5 / mesi" */
+	.exp-total-badge {
+		text-align: center;
+	}
+	.exp-total-badge .exp-label {
+		display: block;
+	}
+	.exp-total-badge .exp-value {
+		white-space: nowrap;
+	}
+}
+
 .exp-total {
 	text-align: center;
 	margin-bottom: 3rem;

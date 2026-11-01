@@ -103,7 +103,7 @@ export async function initGpgpuParticles(
 		camera.fov = (2 * Math.atan((Math.tan(halfFov) * fullH) / heroH) * 180) / Math.PI;
 		camera.aspect = W / fullH;
 		// On phones the bright core sits behind the photo, not behind the typed subtitle
-		camera.setViewOffset(W, fullH, 0, ext + (light ? 0.17 * heroH : 0), W, H);
+		camera.setViewOffset(W, fullH, 0, ext + (light ? 0.06 * heroH : 0), W, H);
 		camera.updateProjectionMatrix();
 	}
 	frameToHero();

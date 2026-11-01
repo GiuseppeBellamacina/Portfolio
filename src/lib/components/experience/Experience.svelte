@@ -169,7 +169,7 @@
 			<span class="exp-total-badge">
 				<i class="fas fa-briefcase"></i>
 				<span>
-					{$t.exp_totalExperience}:
+					<span class="exp-label">{$t.exp_totalExperience}:</span>
 					{#if workExp.years > 0}
 						<span class="exp-value">{plural($t.exp_years, workExp.years)}</span>
 					{/if}
