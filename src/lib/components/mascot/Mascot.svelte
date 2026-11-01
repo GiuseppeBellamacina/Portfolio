@@ -355,10 +355,12 @@
 				shoutX = tx;
 				shoutY = ty;
 			} else {
-				const k = 1 - Math.exp(-SHOUT_FOLLOW * dt);
+				// On a rocket ride the text drifts after it slowly, so it stays easy to read
+				const k = 1 - Math.exp(-(riding ? 1.2 : SHOUT_FOLLOW) * dt);
 				let mx = (tx - shoutX) * k;
 				let my = (ty - shoutY) * k;
-				const maxStep = (SHOUT_DRIFT + SHOUT_SPEED_SHARE * Math.hypot(body.vx, body.vy)) * dt;
+				const share = riding ? 0.3 : SHOUT_SPEED_SHARE;
+				const maxStep = (SHOUT_DRIFT + share * Math.hypot(body.vx, body.vy)) * dt;
 				const len = Math.hypot(mx, my);
 				if (len > maxStep) {
 					mx *= maxStep / len;
@@ -369,7 +371,7 @@
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
 			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
-			const share = riding ? 0.35 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			const share = riding ? 0.12 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
 			shoutPhase += dt * (3 + 22 * share);
 			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
@@ -787,6 +789,9 @@
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
 		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
+		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
+		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
+		synthEngine?.lookAt(e.clientX - synthAt.x, 250 + (e.clientY - synthAt.y) * 0.5);
 	}
 
 	// ── Page events: section in view, carousel and skills changes, terminal command ──
@@ -977,6 +982,7 @@
 	let synthEl: HTMLDivElement | undefined = $state();
 	let synthCanvas: HTMLCanvasElement | undefined = $state();
 	let synthEngine: VoxelMascot | null = null;
+	const synthAt = { x: 0, y: 0 };
 	/** With two bots on stage the bubble's side (above or below them) is chosen once */
 	let duoBelow: boolean | null = null;
 	let synthShown = $state(false);
@@ -1049,6 +1055,8 @@
 				synthEl.style.width = synthEl.style.height = `${W}px`;
 				synthEl.style.transform = `translate3d(${cx - W / 2}px, ${cy + size * 0.32 - W / 2}px, 0)`;
 				synthEngine = createVoxelMascot(synthCanvas, 'synth', true);
+				synthAt.x = cx;
+				synthAt.y = cy + size * 0.32;
 				synthEngine.lookAt(0, 500);
 				synthEngine.setExpression(pick(SYNTH_LEDS));
 			}

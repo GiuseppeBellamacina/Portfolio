@@ -396,7 +396,8 @@ export function createVoxelMascot(
 		if (!mesh || !spinning.length) return;
 		// Spins faster while the mascot flies
 		const speed = reducedMotion ? 0 : 4 + Math.min(Math.hypot(motion.vx, motion.vy) / 120, 18);
-		if (!speed) return;
+		// Powered off: the propeller stops where it is
+		if (!speed || gag === 'off') return;
 		spinAngle += speed * dt;
 		const c = Math.cos(spinAngle);
 		const s = Math.sin(spinAngle);

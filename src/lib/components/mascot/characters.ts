@@ -348,113 +348,149 @@ function headShell(rx: number, ry: number, rz: number, yCut: number, p = 2.6) {
 	return out;
 }
 
-/** An ear piece: a ring standing out of the side of the head, stepped two layers deep, its middle dark */
-function ear(
-	put: (x: number, y: number, z: number, r: Role) => void,
-	x: number,
-	side: number,
-	cy: number,
-	cz: number,
-	inner: number,
-	outer: number,
-	role: Role
-) {
-	for (let y = cy - 5; y <= cy + 5; y++)
-		for (let z = cz - 5; z <= cz + 5; z++) {
-			const r = Math.hypot(y - cy, z - cz);
-			if (r < inner) put(x - side, y, z, 'shade');
-			else if (r <= outer) put(x, y, z, role);
-			if (r >= inner && r <= outer - 0.9) put(x + side, y, z, role);
-		}
-}
-
-// Chrome and gold are mottled like polished metal under a light
-const metal = (x: number, y: number, z: number): Role => {
-	const n = hash3(x, y, z);
-	return n > 0.86 ? 'accent' : n > 0.5 ? 'shade' : 'base';
-};
-
-/** The front-most voxel at (x, y), or `from` when there is none in front of it */
-function front(has: (x: number, y: number, z: number) => boolean, x: number, y: number, from = 12) {
-	let z = from;
+/** The front-most voxel at (x, y) */
+function front(has: (x: number, y: number, z: number) => boolean, x: number, y: number) {
+	let z = 12;
 	while (z > -12 && !has(x, y, z)) z--;
 	return z;
 }
 
 /**
- * Thomas Bangalter's helmet: a tall silver dome; across the front a black visor band that
- * follows the curve of the helmet round to the ears, one voxel proud of it, with a thin
- * bright rim above and below; the chin bulges a little under it; a ring over each ear
+ * Thomas Bangalter's helmet. A silver dome; a peak juts out over a flat black visor set back
+ * under it, a thin ledge juts out under it, silver brackets hold its ends; below, a squared
+ * jaw, narrower than the dome, with a flat front, a small slit and a bevelled bottom; a
+ * cylindrical hub on each side with a raised cap
  */
 export function thomas(): Character {
-	const { cells, put, has } = grid();
-	for (const [x, y, z] of headShell(8, 9, 8.5, -8, 2.4)) {
-		const wrap = z > -2;
-		const band = wrap && y >= -3 && y <= 1;
-		const rim = wrap && (y === 2 || y === -4);
-		put(x, y, z, band ? 'dark' : rim ? 'accent' : metal(x, y, z));
+	const { cells, put } = grid();
+	for (const [x, y, z] of headShell(8, 8.5, 8.5, -9, 2.4)) {
+		// The front below the peak is open: the visor and the jaw go there
+		if (z > 0 && y < 1) continue;
+		put(x, y, z, 'base');
 	}
-	// The visor stands one voxel proud of the shell, rims included, across the front
-	for (let x = -7; x <= 7; x++)
-		for (let y = -4; y <= 2; y++) {
-			const z = front(has, x, y);
-			if (z < 2) continue;
-			put(x, y, z + 1, y === 2 || y === -4 ? 'accent' : 'dark');
-		}
-	// Glints on the glass
+	// The peak follows the curve of the dome, one voxel beyond it, in two steps
+	const reach = (x: number) =>
+		Math.min(9, Math.round(8.5 * (1 - (Math.abs(x) / 8.2) ** 2.4) ** (1 / 2.4)) + 1);
+	for (let x = -7; x <= 7; x++) {
+		for (let z = 0; z <= reach(x); z++) put(x, 1, z, 'accent');
+		for (let z = 0; z < reach(x); z++) put(x, 2, z, 'base');
+	}
+	// The visor: black glass set back two voxels under the peak, with a few glints
+	const glass = (x: number) => Math.min(7, reach(x) - 2);
+	for (let x = -6; x <= 6; x++)
+		for (let y = -4; y <= 0; y++) for (let z = 1; z <= glass(x); z++) put(x, y, z, 'dark');
 	for (const [x, y] of [
-		[-4, 0],
-		[-3, 1],
-		[-4, 1]
+		[-5, 0],
+		[-4, -1],
+		[-3, -2],
+		[3, 0],
+		[4, -1]
 	])
-		put(x, y, front(has, x, y), 'glow');
-	// The chin bulges a little under the visor
-	for (let x = -4; x <= 4; x++)
-		for (const y of [-7, -6]) put(x, y, front(has, x, y) + 1, metal(x, y, 9));
-	ear(put, 9, 1, -1, -2, 1.6, 3.8, 'base');
-	ear(put, -9, -1, -1, -2, 1.6, 3.8, 'base');
+		put(x, y, glass(x), 'glow');
+	// Brackets at the ends of the visor, back to the dome
+	for (const s of [-1, 1])
+		for (let y = -4; y <= 0; y++) {
+			for (let z = 0; z < reach(7); z++) put(7 * s, y, z, 'base');
+			for (let z = 0; z <= 3; z++) put(8 * s, y, z, 'shade');
+		}
+	// The ledge under the visor
+	for (let x = -7; x <= 7; x++) for (let z = 0; z <= reach(x); z++) put(x, -5, z, 'accent');
+	// The jaw: a box, its sides stepping in and its front stepping back towards the bottom
+	const half = (y: number) => (y >= -7 ? 6 : y >= -9 ? 5 : 4);
+	const face = (y: number) => (y >= -9 ? 7 : y === -10 ? 6 : 5);
+	for (let y = -11; y <= -6; y++)
+		for (let x = -half(y); x <= half(y); x++)
+			for (let z = 1; z <= face(y); z++) {
+				const side = Math.abs(x) === half(y);
+				if (!side && z !== face(y) && y !== -11) continue;
+				const slit = y === -8 && Math.abs(x) <= 2 && z === face(y);
+				put(x, y, z, slit ? 'dark' : side || y === -11 ? 'shade' : 'base');
+			}
+	// Cheeks: close the gap between the jaw and the side of the dome
+	for (const s of [-1, 1])
+		for (let y = -9; y <= -6; y++) for (let x = half(y) + 1; x <= 7; x++) put(x * s, y, 1, 'shade');
+	// The hubs: a disc with a groove, and a raised cap
+	for (const s of [-1, 1])
+		for (let y = -6; y <= 2; y++)
+			for (let z = -6; z <= 2; z++) {
+				const r = Math.hypot(y + 2, z + 2);
+				if (r <= 3.2) put(9 * s, y, z, r > 2 && r <= 2.6 ? 'shade' : 'base');
+				if (r <= 1.9) put(10 * s, y, z, 'accent');
+			}
 	return {
 		voxels: [...cells.values()],
 		face: { x0: 200, y0: 200 },
 		faceOn: 'glow',
 		palette: () => ({
-			base: '#b4b9c2',
-			shade: '#7f8693',
-			accent: '#d5dae2',
+			base: '#b9bec7',
+			shade: '#858c98',
+			accent: '#d8dce3',
 			dark: '#0b0c10',
-			glow: '#c9ced8'
+			glow: '#5e6573'
 		})
 	};
 }
 
 /**
- * Guy-Manuel de Homem-Christo's helmet: a gold egg; the black glass covers the middle of
- * the face and sweeps up and back over the crown, framed by gold at the sides; gold at the
- * back, round the ears and in a slim band at the bottom; a large ring over each ear
+ * Guy-Manuel de Homem-Christo's helmet. A gold shell, taller than wide; the black glass
+ * starts low at the front and sweeps up and back over the crown, framed by a bright gold
+ * edge; flush on each side a panel with an arched top, a lens and two lights (no ear
+ * pieces stick out); a bright band round the bottom, flaring a little at the front
  */
 export function guyman(): Character {
 	const { cells, put, has } = grid();
-	for (const [x, y, z] of headShell(8, 9.5, 8.5, -7, 2.2)) {
-		const glass = y > -6 && Math.abs(x) < 5.6 && z + 0.55 * Math.max(0, y) > 0;
-		put(x, y, z, glass ? 'dark' : metal(x, y, z));
+	const RX = 7.5;
+	// The glass edge seen from the side: z above this is glass. It covers the face and the
+	// front of the crown, ending just past the top; the back is gold
+	const edge = (y: number) => 0.5 - 0.3 * Math.max(0, y);
+	for (const [x, y, z] of headShell(RX, 10, 8.5, -8, 2.2)) {
+		const inX = Math.abs(x) <= RX - 2;
+		const glass = inX && y > -6 && z > edge(y);
+		const frame = !glass && y > -7 && z > edge(y) - 1.5 && Math.abs(x) <= RX - 1;
+		put(x, y, z, glass ? 'dark' : frame || y <= -7 ? 'accent' : 'base');
 	}
-	// Reflections on the glass: a long streak and a short one
-	for (let y = -2; y <= 6; y++) put(-3, y, front(has, -3, y), 'glow');
-	for (let y = 4; y <= 6; y++) put(-4, y, front(has, -4, y), 'glow');
-	// The bottom band curls forward a little under the chin
-	for (let x = -5; x <= 5; x++) put(x, -7, front(has, x, -7) + 1, metal(x, -7, 9));
-	ear(put, 9, 1, -1, -2, 1.8, 4.2, 'base');
-	ear(put, -9, -1, -1, -2, 1.8, 4.2, 'base');
+	// Reflections on the glass
+	for (let y = 1; y <= 7; y++) put(-2, y, front(has, -2, y), 'glow');
+	for (let y = 5; y <= 7; y++) put(3, y, front(has, 3, y), 'glow');
+	// The bottom band flares out a little at the front
+	for (let x = -5; x <= 5; x++) {
+		const z = front(has, x, -8);
+		if (z > 0) put(x, -8, z + 1, 'accent');
+	}
+	// Side panels, flush with the shell: an arch with a bright frame, a darker inside, a lens
+	// and two small lights
+	const ZC = -2;
+	const arch = (y: number, z: number, r: number) =>
+		(y <= -2 && y >= -7 + (3 - r) && Math.abs(z - ZC) <= r) ||
+		(y > -2 && Math.hypot(y + 2, z - ZC) <= r);
+	for (const s of [-1, 1])
+		for (let y = -7; y <= 2; y++)
+			for (let z = ZC - 4; z <= ZC + 4; z++) {
+				if (!arch(y, z, 3)) continue;
+				let x = 10 * s;
+				while (Math.abs(x) > 0 && !has(x, y, z)) x -= s;
+				if (!x) continue;
+				const lens = Math.hypot(y + 3, z - ZC) <= 1.4;
+				put(x, y, z, !arch(y, z, 2) ? 'accent' : lens ? 'base' : 'shade');
+				if (y === -6 && (z === ZC - 1 || z === ZC + 1))
+					cells.set(`${x},${y},${z}`, {
+						x,
+						y,
+						z,
+						role: 'base',
+						color: z < ZC ? '#ef4444' : '#22c55e'
+					});
+			}
 	return {
 		voxels: [...cells.values()],
 		face: { x0: 200, y0: 200 },
 		faceOn: 'glow',
 		palette: () => ({
-			base: '#e3b11f',
-			shade: '#b9870f',
-			accent: '#f7d453',
-			dark: '#0e0e12',
-			glow: '#5d6472'
+			base: '#d9a417',
+			shade: '#9c6f0b',
+			accent: '#f6d55c',
+			dark: '#0b0b10',
+			glow: '#7b8496'
 		})
 	};
 }
