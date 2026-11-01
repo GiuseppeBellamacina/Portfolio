@@ -1158,6 +1158,7 @@ export const triviaLines: Lines<string[]> = {
 		'love|**Random Access Memories** ha vinto **quattro Grammy**. Il disco dei robot, con **musicisti veri**.',
 		'think|“**Instant Crush**” è dei **Daft Punk**, non dei Tame Impala! Canta **Julian Casablancas**, che suona anche la chitarra solista e **co-produce**. Ci lavoravano dal **2010**.',
 		'wink|Nel video di “**Instant Crush**” c’è **Julian Casablancas** nei panni di un **manichino** in un museo di cera.',
+		'wow|**Kevin Parker** ha raccontato ad **Apple Music** (2021) di aver chiesto, a una festa a Parigi, “hai sentito il nuovo singolo dei **Daft Punk**?”… a **Guy-Manuel** e **Thomas**. Senza riconoscerli. Lo presentava **Andrew VanWyngarden** degli **MGMT**.',
 		'smug|“**Nightcall**” (2010) di **Kavinsky** è nella colonna sonora di **Drive**, e alle **Olimpiadi 2024** l’hanno suonata alla cerimonia di chiusura con i **Phoenix** e **Angèle**.',
 		'star|“**Zenith**” di **Kavinsky** non è in OutRun: è su **Reborn** (2022), il primo disco dopo **nove anni**, pensata come il **seguito di Nightcall**. Cantano **Prudence** e **Morgan Phalen**.'
 	],
@@ -1240,6 +1241,7 @@ export const triviaLines: Lines<string[]> = {
 		'love|**Random Access Memories** won **four Grammys**. The robots’ album, with **real musicians**.',
 		'think|“**Instant Crush**” is **Daft Punk’s**, not Tame Impala’s! **Julian Casablancas** sings it, plays lead guitar and **co-produced** it. They’d been working on it since **2010**.',
 		'wink|In the video for “**Instant Crush**”, **Julian Casablancas** plays a **mannequin** in a wax museum.',
+		'wow|**Kevin Parker** told **Apple Music** (2021) that at a party in Paris he asked, “have you heard **Daft Punk’s** new single?”… to **Guy-Manuel** and **Thomas**. Without recognising them. **Andrew VanWyngarden** of **MGMT** had introduced them.',
 		'smug|**Kavinsky’s** “**Nightcall**” (2010) is on the **Drive** soundtrack, and at the **2024 Olympics** it was played at the closing ceremony with **Phoenix** and **Angèle**.',
 		'star|**Kavinsky’s** “**Zenith**” isn’t on OutRun: it’s on **Reborn** (2022), his first album in **nine years**, meant as the **sequel to Nightcall**. **Prudence** and **Morgan Phalen** sing.'
 	]
