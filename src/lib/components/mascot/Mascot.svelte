@@ -27,6 +27,7 @@
 		annoyedLines,
 		backTabLines,
 		konamiLines,
+		konamiHints,
 		sceneLines,
 		pick,
 		friendLines,
@@ -702,6 +703,7 @@
 			{ lines: triviaLines[l], weight: 5, face: 'wink' },
 			{ lines: ideaLines[l], weight: 2, face: 'tired' },
 			{ lines: sectionLines[l][section], weight: 3, face: 'happy' },
+			{ lines: konamiHints[l], weight: 1.2, face: 'wink' },
 			{ lines: friendLines[l][character], weight: 1, face: 'smug' },
 			{ lines: own().click ?? [], weight: 14, face: 'happy' },
 			{ lines: s ? seasonLines[l][s] : [], weight: 2, face: s === 'night' ? 'sleepy' : 'happy' }
@@ -756,6 +758,7 @@
 			{ lines: ideaLines[l], weight: 2, face: 'tired' },
 			{ lines: idleLines[l], weight: 3, face: 'wink' },
 			{ lines: sectionLines[l][section], weight: 3, face: 'wink' },
+			{ lines: konamiHints[l], weight: 1.5, face: 'wink' },
 			{ lines: own().idle ?? [], weight: 8, face: 'wink' }
 		]);
 	}
@@ -798,6 +801,11 @@
 		konamiKeys = [...konamiKeys, e.key.toLowerCase()].slice(-KONAMI.length);
 		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
 		konamiKeys = [];
+		triggerKonami();
+	}
+
+	// The code, typed on the keyboard or as the hidden terminal command `konami`
+	function triggerKonami() {
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
 		// Not only the jump: sometimes a scene (never on phones, never over another one)
 		const pickScene = pick(KONAMI_SCENES);
@@ -1388,6 +1396,7 @@
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('projects-view', onProjectsView);
 		window.addEventListener('back-to-top', onBackToTop);
+		window.addEventListener('mascot-konami', triggerKonami);
 		window.addEventListener('experience-card', onExperienceCard);
 		glanceTimer = setInterval(onGlance, 7000);
 		window.addEventListener('mascot-set', onMascotSet);
@@ -1416,6 +1425,7 @@
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('projects-view', onProjectsView);
 			window.removeEventListener('back-to-top', onBackToTop);
+			window.removeEventListener('mascot-konami', triggerKonami);
 			window.removeEventListener('experience-card', onExperienceCard);
 			clearInterval(glanceTimer);
 			clearTimeout(cardRetry);
