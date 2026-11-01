@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { get } from 'svelte/store';
 	import { lang, t } from '$lib/i18n';
 	import type { Translations } from '$lib/i18n';
@@ -17,6 +17,13 @@
 		backLines,
 		placeLines,
 		clickLines,
+		ideaLines,
+		idleLines,
+		streakLines,
+		backTabLines,
+		konamiLines,
+		friendLines,
+		swapLines,
 		seasonLines,
 		shoutLines,
 		unmuteLine,
@@ -125,18 +132,22 @@
 	let typeTimer: ReturnType<typeof setInterval> | undefined;
 	let hideTimer: ReturnType<typeof setTimeout> | undefined;
 
+	// During a swap the newcomer speaks too: the bubble, the face and the mouth follow it
+	let speaker: 'main' | 'guest' = 'main';
+	const speakerEngine = () => (speaker === 'guest' ? guestEngine : engine);
+
 	function say(line: string, face: Expression = 'normal') {
 		if (traveling) {
 			queued = { line, face };
 			return;
 		}
-		engine?.setExpression(face);
+		speakerEngine()?.setExpression(face);
 		if (muted || !visible) return;
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
 		speaking = true;
 		const done = () => {
-			engine?.setTalking(false);
+			speakerEngine()?.setTalking(false);
 			hideTimer = setTimeout(() => {
 				speaking = false;
 				if (mode === 'docked') engine?.setExpression('normal');
@@ -153,7 +164,7 @@
 			return;
 		}
 		shown = 0;
-		engine?.setTalking(true);
+		speakerEngine()?.setTalking(true);
 		typeTimer = setInterval(() => {
 			shown++;
 			if (shown >= total) {
@@ -172,7 +183,7 @@
 	}
 
 	// ── Motion: docked (spring to the section anchor), held, flying (physics), returning ──
-	type Mode = 'docked' | 'held' | 'flying' | 'returning';
+	type Mode = 'docked' | 'held' | 'flying' | 'returning' | 'launching';
 	let mode: Mode = 'docked';
 	const body: Body = { x: 0, y: 0, vx: 0, vy: 0, angle: 0, spin: 0 };
 	let size = 170;
@@ -228,20 +239,28 @@
 	let quietMs = 0;
 	let lastDrag = 0;
 
+	// A celebratory jump: it lands without complaining
+	let playful = false;
+
 	function onImpact(speed: number) {
 		hits++;
 		engine?.bump(Math.min(1, speed / 2500));
+		if (playful) return;
 		const now = performance.now();
 		if (now - lastComplaint < 900) return;
 		lastComplaint = now;
 		say(pick(complaints[get(lang)]), hits >= 3 || speed > 2600 ? 'dizzy' : 'angry');
 	}
 
-	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, so it
-	// moves at a fraction of the mascot's speed and stays readable during a fast throw
+	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, and never
+	// moves faster than a share of the mascot's own speed (plus a gentle drift), so it
+	// stays readable during a throw and doesn't sprint to catch up as the mascot stops
 	const SHOUT_FOLLOW = 4;
+	const SHOUT_DRIFT = 60; // px/s, so it still arrives when the mascot is nearly still
+	const SHOUT_SPEED_SHARE = 0.8;
 	let shoutX: number | null = null;
 	let shoutY = 0;
+	let shoutPhase = 0;
 
 	function place(dt = 0) {
 		el.style.transform = `translate3d(${body.x - size / 2}px, ${body.y - size / 2}px, 0)`;
@@ -254,24 +273,42 @@
 				shoutY = ty;
 			} else {
 				const k = 1 - Math.exp(-SHOUT_FOLLOW * dt);
-				shoutX += (tx - shoutX) * k;
-				shoutY += (ty - shoutY) * k;
+				let mx = (tx - shoutX) * k;
+				let my = (ty - shoutY) * k;
+				const maxStep = (SHOUT_DRIFT + SHOUT_SPEED_SHARE * Math.hypot(body.vx, body.vy)) * dt;
+				const len = Math.hypot(mx, my);
+				if (len > maxStep) {
+					mx *= maxStep / len;
+					my *= maxStep / len;
+				}
+				shoutX += mx;
+				shoutY += my;
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
+			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
+			const share = Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			shoutPhase += dt * (3 + 22 * share);
+			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
 		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
 		const half = size * 0.36; // half the visible model, inside the padded box
-		const onLeft = body.x > innerWidth / 2;
+		const sp = speaker === 'guest' ? guest : body;
+		const onLeft = sp.x > innerWidth / 2;
 		// The edge nearest the mascot is pinned, so a line growing as it types
 		// extends away from it, never over it
-		let edge = onLeft ? body.x + half * 0.5 : body.x - half * 0.5;
-		let y = body.y - half - h - 4;
+		let edge = onLeft ? sp.x + half * 0.5 : sp.x - half * 0.5;
+		let y = sp.y - half - h - 4;
 		if (y < NAV_H + 8) {
-			// No room above: beside it, on the side facing the page
-			edge = onLeft ? body.x - half - 4 : body.x + half + 4;
-			y = body.y - h / 2;
+			if (guestShown) {
+				// Two bots side by side: below them, so the bubble doesn't cover the other one
+				y = sp.y + half + 4;
+			} else {
+				// No room above: beside it, on the side facing the page
+				edge = onLeft ? sp.x - half - 4 : sp.x + half + 4;
+				y = sp.y - h / 2;
+			}
 		}
 		y = Math.max(NAV_H + 8, Math.min(innerHeight - h - 8, y));
 		const x = onLeft
@@ -283,7 +320,7 @@
 	function updateQuiet(dtMs: number) {
 		const speed = Math.hypot(body.vx, body.vy);
 		let moving: boolean;
-		if (mode === 'flying') moving = true;
+		if (mode === 'flying' || mode === 'launching') moving = true;
 		else if (mode === 'held') moving = speed > HELD_TALK_SPEED;
 		else {
 			const a = baseAnchor();
@@ -324,6 +361,7 @@
 			if (restMs > 700) {
 				mode = 'returning';
 				shout = null;
+				playful = false;
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
 				// A complaint from the landing beats the generic "back to my spot"
@@ -353,6 +391,19 @@
 				mode = 'docked';
 				hits = 0;
 			}
+		} else if (mode === 'launching') {
+			// Straight up on the rocket, a little shaky, until it is off the screen
+			launchT += dt;
+			body.vy -= 2800 * dt;
+			body.y += body.vy * dt;
+			body.vx = Math.sin(launchT * 16) * 60;
+			body.x += body.vx * dt;
+			body.angle = Math.sin(launchT * 11) * 0.07;
+			if (body.y < -(size / 2 + launchTail)) {
+				const done = launchDone;
+				launchDone = null;
+				done?.();
+			}
 		} else if (mode === 'held' && performance.now() - lastDrag > 90) {
 			// Held still: no pointer moves, so it is not moving either
 			body.vx = body.vy = 0;
@@ -361,6 +412,23 @@
 		if (visible) {
 			place(dt);
 			engine?.tick(dtMs, { vx: body.vx, vy: body.vy, angle: body.angle });
+			if (guestShown && guestEngine && guestEl) {
+				// The newcomer settles beside the one on stage and stays there
+				const gx = guestTargetX();
+				const k = 24;
+				const c = 2 * Math.sqrt(k);
+				guest.vx += ((gx - guest.x) * k - guest.vx * c) * dt;
+				guest.vy += ((body.y - guest.y) * k - guest.vy * c) * dt;
+				const v = Math.hypot(guest.vx, guest.vy);
+				if (v > GLIDE_MAX) {
+					guest.vx *= GLIDE_MAX / v;
+					guest.vy *= GLIDE_MAX / v;
+				}
+				guest.x += guest.vx * dt;
+				guest.y += guest.vy * dt;
+				guestEl.style.transform = `translate3d(${guest.x - size / 2}px, ${guest.y - size / 2}px, 0)`;
+				guestEngine.tick(dtMs, { vx: guest.vx, vy: guest.vy, angle: 0 });
+			}
 		}
 		raf = requestAnimationFrame(frame);
 	}
@@ -452,20 +520,122 @@
 		if (!muted) shout = pick(shoutLines[get(lang)]);
 	}
 
+	// Taps in a row (each within 2.5 s of the last) end in a line of their own
+	let tapStreak = 0;
+	let lastTap = 0;
+	let totalTaps = 0;
+
 	function onTap() {
 		engine?.bump(0.35);
 		if (muted) {
 			muted = false;
 			store(MUTE_KEY, null);
 			say(unmuteLine[get(lang)], 'happy');
-		} else {
-			const s = season();
-			const lines = s && Math.random() < 0.4 ? seasonLines[get(lang)][s] : clickLines[get(lang)];
-			say(pick(lines), 'happy');
+			return;
 		}
+		const now = performance.now();
+		tapStreak = now - lastTap < 2500 ? tapStreak + 1 : 1;
+		lastTap = now;
+		totalTaps++;
+		const l = get(lang);
+		const streak = streakLines[l][tapStreak];
+		if (streak) {
+			say(streak.text, streak.face);
+			if (tapStreak >= 15) tapStreak = 0;
+			return;
+		}
+		const s = season();
+		const r = Math.random();
+		// The third tap always tells about the other bot, so nobody misses it
+		const pool =
+			totalTaps === 3 || r < 0.2
+				? friendLines[l][character]
+				: r < 0.4
+					? ideaLines[l]
+					: s && r < 0.6
+						? seasonLines[l][s]
+						: clickLines[l];
+		say(pick(pool), 'happy');
+	}
+
+	// ── Personality: it speaks up when left alone, and when you come back ──
+	const IDLE_MS = 30000; // no interaction for this long
+	const IDLE_GAP_MS = 45000; // and at most one such line per this
+	let lastActivity = performance.now();
+	let lastIdleLine = -IDLE_GAP_MS;
+	let hiddenAt = 0;
+	let idleTimer: ReturnType<typeof setInterval> | undefined;
+
+	function onIdleCheck() {
+		const now = performance.now();
+		if (
+			document.hidden ||
+			!visible ||
+			muted ||
+			mode !== 'docked' ||
+			traveling ||
+			speaking ||
+			swapping
+		)
+			return;
+		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
+		lastIdleLine = now;
+		const l = get(lang);
+		say(pick(Math.random() < 0.7 ? idleLines[l] : ideaLines[l]), 'wink');
+	}
+
+	function onActivity() {
+		lastActivity = performance.now();
+	}
+
+	function onVisibility() {
+		const now = performance.now();
+		if (document.hidden) {
+			hiddenAt = now;
+			return;
+		}
+		lastActivity = now;
+		if (hiddenAt && now - hiddenAt > 60000 && visible && !muted && mode === 'docked')
+			say(pick(backTabLines[get(lang)]), 'happy');
+		hiddenAt = 0;
+	}
+
+	// ↑↑↓↓←→←→BA (outside text fields): a jump, a spin, a line on landing
+	const KONAMI = [
+		'arrowup',
+		'arrowup',
+		'arrowdown',
+		'arrowdown',
+		'arrowleft',
+		'arrowright',
+		'arrowleft',
+		'arrowright',
+		'b',
+		'a'
+	];
+	let konamiKeys: string[] = [];
+
+	function onKey(e: KeyboardEvent) {
+		lastActivity = performance.now();
+		const t = e.target as HTMLElement | null;
+		if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+		konamiKeys = [...konamiKeys, e.key.toLowerCase()].slice(-KONAMI.length);
+		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
+		konamiKeys = [];
+		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
+		queued = { line: pick(konamiLines[get(lang)]), face: 'happy' };
+		playful = true;
+		hits = 0;
+		restMs = 0;
+		body.vy = -1500;
+		body.vx = (Math.random() < 0.5 ? -1 : 1) * 300;
+		body.spin = 18;
+		engine?.bump(1);
+		mode = 'flying';
 	}
 
 	function onWindowPointerMove(e: PointerEvent) {
+		lastActivity = performance.now();
 		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
 	}
 
@@ -482,6 +652,7 @@
 
 	function onScroll() {
 		const now = performance.now();
+		lastActivity = now;
 		const dt = now - lastScrollT;
 		const instant = dt > 0 && dt < 400 ? (Math.abs(scrollY - lastScrollY) / dt) * 1000 : 0;
 		scrollSpeed = scrollSpeed * 0.6 + instant * 0.4;
@@ -507,22 +678,11 @@
 		say(fill(line.text), line.face);
 	}
 
-	let lastProjectLine = 0;
-	function onProjectActive(e: Event) {
-		// The carousel advances every few seconds: comment at most every 12 s
-		if (section !== 'projects' || mode !== 'docked' || traveling) return;
-		if (performance.now() - lastProjectLine < 12000) return;
-		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
-		if (!line) return;
-		lastProjectLine = performance.now();
-		say(line, 'happy');
-	}
-
-	// A project opened from the carousel or the mosaic always gets a comment
+	// Only a project the visitor opens (carousel or mosaic) gets a comment; while the
+	// carousel turns on its own he stays quiet
 	function onProjectOpen(e: Event) {
 		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
 		if (!line || mode !== 'docked') return;
-		lastProjectLine = performance.now();
 		say(line, 'wow');
 	}
 
@@ -537,14 +697,167 @@
 		say(categoryLine[l](get(t)[key], n), 'wow');
 	}
 
+	// ── Swapping bots: the new one flies in, they greet, the old one leaves on a rocket ──
+	let guestEl: HTMLDivElement | undefined = $state();
+	let guestCanvas: HTMLCanvasElement | undefined = $state();
+	let guestShown = $state(false);
+	let swapping = $state(false);
+	let guestEngine: VoxelMascot | null = null;
+	const guest = { x: 0, y: 0, vx: 0, vy: 0 };
+	let guestSide = 1;
+	let swapToken: object | null = null;
+	let pendingSwap: CharacterId | null = null;
+	let launchDone: (() => void) | null = null;
+	let launchT = 0;
+	let launchTail = 0;
+
+	// Where the newcomer stands: beside the one on stage, on the side with room
+	function guestTargetX() {
+		return Math.max(radius, Math.min(innerWidth - radius, body.x + guestSide * size * 0.92));
+	}
+
+	function endSwap() {
+		guestEngine?.dispose();
+		guestEngine = null;
+		guestShown = false;
+		engine?.setThrust(false);
+		engine?.setRocket(false);
+		canvas.style.height = '';
+		speaker = 'main';
+		swapping = false;
+		swapToken = null;
+		launchDone = null;
+		shout = null;
+		if (mode === 'launching') mode = 'docked';
+	}
+
+	function abortSwap() {
+		endSwap();
+		pendingSwap = null;
+	}
+
+	async function runSwap(to: CharacterId) {
+		const token = {};
+		swapToken = token;
+		swapping = true;
+		const lines = swapLines[get(lang)][to];
+		const alive = () => swapToken === token;
+		const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+		const until = async (cond: () => boolean, max: number) => {
+			const t0 = performance.now();
+			while (alive() && !cond() && performance.now() - t0 < max) await wait(60);
+		};
+		const speak = async (text: string, face: Expression, who: 'main' | 'guest', ms: number) => {
+			await until(() => !traveling, 2500);
+			if (!alive()) return;
+			engine?.setTalking(false);
+			guestEngine?.setTalking(false);
+			speaker = who;
+			say(text, face);
+			await wait(ms);
+		};
+		try {
+			const { createVoxelMascot } = await import('./voxelEngine');
+			if (!alive()) return;
+			// Arrives from the screen edge on its side
+			guestSide = body.x > innerWidth / 2 ? -1 : 1;
+			guest.x = guestSide > 0 ? innerWidth + size : -size;
+			guest.y = body.y - size * 0.5;
+			guest.vx = guest.vy = 0;
+			guestShown = true;
+			await tick();
+			if (!alive() || !guestCanvas || !guestEl) return abortSwap();
+			guestEl.style.width = guestEl.style.height = `${size}px`;
+			guestEngine = createVoxelMascot(guestCanvas, to, reducedMotion);
+			guestEngine.setExpression('happy');
+			await until(() => Math.hypot(guestTargetX() - guest.x, body.y - guest.y) < 30, 2800);
+			if (!alive()) return;
+
+			// They greet each other
+			engine?.setExpression('happy');
+			engine?.bump(0.5);
+			guestEngine.bump(0.5);
+			guestEngine.lookAt(body.x - guest.x, 0);
+			await speak(pick(lines.bye), 'happy', 'main', 2500);
+			if (!alive()) return;
+			await speak(pick(lines.hello), 'happy', 'guest', 2300);
+			if (!alive()) return;
+
+			// Rocket on, countdown, lift-off
+			speaker = 'main';
+			speaking = false;
+			clearInterval(typeTimer);
+			engine?.setTalking(false);
+			guestEngine?.setTalking(false);
+			launchTail = Math.round(size * 0.95);
+			canvas.style.height = `${size + launchTail}px`;
+			engine?.setRocket(true);
+			engine?.bump(0.7);
+			engine?.setExpression('wow');
+			for (const n of ['3…', '2…', '1…']) {
+				shout = n;
+				await wait(520);
+				if (!alive()) return;
+			}
+			engine?.setThrust(true);
+			engine?.setExpression('happy');
+			shout = pick(lines.go);
+			await wait(450);
+			if (!alive()) return;
+			launchT = 0;
+			body.vy = -80;
+			mode = 'launching';
+			await Promise.race([new Promise<void>((r) => (launchDone = r)), wait(5000)]);
+			if (!alive()) return;
+
+			// The newcomer takes the stage where it stands: same model, same spot
+			body.x = guest.x;
+			body.y = guest.y;
+			body.vx = body.vy = body.angle = body.spin = 0;
+			mode = 'docked';
+			character = to;
+			engine?.setCharacter(to);
+			queued = null;
+			hits = 0;
+			endSwap();
+		} catch {
+			// Anything unexpected: just switch, without the show
+			if (swapToken === token) {
+				endSwap();
+				character = to;
+				engine?.setCharacter(to);
+			}
+		}
+		if (pendingSwap && pendingSwap !== character) {
+			const next = pendingSwap;
+			pendingSwap = null;
+			void runSwap(next);
+		} else pendingSwap = null;
+	}
+
 	function onMascotSet(e: Event) {
 		const id = (e as CustomEvent<CharacterId | 'off'>).detail;
 		store(CHAR_KEY, id);
 		if (id === 'off') {
+			if (swapping) abortSwap();
 			visible = false;
 			return;
 		}
+		if (swapping) {
+			pendingSwap = id;
+			return;
+		}
+		const wasVisible = visible;
 		visible = true;
+		if (wasVisible && id === character) {
+			say(pick(clickLines[get(lang)]), 'happy');
+			return;
+		}
+		// Both bots on screen and motion allowed: they swap with a little show
+		if (wasVisible && engine && !reducedMotion && mode === 'docked') {
+			void runSwap(id);
+			return;
+		}
 		character = id;
 		if (engine) engine.setCharacter(id);
 		else void start(id); // it was saved as off: load three.js only now
@@ -616,12 +929,18 @@
 
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
 		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('project-active', onProjectActive);
 		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('mascot-set', onMascotSet);
+		window.addEventListener('keydown', onKey);
+		window.addEventListener('pointerdown', onActivity, { passive: true });
+		document.addEventListener('visibilitychange', onVisibility);
+		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
 			cancelled = true;
+			swapToken = null;
+			guestEngine?.dispose();
+			clearInterval(idleTimer);
 			cancelAnimationFrame(raf);
 			clearInterval(typeTimer);
 			clearTimeout(hideTimer);
@@ -631,15 +950,17 @@
 			engine?.dispose();
 			window.removeEventListener('pointermove', onWindowPointerMove);
 			window.removeEventListener('scroll', onScroll);
-			window.removeEventListener('project-active', onProjectActive);
 			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('mascot-set', onMascotSet);
+			window.removeEventListener('keydown', onKey);
+			window.removeEventListener('pointerdown', onActivity);
+			document.removeEventListener('visibilitychange', onVisibility);
 		};
 	});
 </script>
 
-<div class="mascot" class:is-hidden={!visible} bind:this={el}>
+<div class="mascot" class:is-hidden={!visible} class:is-busy={swapping} bind:this={el}>
 	<canvas bind:this={canvas} aria-hidden="true"></canvas>
 	<button
 		class="mascot-hit"
@@ -658,6 +979,12 @@
 		}}
 	></button>
 </div>
+
+{#if guestShown}
+	<div class="mascot mascot-guest" bind:this={guestEl}>
+		<canvas bind:this={guestCanvas} aria-hidden="true"></canvas>
+	</div>
+{/if}
 
 {#if visible && shout}
 	<div class="mascot-shout" bind:this={shoutEl} aria-hidden="true">{shout}</div>

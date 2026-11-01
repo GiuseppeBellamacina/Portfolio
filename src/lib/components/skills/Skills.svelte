@@ -50,13 +50,14 @@
 	});
 </script>
 
-{#snippet tile(icon: SkillCategory['icons'][number], i = 0)}
+{#snippet tile(icon: SkillCategory['icons'][number], i = 0, copy = false)}
 	<a
 		href={icon.url}
 		target="_blank"
 		rel="noopener noreferrer"
 		class="tech-icon-link"
 		style="--i:{i}"
+		tabindex={copy ? -1 : undefined}
 	>
 		<div class="tech-icon visible" data-title={icon.name}>
 			<span class="tech-name">{icon.name}</span>
@@ -98,14 +99,15 @@
 	{:else}
 		<div class="skills-wall">
 			{#each rows as row, r}
-				<!-- Second copy makes the -50% loop seamless; hidden from AT and tab order -->
+				<!-- Second copy makes the -50% loop seamless; hidden from AT and tab order. Not `inert`:
+					the row slides, so the copy is on screen half the time and must stay hoverable -->
 				<div class="skills-row" class:rev={r % 2 === 1} style="--dur:{70 + r * 12}s">
 					{#each row as icon}
 						{@render tile(icon)}
 					{/each}
-					<div class="skills-row-copy" aria-hidden="true" inert>
+					<div class="skills-row-copy" aria-hidden="true">
 						{#each row as icon}
-							{@render tile(icon)}
+							{@render tile(icon, 0, true)}
 						{/each}
 					</div>
 				</div>

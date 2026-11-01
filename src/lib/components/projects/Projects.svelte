@@ -291,16 +291,6 @@
 		autoLastTime = 0;
 	}
 
-	// Tell the mascot which highlight is on stage (stars refreshes re-run this, so dedupe)
-	let lastActiveTitle = '';
-	$effect(() => {
-		const title = featured[activeIndex]?.title;
-		if (viewMode === 'carousel' && title && title !== lastActiveTitle) {
-			lastActiveTitle = title;
-			window.dispatchEvent(new CustomEvent('project-active', { detail: title }));
-		}
-	});
-
 	// First paragraph of the long HTML description, as plain text
 	function summary(html: string): string {
 		return html

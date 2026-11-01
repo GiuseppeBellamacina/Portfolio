@@ -11,6 +11,10 @@
 .mascot.is-hidden {
 	display: none;
 }
+/* During a bot swap nobody grabs the one that is about to leave */
+.mascot.is-busy .mascot-hit {
+	pointer-events: none;
+}
 .mascot canvas {
 	width: 100%;
 	height: 100%;
@@ -77,15 +81,7 @@
 		0 2px 0 #f2552c,
 		0 4px 14px rgba(0, 0, 0, 0.7);
 	white-space: nowrap;
-	animation: mascotShout 0.18s ease-in-out infinite alternate;
-}
-@keyframes mascotShout {
-	from {
-		rotate: -6deg;
-	}
-	to {
-		rotate: 6deg;
-	}
+	/* The wobble (rotate) is driven from Mascot.svelte, in step with the mascot's speed */
 }
 .mascot-bubble p {
 	margin: 0;
