@@ -354,7 +354,8 @@
 
 	/* Mobile background effect: floating orbs (two carry a softer, larger halo
 	   in place of the separate hero::after glow layer this used to stack) */
-	.hero-canvas {
+	/* The floating orbs are the phone background until (and unless) the galaxy runs */
+	.hero-canvas:not(.galaxy-on) {
 		background:
 			radial-gradient(2px 2px at 20% 30%, rgba(var(--primary-rgb), 0.6), transparent),
 			radial-gradient(2px 2px at 70% 20%, rgba(var(--secondary-rgb), 0.5), transparent),
