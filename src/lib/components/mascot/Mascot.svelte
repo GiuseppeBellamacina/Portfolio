@@ -21,6 +21,7 @@
 		clickLines,
 		ideaLines,
 		idleLines,
+		triviaLines,
 		streakLines,
 		annoyedLines,
 		backTabLines,
@@ -366,7 +367,7 @@
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
 			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
-			const share = riding ? 1 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			const share = riding ? 0.35 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
 			shoutPhase += dt * (3 + 22 * share);
 			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
@@ -493,7 +494,7 @@
 		}
 		// On a rocket ride it lags behind the page: the faster the page, the further back
 		const lagTarget = riding ? Math.min(innerHeight * 0.28, scrollSpeed * 0.09) : 0;
-		rideLag += (lagTarget - rideLag) * (1 - Math.exp(-dt * 8));
+		rideLag += (lagTarget - rideLag) * (1 - Math.exp(-dt * 3));
 		updateQuiet(dtMs);
 		if (visible) {
 			place(dt);
@@ -661,7 +662,10 @@
 		if (totalTaps === 3 || r < 0.2) {
 			pool = friendLines[l][character];
 			face = 'smug'; // a bit of complicity: "psst, I have a friend"
-		} else if (r < 0.4) {
+		} else if (r < 0.3) {
+			pool = triviaLines[l];
+			face = 'wink';
+		} else if (r < 0.45) {
 			pool = ideaLines[l];
 			face = 'tired';
 		} else if (s && r < 0.6) {
@@ -714,8 +718,9 @@
 		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
 		lastIdleLine = now;
 		const l = get(lang);
-		const idea = Math.random() >= 0.7;
-		sayRaw(pick(idea ? ideaLines[l] : idleLines[l]), idea ? 'tired' : 'wink');
+		const r = Math.random();
+		const pool = r < 0.55 ? triviaLines[l] : r < 0.75 ? ideaLines[l] : idleLines[l];
+		sayRaw(pick(pool), pool === ideaLines[l] ? 'tired' : 'wink');
 	}
 
 	function onActivity() {
