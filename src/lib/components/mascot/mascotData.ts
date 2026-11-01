@@ -38,7 +38,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			{ text: 'Bentornato in cima. La galassia la muovi tu, col **cursore**.', face: 'wink' },
 			{
 				text: 'Giuseppe ha detto che il sito era **finito**. Ha mentito, ma con stile.',
-				face: 'wink'
+				face: 'smug'
 			}
 		],
 		about: [
@@ -49,7 +49,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'Qui ti racconta di sé. Quello che **non** scrive: **le ore di sonno**.',
-				face: 'normal'
+				face: 'smug'
 			}
 		],
 		experience: [
@@ -74,7 +74,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'Ognuno è nato da un **“ho un’idea”**. Io li ho visti nascere **tutti**. Ho i segni.',
-				face: 'dizzy'
+				face: 'tired'
 			}
 		],
 		skills: [
@@ -85,7 +85,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: '**{n} tecnologie** e ne sta già imparando un’altra. Lo so, **lo sento**.',
-				face: 'dizzy'
+				face: 'tired'
 			}
 		],
 		contact: [
@@ -96,7 +96,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'Se lo contatti, **portagli un caffè**. Virtuale va bene. E digli di **riposare**.',
-				face: 'happy'
+				face: 'shy'
 			}
 		]
 	},
@@ -106,7 +106,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			{ text: 'Back at the top. You can stir the galaxy with **your cursor**.', face: 'wink' },
 			{
 				text: 'Giuseppe said the site was **finished**. He lied, but with style.',
-				face: 'wink'
+				face: 'smug'
 			}
 		],
 		about: [
@@ -117,7 +117,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'Here he tells you about himself. What he **doesn’t** write: **his hours of sleep**.',
-				face: 'normal'
+				face: 'smug'
 			}
 		],
 		experience: [
@@ -142,7 +142,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'Each one started with an **“I have an idea”**. I watched **every one** being born. I have scars.',
-				face: 'dizzy'
+				face: 'tired'
 			}
 		],
 		skills: [
@@ -150,7 +150,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			{ text: 'This wall **never stops**. Like him when he finds a new library.', face: 'happy' },
 			{
 				text: '**{n} technologies** and he’s already learning another. I know, **I can feel it**.',
-				face: 'dizzy'
+				face: 'tired'
 			}
 		],
 		contact: [
@@ -161,7 +161,7 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			},
 			{
 				text: 'If you write to him, **bring him a coffee**. A virtual one will do. And tell him to **rest**.',
-				face: 'happy'
+				face: 'shy'
 			}
 		]
 	}
@@ -463,25 +463,25 @@ export const idleLines: Lines<string[]> = {
 // Repeated taps: the Nth tap in a row (each gap under 2.5 s) gets its own line
 export const streakLines: Lines<Record<number, Line>> = {
 	it: {
-		5: { text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'wink' },
+		5: { text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'shy' },
 		10: {
 			text: '**Dieci tocchi.** Sembri Giuseppe con **un’idea**: non ti ferma più nessuno.',
 			face: 'angry'
 		},
 		15: {
 			text: 'Ho il **cubo che gira**. Ti prego, **una pausa**. Un caffè. Qualunque cosa.',
-			face: 'dizzy'
+			face: 'tired'
 		}
 	},
 	en: {
-		5: { text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'wink' },
+		5: { text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'shy' },
 		10: {
 			text: '**Ten taps.** You’re like Giuseppe with **an idea**: nobody can stop you.',
 			face: 'angry'
 		},
 		15: {
 			text: 'My **cube is spinning**. Please, **a break**. A coffee. Anything.',
-			face: 'dizzy'
+			face: 'tired'
 		}
 	}
 };
