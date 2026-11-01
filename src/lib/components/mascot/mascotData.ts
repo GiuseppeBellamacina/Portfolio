@@ -1252,6 +1252,7 @@ export const arancinoLines: Lines<{
 			'love|Dentro ho ragù e piselli. Fuori tanta classe. Sono catanese, che ti aspettavi?',
 			'shy|Se ci vai, a **Catania**, passa da **Sant’Aituzza**. Poi ringraziami.',
 			'happy|**Avaia**, ancora tu? Mi piaci, **mbare**. Ma non dirlo in giro.',
+			'wink|**Mbare**, sei ansioso per qualcosa, ma **futtitinni** ca è **a megghiu cosa**.',
 			'smug|**Liotru** è l’elefante, io sono l’**arancinu**. A **Catania** abbiamo i simboli giusti.',
 			'wink|Mi chiamano **carusu**, ma sono croccante dentro e fuori. Il cuore è tenero.',
 			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
@@ -1273,7 +1274,7 @@ export const arancinoLines: Lines<{
 			'angry|**Avaia**, lasciami! Mi sto sbriciolando!',
 			'angry|**Mizzica**, **mbare**! Posami, che ti faccio vedere io!',
 			'angry|**Cu t’u fici fari?** Io sono **di Catania**, mica di plastica!',
-			'angry|Ti avevano detto di non toccare gli arancini? E tu **futtitinni**, vero? Ora vedi.',
+			'angry|Ti avevano detto di non toccare gli arancini? E tu **ti ni futti**, vero? Ora vedi.',
 			'angry|**Che camurria**! Basta! Ti faccio vedere io, che a **Catania** non si scherza!',
 			'angry|Io fumo come **a Muntagna**, attento. Quando erutto, non sono pochi i danni.'
 		],
@@ -1290,7 +1291,7 @@ export const arancinoLines: Lines<{
 			'angry|**Mizzica**, ancora! Giuro che mi arrabbio come si deve.',
 			'angry|**Ma u sai cu sugnu?** **Sono arancinu**, non un tasto!',
 			'angry|**Mammoriri**! Basta toccarmi, o faccio il terremoto!',
-			'angry|Io ti dico basta e tu **futtitinni**, eh? Beato te.'
+			'angry|Io ti dico basta e tu **ti ni futti**, eh? Beato te.'
 		]
 	},
 	en: {
@@ -1302,6 +1303,7 @@ export const arancinoLines: Lines<{
 			'love|Inside I have ragù and peas. Outside, lots of class. I’m Catanese, what did you expect?',
 			'shy|If you ever go to **Catania**, stop by **Sant’Aituzza**. Then thank me.',
 			'happy|**Avaia**, you again? I like you, **mbare**. But don’t tell anyone.',
+			'wink|**Mbare**, you’re anxious about something, but **futtitinni** (don’t care), it’s **a megghiu cosa** (the best thing).',
 			'smug|**Liotru** is the elephant, I’m the **arancinu**. In **Catania** we have the right symbols.',
 			'wink|They call me **carusu**, but I’m crunchy inside and out. The heart is tender.',
 			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
@@ -1323,7 +1325,7 @@ export const arancinoLines: Lines<{
 			'angry|**Avaia**, let go! I’m crumbling!',
 			'angry|**Mizzica**, **mbare**! Put me down, or I’ll show you!',
 			'angry|**Cu t’u fici fari?** (Who made you do it?) I’m **from Catania**, not plastic!',
-			'angry|They told you not to touch an arancinu? And you just go “**futtitinni**”, right? Now you’ll see.',
+			'angry|They told you not to touch an arancinu? And you just go “**ti ni futti**” (you couldn’t care less), right? Now you’ll see.',
 			'angry|**What a camurria**! Enough! I’ll show you, **Catania** is no joke!',
 			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.'
 		],
@@ -1340,7 +1342,7 @@ export const arancinoLines: Lines<{
 			'angry|**Mizzica**, again! I swear I’ll get properly angry.',
 			'angry|**Ma u sai cu sugnu?** (Do you know who I am?) **An arancinu**, not a button!',
 			'angry|**Mammoriri**! Stop touching me, or I’ll cause an earthquake!',
-			'angry|I tell you to stop and you go **futtitinni**, huh? Lucky you.'
+			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.'
 		]
 	}
 };
