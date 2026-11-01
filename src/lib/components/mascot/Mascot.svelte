@@ -35,6 +35,7 @@
 		shoutLines,
 		unmuteLine,
 		parseLine,
+		experienceLines,
 		type Line,
 		type Season,
 		type SectionId
@@ -160,6 +161,7 @@
 		}
 		speakerEngine()?.setExpression(face);
 		if (muted || !visible) return;
+		lastSayAt = performance.now();
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
 		speaking = true;
@@ -747,6 +749,7 @@
 	function settle() {
 		// The page stopped: the ride is over, wherever it got to
 		if (riding) endRide();
+		if (pendingCard !== null) tryCardComment();
 		if (inView === section) return;
 		section = inView;
 		if (mode !== 'docked') return;
@@ -816,6 +819,55 @@
 			canvas.style.height = '';
 		}, 700);
 		sayRaw(pick(rideEndLines[get(lang)]), 'dizzy');
+	}
+
+	// ── Experience cards: a comment on each as it passes the middle of the screen ──
+	const seenCards = new Set<number>();
+	let pendingCard: number | null = null;
+	let cardRetry: ReturnType<typeof setTimeout> | undefined;
+	let lastSayAt = 0;
+
+	function onExperienceCard(e: Event) {
+		pendingCard = (e as CustomEvent<number>).detail;
+		tryCardComment();
+	}
+
+	function tryCardComment() {
+		clearTimeout(cardRetry);
+		const idx = pendingCard;
+		if (idx === null || seenCards.has(idx) || !visible || muted) return;
+		const lines = experienceLines[get(lang)][idx];
+		// Left the section, or no lines for this card: nothing to say
+		if (!lines || inView !== 'experience') {
+			pendingCard = null;
+			return;
+		}
+		// Not while it is busy, the page rushes by, or it has just spoken: try again shortly
+		const busy =
+			mode !== 'docked' ||
+			swapping ||
+			riding ||
+			scrollSpeed >= SLOW_SCROLL ||
+			performance.now() - lastSayAt < 4500;
+		if (busy) {
+			cardRetry = setTimeout(tryCardComment, 1200);
+			return;
+		}
+		seenCards.add(idx);
+		pendingCard = null;
+		sayRaw(pick(lines), 'wink');
+	}
+
+	// Alive even when nobody is talking to it: a quick glance, a wink, then back to normal
+	let glanceTimer: ReturnType<typeof setInterval> | undefined;
+
+	function onGlance() {
+		if (document.hidden || !visible || mode !== 'docked' || traveling || speaking) return;
+		if (dozing || swapping || riding || Math.random() < 0.4) return;
+		engine?.setExpression(oneOf(['wink', 'think', 'happy', 'smug', 'shy', 'worried']));
+		setTimeout(() => {
+			if (!speaking && !dozing && mode === 'docked') engine?.setExpression('normal');
+		}, 1400);
 	}
 
 	function onSkillsCategory(e: Event) {
@@ -1065,6 +1117,8 @@
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('projects-view', onProjectsView);
 		window.addEventListener('back-to-top', onBackToTop);
+		window.addEventListener('experience-card', onExperienceCard);
+		glanceTimer = setInterval(onGlance, 7000);
 		window.addEventListener('mascot-set', onMascotSet);
 		window.addEventListener('keydown', onKey);
 		window.addEventListener('pointerdown', onActivity, { passive: true });
@@ -1088,6 +1142,9 @@
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('projects-view', onProjectsView);
 			window.removeEventListener('back-to-top', onBackToTop);
+			window.removeEventListener('experience-card', onExperienceCard);
+			clearInterval(glanceTimer);
+			clearTimeout(cardRetry);
 			clearTimeout(rideTimer);
 			clearTimeout(calmTimer);
 			window.removeEventListener('mascot-set', onMascotSet);
