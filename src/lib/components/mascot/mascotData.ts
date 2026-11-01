@@ -933,7 +933,7 @@ export const friendLines: Lines<Record<CharacterId, string[]>> = {
 		arancino: [
 			'smug|Lo sai che esiste **Turi**, il bot col cappello? Scrivi **mascot turi** nel terminale in About.',
 			'smug|Nel terminale c’è anche **Turi**. Scrivi **mascot turi** e lo trovi.',
-			'wink|Arancino o arancina? **Non iniziare.** Se vuoi un altro bot: **mascot turi**.'
+			'wink|**Arancino.** Punto. Se vuoi un altro bot: **mascot turi**.'
 		]
 	},
 	en: {
@@ -945,7 +945,7 @@ export const friendLines: Lines<Record<CharacterId, string[]>> = {
 		arancino: [
 			'smug|Did you know **Turi** exists, the bot with the hat? Type **mascot turi** in the About terminal.',
 			'smug|**Turi** is in the terminal too. Type **mascot turi** and you’ll find him.',
-			'wink|Arancino or arancina? **Don’t start.** If you want another bot: **mascot turi**.'
+			'wink|**Arancino.** Full stop. If you want another bot: **mascot turi**.'
 		]
 	}
 };
@@ -1229,5 +1229,118 @@ export const sceneLines: Lines<{
 				'smug|Here I am. Did I **skip** anything? **Nothing**, right? Good.'
 			]
 		}
+	}
+};
+
+// The Arancino is from CATANIA (arancinu, with the point like the Etna), proud,
+// warm and a bit of a drama queen; when it is made angry the wild side comes out. The dialect is
+// kept to Catanese words (camurria, mizzica, avaia, ammuninni, carusu, "a Muntagna", Liotru,
+// Sant'Aituzza) and none of Palermo's (no amunì, mbare, picciotto)
+export const arancinoLines: Lines<{
+	click: string[];
+	idle: string[];
+	angry: string[];
+	hit: string[];
+	annoyed: string[];
+}> = {
+	it: {
+		click: [
+			'happy|**Mizzica**, un cliente! Sono **arancinu**, eh: a **Catania** si dice così, e non si discute.',
+			'smug|Io sono a punta, come **a Muntagna**. Chi ha la punta ha carattere.',
+			'happy|**Ammuninni**, che si fa? Io ho tutto il tempo: sono già fritto.',
+			'wink|A **Catania** l’arancinu è a punta, come l’**Etna**. Il resto è un’altra storia.',
+			'love|Dentro ho ragù e piselli. Fuori tanta classe. Sono catanese, che ti aspettavi?',
+			'shy|Se ci vai, a **Catania**, passa da **Sant’Aituzza**. Poi ringraziami.',
+			'happy|**Avaia**, ancora tu? Mi piaci. Ma non dirlo in giro.',
+			'smug|**Liotru** è l’elefante, io sono l’**arancinu**. A **Catania** abbiamo i simboli giusti.',
+			'wink|Mi chiamano **carusu**, ma sono croccante dentro e fuori. Il cuore è tenero.',
+			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
+			'happy|Se mi tocchi ancora, ti offro un pezzo. Sono generoso. Forse.',
+			'smug|**Camurria** è la parola che serve per tutto. Anche per un deploy che non parte.'
+		],
+		idle: [
+			'sleepy|**Che camurria**, questo silenzio. Parlami, **minchia**.',
+			'think|Sto guardando **l’Etna** con la mente. Oggi fuma poco.',
+			'wink|Se resti ancora un po’, ti racconto di **Catania**. Cominciamo da **Sant’Aituzza**.',
+			'sad|Mi manca **a Muntagna**. Da qui non si vede.',
+			'smug|Giuseppe lo sa: **l’arancinu è maschio**, a **Catania**. Poi ognuno ha le sue opinioni.',
+			'tired|**Mizzica**, che silenzio. Quasi quasi mi friggo da solo.',
+			'happy|**Ammuninni**, dai: clicca qualcosa, non ti mangio. Per ora.'
+		],
+		angry: [
+			'angry|**Ma tu u sai cu su i cristiani?** Mi tratti così, a me?',
+			'angry|**Mammoriri me omà!** Ti spacco in due, come **un arancinu**!',
+			'angry|**Avaia**, lasciami! Mi sto sbriciolando!',
+			'angry|**Mizzica**! Posami, che ti faccio vedere io!',
+			'angry|**Cu t’u fici fari?** Io sono **di Catania**, mica di plastica!',
+			'angry|**Futtitinni** di me, vero? **Futtitinni** pure tu, allora!',
+			'angry|**Che camurria**! Basta! Ti faccio vedere io, che a **Catania** non si scherza!',
+			'angry|Io fumo come **a Muntagna**, attento. Quando erutto, non sono pochi i danni.'
+		],
+		hit: [
+			'angry|**Mizzica**, che botta!',
+			'angry|Ahia! Ti sei fatto male tu o io? Io, direi!',
+			'dizzy|**Mammoriri**, che giramento di testa…',
+			'angry|**Avaia**, piano! Sono croccante, non indistruttibile!',
+			'angry|Chi è stato? **Cu fu?** Mi sentite tutti!',
+			'dizzy|Ma che cosa… **Catania** non mi ha preparato a questo.'
+		],
+		annoyed: [
+			'angry|**Basta, che camurria!** Me la fai passare, la voglia?',
+			'angry|**Mizzica**, ancora! Giuro che mi arrabbio come si deve.',
+			'angry|**Ma u sai cu sugnu?** **Sono arancinu**, non un tasto!',
+			'angry|**Mammoriri**! Basta toccarmi, o faccio il terremoto!',
+			'angry|**Futtitinni**, ti dico: smettila.'
+		]
+	},
+	en: {
+		click: [
+			'happy|**Mizzica**, a customer! I’m an **arancinu**: in **Catania** that’s what we say, and it’s not up for debate.',
+			'smug|I’m pointed, like **a Muntagna**, our **Etna**. Whoever has a point has character.',
+			'happy|**Ammuninni**, what are we doing? I have all the time: I’m already fried.',
+			'wink|In **Catania** the arancinu is pointed, like **Etna**. The rest is another story.',
+			'love|Inside I have ragù and peas. Outside, lots of class. I’m Catanese, what did you expect?',
+			'shy|If you ever go to **Catania**, stop by **Sant’Aituzza**. Then thank me.',
+			'happy|**Avaia**, you again? I like you. But don’t tell anyone.',
+			'smug|**Liotru** is the elephant, I’m the **arancinu**. In **Catania** we have the right symbols.',
+			'wink|They call me **carusu**, but I’m crunchy inside and out. The heart is tender.',
+			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
+			'happy|If you tap me again, I’ll offer you a piece. I’m generous. Maybe.',
+			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.'
+		],
+		idle: [
+			'sleepy|**What a camurria**, this silence. Talk to me, **minchia**.',
+			'think|I’m looking at **Etna** with my mind. Today it’s smoking little.',
+			'wink|If you stay a bit longer, I’ll tell you about **Catania**. Let’s start with **Sant’Aituzza**.',
+			'sad|I miss **a Muntagna**. You can’t see it from here.',
+			'smug|Giuseppe knows: **the arancinu is masculine**, in **Catania**. Then everyone has their opinions.',
+			'tired|**Mizzica**, such silence. I might fry myself.',
+			'happy|**Ammuninni**, come on: click something, I won’t eat you. For now.'
+		],
+		angry: [
+			'angry|**Ma tu u sai cu su i cristiani?** (Do you know who people are?) And you put me down like this, me?',
+			'angry|**Mammoriri me omà!** I’ll split you in two, like **an arancinu**!',
+			'angry|**Avaia**, let go! I’m crumbling!',
+			'angry|**Mizzica**! Put me down, or I’ll show you!',
+			'angry|**Cu t’u fici fari?** (Who made you do it?) I’m **from Catania**, not plastic!',
+			'angry|**Futtitinni** about me, right? Then **futtitinni** too, you!',
+			'angry|**What a camurria**! Enough! I’ll show you, **Catania** is no joke!',
+			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.'
+		],
+		hit: [
+			'angry|**Mizzica**, what a bump!',
+			'angry|Ouch! Did you get hurt or me? Me, I’d say!',
+			'dizzy|**Mammoriri**, I’m dizzy…',
+			'angry|**Avaia**, gently! I’m crunchy, not indestructible!',
+			'angry|Who did it? **Cu fu?** Everyone will hear me!',
+			'dizzy|What the… **Catania** didn’t prepare me for this.'
+		],
+		annoyed: [
+			'angry|**Enough, what a camurria!** Are you killing my mood?',
+			'angry|**Mizzica**, again! I swear I’ll get properly angry.',
+			'angry|**Ma u sai cu sugnu?** (Do you know who I am?) **An arancinu**, not a button!',
+			'angry|**Mammoriri**! Stop touching me, or I’ll cause an earthquake!',
+			'angry|**Futtitinni**, I’m telling you: stop it.'
+		]
 	}
 };

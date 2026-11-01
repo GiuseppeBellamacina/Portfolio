@@ -16,6 +16,7 @@
 		allSkillsLine,
 		complaints,
 		angryLines,
+		arancinoLines,
 		backLines,
 		placeLines,
 		clickLines,
@@ -129,6 +130,12 @@
 		said.set(it.raw, (said.get(it.raw) ?? 0) + 1);
 		sayRaw(it.raw, it.face);
 	}
+
+	// The Arancino has its own voice (Catanese): its sets, when it is the one on stage
+	const own = () =>
+		character === 'arancino'
+			? arancinoLines[get(lang)]
+			: ({} as Partial<(typeof arancinoLines)['it']>);
 
 	let character: CharacterId = 'turi';
 
@@ -345,7 +352,7 @@
 		const now = performance.now();
 		if (now - lastComplaint < 900) return;
 		lastComplaint = now;
-		const c = parseLine(pick(complaints[get(lang)]), 'angry');
+		const c = parseLine(pick(own().hit ?? complaints[get(lang)]), 'angry');
 		say(c.text, hits >= 3 || speed > 2600 ? 'dizzy' : c.face);
 	}
 
@@ -551,7 +558,7 @@
 
 	function rant() {
 		lastRant = performance.now();
-		sayRaw(pick(angryLines[get(lang)]), 'angry');
+		sayRaw(pick(own().angry ?? angryLines[get(lang)]), 'angry');
 	}
 
 	function onPointerDown(e: PointerEvent) {
@@ -680,7 +687,7 @@
 		}
 		// Between milestones, past the fifth tap, it has had enough
 		if (tapStreak > 5) {
-			sayRaw(pick(annoyedLines[l]), 'angry');
+			sayRaw(pick(own().annoyed ?? annoyedLines[l]), 'angry');
 			return;
 		}
 		const s = season();
@@ -696,6 +703,7 @@
 			{ lines: ideaLines[l], weight: 2, face: 'tired' },
 			{ lines: sectionLines[l][section], weight: 3, face: 'happy' },
 			{ lines: friendLines[l][character], weight: 1, face: 'smug' },
+			{ lines: own().click ?? [], weight: 14, face: 'happy' },
 			{ lines: s ? seasonLines[l][s] : [], weight: 2, face: s === 'night' ? 'sleepy' : 'happy' }
 		]);
 	}
@@ -747,7 +755,8 @@
 			{ lines: triviaLines[l], weight: 5, face: 'wink' },
 			{ lines: ideaLines[l], weight: 2, face: 'tired' },
 			{ lines: idleLines[l], weight: 3, face: 'wink' },
-			{ lines: sectionLines[l][section], weight: 3, face: 'wink' }
+			{ lines: sectionLines[l][section], weight: 3, face: 'wink' },
+			{ lines: own().idle ?? [], weight: 8, face: 'wink' }
 		]);
 	}
 
