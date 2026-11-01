@@ -1126,11 +1126,11 @@ export const triviaLines: Lines<string[]> = {
 		'wow|**Il castello di Cagliostro** è il primo film di **Miyazaki**, ed è un **Lupin III**. Con la **Fiat 500** gialla.',
 		'wink|**Lupin III** è sempre **un passo avanti**. Io sono sempre **un passo indietro**: **sto caricando**.',
 		'happy|**Goemon** di **Lupin** taglia **tutto** con la spada e sospira che ha tagliato **un’altra cosa inutile**. **Il mio idolo**.',
-		'love|**Kavinsky**: “**Nightcall**” è nella colonna sonora di **Drive**. Sì, quello con **Ryan Gosling**. Tutto torna.',
-		'smug|**Kavinsky** è un **personaggio**: un pilota **morto in una Ferrari Testarossa** nel 1986, tornato come **zombie synthwave**. Lore perfetta.',
-		'wow|**Kavinsky** si chiama **Vincent Belorgey** e viene da **Parigi**. Il nome d’arte è **più cool**, lo ammetto.',
-		'star|L’album **OutRun** di **Kavinsky** suona come **una corsa notturna** al **neon**. Consigliato col **volume alto**.',
-		'happy|“**Testarossa Autodrive**” di **Kavinsky**: mettila **mentre fai il deploy**. **Non crasha**. Forse.'
+		'love|**Kavinsky** ci ha lasciati a luglio 2026. “**Nightcall**” era nella colonna sonora di **Drive**, quella con **Ryan Gosling**. Grazie di tutto.',
+		'smug|Il **personaggio** di **Kavinsky** era un pilota **morto in una Testarossa** nel 1986, tornato come **zombie synthwave**. Ora è **morto sul serio**, e la lore fa **un altro effetto**.',
+		'sad|**Kavinsky** era **Vincent Belorgey**, di **Parigi**. Ha fatto suonare **Nightcall** alla chiusura delle **Olimpiadi 2024**. Che **serata** è stata.',
+		'star|L’album **OutRun** di **Kavinsky** suona ancora come **una corsa notturna** al **neon**. Stasera mettilo col **volume alto**, per lui.',
+		'happy|“**Testarossa Autodrive**” di **Kavinsky**: mettila **mentre fai il deploy**. **Non crasha**. Con lui sopra, **mai**.'
 	],
 	en: [
 		'smug|Did you know? **Tame Impala is one person**: Kevin Parker plays and records **everything himself**. One guy.',
@@ -1179,11 +1179,11 @@ export const triviaLines: Lines<string[]> = {
 		'wow|**The Castle of Cagliostro** is **Miyazaki’s** first film, and it’s a **Lupin III**. With the yellow **Fiat 500**.',
 		'wink|**Lupin III** is always **one step ahead**. I’m always **one step behind**: **still loading**.',
 		'happy|**Goemon** from **Lupin** cuts **everything** with his sword and sighs that he has cut **another worthless thing**. **My hero**.',
-		'love|**Kavinsky**: “**Nightcall**” is on the **Drive** soundtrack. Yes, the one with **Ryan Gosling**. It all adds up.',
-		'smug|**Kavinsky** is a **character**: a driver **killed in a Ferrari Testarossa** in 1986, back as a **synthwave zombie**. Perfect lore.',
-		'wow|**Kavinsky** is really **Vincent Belorgey**, from **Paris**. The stage name is **cooler**, I admit.',
-		'star|**Kavinsky’s** album **OutRun** sounds like **a night drive** in **neon**. Best with the **volume up**.',
-		'happy|“**Testarossa Autodrive**” by **Kavinsky**: play it **while deploying**. **It won’t crash**. Maybe.'
+		'love|**Kavinsky** left us in July 2026. “**Nightcall**” was on the **Drive** soundtrack, the one with **Ryan Gosling**. Thank you for all of it.',
+		'smug|**Kavinsky’s** character was a driver **killed in a Testarossa** in 1986, back as a **synthwave zombie**. Now he’s **really gone**, and the lore hits **differently**.',
+		'sad|**Kavinsky** was **Vincent Belorgey**, from **Paris**. He played **Nightcall** at the **2024 Olympics** closing ceremony. What **a night** that was.',
+		'star|**Kavinsky’s** album **OutRun** still sounds like **a night drive** in **neon**. Put it on **loud** tonight, for him.',
+		'happy|“**Testarossa Autodrive**” by **Kavinsky**: play it **while deploying**. **It won’t crash**. Not with him on.'
 	]
 };
 

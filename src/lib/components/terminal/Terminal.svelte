@@ -30,6 +30,14 @@
 
 	let inputLocked = $state(false);
 
+	// The first word is the command, so it gets its own colour (green when it exists, red when
+	// it doesn't), in the echoed line and while typing
+	const split = (text: string) => {
+		const m = text.match(/^(\s*)(\S*)([\s\S]*)$/)!;
+		return { lead: m[1], cmd: m[2], rest: m[3] };
+	};
+	const known = (cmd: string) => cmd.toLowerCase() in commands;
+
 	// "Pristine" = the user hasn't submitted anything yet: while pristine, the
 	// opening content is regenerated on language change. Once the user types,
 	// the terminal becomes theirs and is never reset.
@@ -228,7 +236,12 @@
 			{#if entry.type === 'input'}
 				<div class="line">
 					<span class="prompt">$</span>
-					<span class="cmd">{entry.text}</span>
+					<span class="cmd"
+						>{#each [split(entry.text)] as p}{p.lead}<span
+								class="cmd-word"
+								class:bad={p.cmd && !known(p.cmd)}>{p.cmd}</span
+							>{p.rest}{/each}</span
+					>
 				</div>
 			{:else if entry.type === 'output'}
 				<div class="line output">{entry.text}</div>
@@ -248,21 +261,30 @@
 			}}
 		>
 			<span class="prompt">$</span>
-			<input
-				aria-label={$tStore.term_typeHelp}
-				bind:this={inputEl}
-				bind:value={inputValue}
-				onkeydown={handleKeydown}
-				onfocus={onInputFocus}
-				type="text"
-				class="term-input"
-				spellcheck="false"
-				autocomplete="off"
-				autocapitalize="off"
-				autocorrect="off"
-				enterkeyhint="send"
-				disabled={inputLocked}
-			/>
+			<span class="input-wrap">
+				<!-- shortcut: the mirror doesn't scroll with a very long input, when to upgrade: if long commands matter -->
+				<span class="input-mirror" aria-hidden="true">
+					{#each [split(inputValue)] as p}{p.lead}<span
+							class="cmd-word"
+							class:bad={p.cmd && !known(p.cmd)}>{p.cmd}</span
+						>{p.rest}{/each}
+				</span>
+				<input
+					aria-label={$tStore.term_typeHelp}
+					bind:this={inputEl}
+					bind:value={inputValue}
+					onkeydown={handleKeydown}
+					onfocus={onInputFocus}
+					type="text"
+					class="term-input"
+					spellcheck="false"
+					autocomplete="off"
+					autocapitalize="off"
+					autocorrect="off"
+					enterkeyhint="send"
+					disabled={inputLocked}
+				/>
+			</span>
 		</form>
 	</div>
 </div>

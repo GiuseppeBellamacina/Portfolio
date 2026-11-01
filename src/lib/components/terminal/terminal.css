@@ -194,12 +194,37 @@
 	margin-right: 8px;
 	font-size: clamp(0.78rem, 0.65rem + 0.15vw, 0.85rem);
 }
+.input-wrap {
+	position: relative;
+	flex: 1;
+	display: block;
+	min-width: 0;
+}
+/* Same box and font as the input, drawn under it: the input's text is transparent, only the caret shows */
+.input-mirror {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	white-space: pre;
+	overflow: hidden;
+	font-size: clamp(0.78rem, 0.65rem + 0.15vw, 0.85rem);
+	line-height: 1.6;
+	color: var(--primary-color);
+}
+.cmd-word {
+	color: var(--neon-green);
+	font-weight: bold;
+}
+.cmd-word.bad {
+	color: #ff5f57;
+}
 .term-input {
+	width: 100%;
 	flex: 1;
 	background: none;
 	border: none;
 	outline: none;
-	color: var(--primary-color);
+	color: transparent;
 	font-family: inherit;
 	font-size: clamp(0.78rem, 0.65rem + 0.15vw, 0.85rem);
 	caret-color: var(--neon-green);
@@ -217,7 +242,8 @@
 	.line {
 		font-size: 0.78rem;
 	}
-	.term-input {
+	.term-input,
+	.input-mirror {
 		font-size: 0.78rem;
 	}
 	.terminal-body {
@@ -229,7 +255,8 @@
 	.line {
 		font-size: 0.72rem;
 	}
-	.term-input {
+	.term-input,
+	.input-mirror {
 		font-size: 0.72rem;
 	}
 	.terminal-body {
