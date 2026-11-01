@@ -10,6 +10,8 @@ export interface Project {
 	accentColor?: string;
 	isHackathonWinner?: boolean;
 	isWip?: boolean;
+	/** Never ask the GitHub API for the stars (private repo: the call would just 404) */
+	skipStars?: boolean;
 	/** 3 = in the carousel and a 2×2 mosaic tile, 2 = a 2×1 tile, default 1 */
 	importance?: 2 | 3;
 	/** Headline result, only when verified (README/CV) */
@@ -55,7 +57,8 @@ export const projects: Project[] = [
 			'Un <strong>ingegnere di pista di Formula 1 basato su AI</strong>, in tempo reale e completamente locale: Gran Premi reali da <strong>OpenF1</strong> rigiocati in una playlist infinita attraverso una pipeline di microservizi Docker.<br><strong>Come funziona:</strong><ul><li><strong>Streaming</strong> — ogni gara viene ripubblicata su <strong>Kafka</strong> (KRaft); <strong>Spark Structured Streaming</strong> calcola distacchi, degrado delle gomme, undercut, probabilità di pit stop e duelli in zona DRS</li><li><strong>Telecronaca</strong> — un LLM locale (<strong>Ollama</strong>, Gemma) racconta la gara in italiano, al ritmo della voce (TTS Piper / Chatterbox, con clonazione vocale)</li><li><strong>Race engineer</strong> — un agente con tool calling risponde a domande come <em>"chi rischia l\'undercut?"</em> sui dati live</li><li><strong>Mondo 3D</strong> — il circuito ricostruito nel luogo reale da immagini satellitari, rilievo ed edifici OSM, con regia televisiva automatica, HUD onboard e ghost lap</li></ul><strong>Architettura:</strong> coreografia event-driven su un topic di ciclo di vita della gara, viste CQRS, circuit breaker con fallback a template, DLQ, competing consumers. Gateway Bun + UI React/three.js, Logstash → Elasticsearch → Kibana per storico e dashboard.',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Pitwall-AI',
 		image: '/assets/projects/pitwall.webp',
-		isWip: true
+		isWip: true,
+		skipStars: true // private repo for now
 	},
 	{
 		title: 'Babbol',
@@ -105,7 +108,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			'Traduzione neuro-simbolica <strong>Text-to-Gloss</strong>: un piccolo LLM (<strong>Qwen2.5-0.5B</strong>) impara a trasformare frasi inglesi in <strong>sequenze di glosse ASL</strong>.<br><strong>Idee chiave:</strong><ul><li><strong>Decoding vincolato</strong> — un <code>LogitsProcessor</code> basato su un <strong>Trie</strong> di token a doppia radice maschera ogni token che non è una glossa, così il modello può generare solo glosse valide (~15K vocaboli)</li><li>Reinforcement learning con <strong>GRPO</strong> e <strong>reward deterministiche basate su regole</strong> (ROUGE-L, BLEU-4, ordine delle glosse, verifier scaling ispirato a RECIPE, formato, ripetizioni) — nessun reward model neurale</li><li>Pipeline <strong>SFT → GRPO</strong> con LoRA / QLoRA a 4 bit, in ~11 GB di VRAM</li></ul><strong>Setup di ricerca:</strong> matrice di ablation a 15 celle (baseline, SFT, GRPO, ablation su reward/loss/decoding), quattro dataset (ASLG-PC12, RWTH-PHOENIX-Weather 2014T, WOS-46985, CoNLL-2003), pipeline su cluster SLURM con monitoraggio live, logging W&B e suite pytest.',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/neuro_symbolic_t2g',
-		image: '/assets/projects/neuro-t2g-wip.webp'
+		image: '/assets/projects/neuro-t2g-wip.webp',
+		isWip: true
 	},
 	{
 		title: 'ATLAS',
