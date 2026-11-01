@@ -17,6 +17,7 @@ import {
 	Object3D,
 	OrthographicCamera,
 	Scene,
+	Matrix4,
 	Vector3,
 	WebGLRenderer,
 	BoxGeometry
@@ -59,10 +60,21 @@ export interface VoxelMascot {
 	setRocket(on: boolean): void;
 	/** Flames from the rocket nozzle */
 	setThrust(on: boolean): void;
+	/** A gag for the muted bot: tape over the mouth, a crossed-out speaker, or powered off */
+	setGag(g: Gag): void;
 	refreshColors(): void;
 	tick(dtMs: number, motion: Motion): void;
 	dispose(): void;
 }
+
+export type Gag = 'none' | 'tape' | 'speaker' | 'off';
+
+// Faces for the gags (the lit cells replace the whole face)
+const GAG_FACES: Record<Exclude<Gag, 'none'>, string[]> = {
+	tape: ['..#.#..', '.#...#.', '.#...#.', '.......', '.......'],
+	speaker: ['.......', '.##.#.#', '###..#.', '.##.#.#', '.......'],
+	off: ['.......', '.......', '.......', '.......', '.......']
+};
 
 const PARTICLES = 110;
 
@@ -155,6 +167,12 @@ export function createVoxelMascot(
 	let spinAngle = 0;
 	let rocket: InstancedMesh | null = null;
 	let rocketOn = false;
+	let gag: Gag = 'none';
+	let tape: InstancedMesh | null = null;
+	// Powered off: it topples sideways (fall: 0 upright .. 1 on its side), with a little bounce
+	let fall = 0;
+	let fallV = 0;
+	let fallDir = 1;
 	let thrust = 0;
 	let thrustTarget = 0;
 	/** Where the flames start, relative to the model centre */
@@ -171,6 +189,11 @@ export function createVoxelMascot(
 		if (mesh) {
 			body.remove(mesh);
 			mesh.dispose();
+		}
+		if (tape) {
+			body.remove(tape);
+			tape.dispose();
+			tape = null;
 		}
 		currentId = id;
 		currentHat = hatFor(document.body.classList);
@@ -201,6 +224,7 @@ export function createVoxelMascot(
 		buildRocket(min.y);
 		spinning = vs.flatMap((v, i) => (v.spin ? [i] : []));
 		cells = faceCells(model);
+		buildTape();
 		// Voxels with an open neighbour emit the sparkles
 		const taken = new Set(vs.map((v) => `${v.x},${v.y},${v.z}`));
 		surface = vs
@@ -245,6 +269,32 @@ export function createVoxelMascot(
 		nozzle.set(0, bottomY - 8 - center.y, 0);
 	}
 
+	// A strip of grey duct tape across the mouth, a hair crooked, floating just off the face
+	function buildTape() {
+		const onFace = cells.filter((i) => i >= 0);
+		if (!onFace.length) return;
+		const z = Math.max(...onFace.map((i) => model.voxels[i].z)) + 1;
+		const cs: { x: number; y: number }[] = [];
+		for (let fx = 0; fx < 7; fx++)
+			for (const fy of [3, 4]) cs.push({ x: model.face.x0 + fx, y: model.face.y0 - fy });
+		tape = new InstancedMesh(voxelGeo, voxelMat, cs.length);
+		cs.forEach((v, i) => {
+			dummy.position.set(v.x - center.x, v.y - center.y, z - center.z);
+			dummy.rotation.set(0, 0, 0);
+			dummy.scale.set(1, 1, 0.5);
+			dummy.updateMatrix();
+			// Tilt the whole strip a little around the mouth
+			const tilt = new Matrix4().makeRotationZ(-0.1);
+			const pivot = new Vector3(model.face.x0 + 3 - center.x, model.face.y0 - 3.5 - center.y, 0);
+			const t1 = new Matrix4().makeTranslation(pivot.x, pivot.y, 0);
+			const t2 = new Matrix4().makeTranslation(-pivot.x, -pivot.y, 0);
+			tape!.setMatrixAt(i, t1.multiply(tilt).multiply(t2).multiply(dummy.matrix));
+			tape!.setColorAt(i, color.set('#9ca3af').offsetHSL(0, 0, (hash3(v.x, v.y, 7) - 0.5) * 0.06));
+		});
+		tape.visible = gag === 'tape';
+		body.add(tape);
+	}
+
 	function tintSparks() {
 		sparkMat.color.copy(sparkCalm).lerp(rage, anger).lerp(flame, thrust);
 	}
@@ -268,21 +318,25 @@ export function createVoxelMascot(
 		if (!mesh) return;
 		// Still fuming: the face stays angry until the red has mostly faded
 		const base =
-			anger > 0.35 && expression !== 'dizzy'
-				? EXPRESSIONS.angry
-				: expression === 'tear' && tearDrop
-					? TEAR_DROP
-					: EXPRESSIONS[expression];
+			gag !== 'none'
+				? GAG_FACES[gag]
+				: anger > 0.35 && expression !== 'dizzy'
+					? EXPRESSIONS.angry
+					: expression === 'tear' && tearDrop
+						? TEAR_DROP
+						: EXPRESSIONS[expression];
 		// Eyes and brows keep the mood while talking (only the mouth moves) and while blinking
 		// (only the eyes close), so a sad bot talks sad
 		const rows =
-			talking && mouthOpen && expression !== 'talk'
-				? [...base.slice(0, 3), ...EXPRESSIONS.talk.slice(3)]
-				: blinking
-					? [...EXPRESSIONS.blink.slice(0, 3), ...base.slice(3)]
-					: talking && mouthOpen
-						? EXPRESSIONS.talk
-						: base;
+			gag !== 'none'
+				? base
+				: talking && mouthOpen && expression !== 'talk'
+					? [...base.slice(0, 3), ...EXPRESSIONS.talk.slice(3)]
+					: blinking
+						? [...EXPRESSIONS.blink.slice(0, 3), ...base.slice(3)]
+						: talking && mouthOpen
+							? EXPRESSIONS.talk
+							: base;
 		const lit = new Set<number>();
 		rows.forEach((row, fy) =>
 			[...row].forEach((ch, fx) => {
@@ -294,6 +348,8 @@ export function createVoxelMascot(
 			color.set(lit.has(i) ? palette[model.faceOn] : (v.color ?? palette[v.role]));
 			// Anger floods the body (not the face or the screen) with a hot red-orange
 			if (anger > 0 && !lit.has(i) && v.role !== 'dark') color.lerp(rage, anger * 0.75);
+			// Powered off: the whole body goes dull
+			if (gag === 'off' && !lit.has(i)) color.multiplyScalar(0.55);
 			// ±7% lightness jitter so flat areas read as individual cubes
 			if (!lit.has(i))
 				color.offsetHSL(
@@ -443,6 +499,16 @@ export function createVoxelMascot(
 		bump(strength) {
 			squash = Math.min(1, Math.max(squash, strength));
 		},
+		setGag(g) {
+			if (g === gag) return;
+			gag = g;
+			if (tape) tape.visible = g === 'tape';
+			if (g === 'off') {
+				fallDir = Math.random() < 0.5 ? 1 : -1;
+				fallV = 0;
+			}
+			paint();
+		},
 		setRocket(on) {
 			rocketOn = on;
 			if (rocket) rocket.visible = on;
@@ -489,7 +555,20 @@ export function createVoxelMascot(
 			const sway = reducedMotion ? 0 : Math.sin(time * 1.3) * 0.06;
 			// Lean into the direction of travel, plus the spin from the physics
 			const lean = Math.max(-0.5, Math.min(0.5, -motion.vx / 2500));
-			root.rotation.set(0, 0, -motion.angle + lean + sway);
+			// Powered off: tips over and bounces once, then lies still
+			const fallTarget = gag === 'off' ? 1 : 0;
+			if (reducedMotion) fall = fallTarget;
+			else {
+				fallV += (fallTarget - fall) * 90 * dt;
+				fallV *= Math.exp(-dt * 7);
+				fall = Math.max(0, fall + fallV * dt);
+				if (fall > 1) {
+					fall = 1;
+					fallV *= -0.35;
+				}
+			}
+			const lying = gag === 'off' ? 0 : 1;
+			root.rotation.set(0, 0, -motion.angle + (lean + sway) * lying + fall * 1.5 * fallDir);
 			// Anger fades in and out; repaint only while it is changing
 			const prevAnger = anger;
 			// Flares up in ~0.2 s, calms down over ~2.5 s
@@ -515,6 +594,7 @@ export function createVoxelMascot(
 			ro.disconnect();
 			mesh?.dispose();
 			rocket?.dispose();
+			tape?.dispose();
 			voxelGeo.dispose();
 			voxelMat.dispose();
 			sparkGeo.dispose();
