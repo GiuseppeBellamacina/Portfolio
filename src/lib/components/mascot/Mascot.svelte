@@ -213,6 +213,7 @@
 		speaking = false;
 		clearInterval(typeTimer);
 		engine?.setTalking(false);
+		engine?.setGag(oneOf(['tape', 'speaker', 'off'] as const));
 		store(MUTE_KEY, '1');
 	}
 
@@ -624,6 +625,7 @@
 		engine?.bump(0.35);
 		if (muted) {
 			muted = false;
+			engine?.setGag('none');
 			store(MUTE_KEY, null);
 			sayRaw(unmuteLine[get(lang)], 'shy');
 			return;
@@ -1127,6 +1129,7 @@
 			const { createVoxelMascot } = await import('./voxelEngine');
 			if (cancelled) return;
 			engine = createVoxelMascot(canvas, character, reducedMotion);
+			if (muted) engine.setGag(oneOf(['tape', 'speaker', 'off'] as const));
 		} catch {
 			visible = false; // no WebGL: no mascot
 			return;
