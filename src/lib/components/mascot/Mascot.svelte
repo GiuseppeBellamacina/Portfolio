@@ -12,6 +12,7 @@
 		sectionLines,
 		projectLines,
 		categoryLine,
+		categoryLines,
 		allSkillsLine,
 		complaints,
 		angryLines,
@@ -741,11 +742,13 @@
 		const key = (e as CustomEvent<keyof Translations | null>).detail;
 		const l = get(lang);
 		if (key === null) {
-			say(allSkillsLine[l].replace('{n}', String(TOTAL_SKILLS)), 'star');
+			say(fill(pick(allSkillsLine[l])), 'star');
 			return;
 		}
 		const n = skillCategories.find((c) => c.key === key)?.icons.length ?? 0;
-		say(categoryLine[l](get(t)[key], n), 'wow');
+		const own = categoryLines[l][key];
+		const text = own ? pick(own).replace('{c}', String(n)) : categoryLine[l](get(t)[key], n);
+		say(text, oneOf(['wow', 'smug', 'happy', 'think', 'star']));
 	}
 
 	// ── Swapping bots: the new one flies in, they greet, the old one leaves on a rocket ──

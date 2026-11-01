@@ -84,6 +84,14 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 				face: 'happy'
 			},
 			{
+				text: 'Passa il mouse su un’icona: se ti **fidi**, **clicca**. Se non sai cos’è, **fa lo stesso**.',
+				face: 'wink'
+			},
+			{
+				text: 'Le ha imparate **quasi tutte per un progetto**. Il progetto è **finito**. Le tecnologie, **no**.',
+				face: 'smug'
+			},
+			{
 				text: '**{n} tecnologie** e ne sta già imparando un’altra. Lo so, **lo sento**.',
 				face: 'tired'
 			}
@@ -148,6 +156,14 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 		skills: [
 			{ text: '**{n} technologies**. Pick a category and I’ll line them up.', face: 'wow' },
 			{ text: 'This wall **never stops**. Like him when he finds a new library.', face: 'happy' },
+			{
+				text: 'Hover an icon: if you **trust** it, **click**. If you don’t know what it is, **click anyway**.',
+				face: 'wink'
+			},
+			{
+				text: 'He learned **most of them for one project**. The project is **done**. The technologies, **not**.',
+				face: 'smug'
+			},
 			{
 				text: '**{n} technologies** and he’s already learning another. I know, **I can feel it**.',
 				face: 'tired'
@@ -268,14 +284,151 @@ export const projectLines: Lines<Record<string, string>> = {
 	}
 };
 
+// Fallback for a category without lines of its own
 export const categoryLine: Lines<(name: string, n: number) => string> = {
-	it: (name, n) => `**${name}: ${n}**. **Le ho contate io**, lui si è fermato a tre.`,
-	en: (name, n) => `**${name}: ${n}**. **I counted them**, he stopped at three.`
+	it: (name, n) => `**${name}**: **${n}** tecnologie. Le ho contate io.`,
+	en: (name, n) => `**${name}**: **${n}** technologies. I counted them.`
 };
 
-export const allSkillsLine: Lines<string> = {
-	it: 'Tutte e **{n}** di nuovo in movimento.',
-	en: 'All **{n}** of them, moving again.'
+// What it says about each skills category; {c} is the number of tools in it
+export const categoryLines: Lines<Record<string, string[]>> = {
+	it: {
+		skills_languages: [
+			'**{c} linguaggi**, compresi **Markdown, JSON e YAML**. Per lui contano tutti. Io non discuto.',
+			'Da **C** a **Rust**, **{c} linguaggi**. Ogni volta che ne impara uno, **riscrive il resto**.',
+			'Ha detto “**Python per tutto**”. Poi ha aperto un progetto in **Rust**. Totale: **{c}**.'
+		],
+		skills_ml: [
+			'**{c} librerie** per far imparare le macchine. Lui impara più **piano**.',
+			'**PyTorch**, **TRL**, **Unsloth**, **vLLM**… **{c}** in tutto. La sua **GPU** ha chiesto un sindacato.',
+			'**Weights & Biases** conta ogni suo **esperimento**. Io conto solo le sue **notti insonni**.'
+		],
+		skills_llm: [
+			'**{c} strumenti** per parlare con i modelli. Io sono quello che **risponde per ultimo**.',
+			'Agenti, **LangGraph**, **MCP**, **Claude**: **{c}** strumenti. Ci passa più tempo che con **me**.',
+			'Ha dato un compito a un agente. Poi **un altro compito a un altro agente**. Io intanto **osservo**.'
+		],
+		skills_datascience: [
+			'**{c} strumenti** per far parlare i numeri. A lui rispondono. A me **solo i cubetti**.',
+			'**NumPy**, **Pandas**, **Polars**… dice che **Pandas è lento**. Poi lo riusa. Totale: **{c}**.',
+			'Grafici con **Matplotlib**, **Seaborn**, **Plotly**: ne fa **uno nuovo a ogni idea**.'
+		],
+		skills_web: [
+			'**{c} strumenti** web. Lo **Svelte** di questo sito lo conosco bene: **abito qui**.',
+			'Da **React** a **Svelte**: **{c}**. Ogni volta è “l’ultimo framework **che imparo**”.',
+			'**Three.js**: gli devo la mia **esistenza** in 3D. **{c}** strumenti, e un bot di cubetti.'
+		],
+		skills_databases: [
+			'**{c} database**. Io, invece, li ho tutti a **memoria breve**.',
+			'Da **SQLite** a **Neo4j**: **{c}**. Il grafo gli è piaciuto tanto che **ora vede grafi ovunque**.',
+			'**Redis** ricorda tutto per **pochi secondi**. Come me, dopo **un’idea di Giuseppe**.'
+		],
+		skills_retrieval: [
+			'**{c} database vettoriali**. Trovano quello che **significa**, non quello che scrivi. Io trovo solo **i miei cubetti**.',
+			'**Chroma**, **Qdrant**, **Pinecone**… **{c}**. Cercano per **somiglianza**: io cerco ancora **le chiavi**.',
+			'Ricerca vettoriale: **{c} strumenti**, nessuno per ritrovare **le ore di sonno**.'
+		],
+		skills_dataeng: [
+			'**{c} strumenti** per far scorrere i dati. Come **Kafka**: **non si ferma mai**. Nemmeno lui.',
+			'**Kafka**, **Spark**, **n8n**: **{c}** in tutto. Pochi, ma lavorano **per cinquanta**.',
+			'Pipeline: **{c} strumenti**. Quando una si rompe, io mi sposto piano **verso un’altra sezione**.'
+		],
+		skills_devops: [
+			'**{c} strumenti** per portare tutto **in produzione**. Il venerdì **no**. Lui lo fa **lo stesso**.',
+			'**Docker**, **Kubernetes**, **GitHub Actions**: **{c}**. “Sulla mia macchina funziona” **non vale più**.',
+			'Tra **Vercel**, **Render** e **Railway**, i suoi progetti hanno **più case di me**.'
+		],
+		skills_devtooling: [
+			'**{c} strumenti** per scrivere codice **meno sbagliato**. **Ruff** lo rimprovera, **Pytest** lo smaschera.',
+			'**uv**, **Poetry**, **Pyright**: **{c}**. Il suo **linter** mi guarda male da quando sono arrivato.',
+			'**Playwright** apre un browser al posto suo. Io **non ho nemmeno un browser**: ho **cubetti**.'
+		],
+		skills_ides: [
+			'**{c} editor e ambienti**. Passa dall’uno all’altro **a seconda dell’idea**.',
+			'Da **VSCode** a **Blender**: **{c}**. Con **Blender** mi farei **un corpo più snello**.',
+			'**Jupyter**, **Colab**, **Unity**… **{c}** posti dove **scomparire per ore**.'
+		],
+		skills_os: [
+			'**{c} strumenti** tra sistemi e sicurezza: **Kali**, **Nmap**, **Wireshark**. Io controllo solo **che non mi lanci**.',
+			'**Windows** e **Linux**, **{c}** in tutto. Ha **WSL** per non dover scegliere.',
+			'**Burp Suite**, **Nmap**: se lo vedi **scrutare la rete di notte**, non è cattivo, è **curioso**.'
+		]
+	},
+	en: {
+		skills_languages: [
+			'**{c} languages**, **Markdown, JSON and YAML** included. To him they all count. I won’t argue.',
+			'From **C** to **Rust**, **{c} languages**. Each time he learns one, he **rewrites the rest**.',
+			'He said “**Python for everything**”. Then he started a **Rust** project. Total: **{c}**.'
+		],
+		skills_ml: [
+			'**{c} libraries** to make machines learn. He learns more **slowly**.',
+			'**PyTorch**, **TRL**, **Unsloth**, **vLLM**… **{c}** in all. His **GPU** asked for a union.',
+			'**Weights & Biases** counts his every **experiment**. I only count his **sleepless nights**.'
+		],
+		skills_llm: [
+			'**{c} tools** to talk to models. I’m the one who **answers last**.',
+			'Agents, **LangGraph**, **MCP**, **Claude**: **{c}** tools. He spends more time with them than with **me**.',
+			'He gave a task to an agent. Then **another task to another agent**. I just **watch**.'
+		],
+		skills_datascience: [
+			'**{c} tools** to make numbers talk. They answer him. Me, **only the cubes**.',
+			'**NumPy**, **Pandas**, **Polars**… he says **Pandas is slow**. Then he reuses it. Total: **{c}**.',
+			'Charts with **Matplotlib**, **Seaborn**, **Plotly**: **a new one for every idea**.'
+		],
+		skills_web: [
+			'**{c} web tools**. The **Svelte** behind this site I know well: **I live here**.',
+			'From **React** to **Svelte**: **{c}**. Every time it’s “the last framework **I’ll learn**”.',
+			'**Three.js**: I owe it my 3D **existence**. **{c}** tools, and a bot made of cubes.'
+		],
+		skills_databases: [
+			'**{c} databases**. Me, I keep everything in **short-term memory**.',
+			'From **SQLite** to **Neo4j**: **{c}**. He liked the graph so much he **now sees graphs everywhere**.',
+			'**Redis** remembers everything for **a few seconds**. Like me, after **one of Giuseppe’s ideas**.'
+		],
+		skills_retrieval: [
+			'**{c} vector databases**. They find what things **mean**, not what you type. I only find **my cubes**.',
+			'**Chroma**, **Qdrant**, **Pinecone**… **{c}**. They search by **similarity**: I’m still searching for **my keys**.',
+			'Vector search: **{c} tools**, none to retrieve **lost hours of sleep**.'
+		],
+		skills_dataeng: [
+			'**{c} tools** to keep data flowing. Like **Kafka**: **never stops**. Neither does he.',
+			'**Kafka**, **Spark**, **n8n**: **{c}** in all. Few, but they work **for fifty**.',
+			'Pipelines: **{c} tools**. When one breaks, I slowly drift **to another section**.'
+		],
+		skills_devops: [
+			'**{c} tools** to ship everything **to production**. Not on Fridays. He does it **anyway**.',
+			'**Docker**, **Kubernetes**, **GitHub Actions**: **{c}**. “Works on my machine” **no longer counts**.',
+			'Between **Vercel**, **Render** and **Railway**, his projects have **more homes than I do**.'
+		],
+		skills_devtooling: [
+			'**{c} tools** to write **less wrong** code. **Ruff** scolds him, **Pytest** exposes him.',
+			'**uv**, **Poetry**, **Pyright**: **{c}**. His **linter** has been glaring at me since I arrived.',
+			'**Playwright** opens a browser for him. I don’t even **have a browser**: I have **cubes**.'
+		],
+		skills_ides: [
+			'**{c} editors and environments**. He hops between them **depending on the idea**.',
+			'From **VSCode** to **Blender**: **{c}**. With **Blender** I’d model **a slimmer body**.',
+			'**Jupyter**, **Colab**, **Unity**… **{c}** places to **vanish for hours**.'
+		],
+		skills_os: [
+			'**{c} tools** across systems and security: **Kali**, **Nmap**, **Wireshark**. I just check **he doesn’t throw me**.',
+			'**Windows** and **Linux**, **{c}** in all. He has **WSL** so he doesn’t have to choose.',
+			'**Burp Suite**, **Nmap**: if you see him **scanning the network at night**, he’s not evil, just **curious**.'
+		]
+	}
+};
+
+export const allSkillsLine: Lines<string[]> = {
+	it: [
+		'Tutte e **{n}** di nuovo in movimento.',
+		'Muro intero: **{n}** tecnologie in fila. **Nessuna in pausa**, come lui.',
+		'Ecco **{n}** tecnologie tutte insieme. Una **riunione di team** da incubo.'
+	],
+	en: [
+		'All **{n}** of them, moving again.',
+		'The whole wall: **{n}** technologies in a row. **None on pause**, like him.',
+		'There are **{n}** technologies all together. A **team meeting** from hell.'
+	]
 };
 
 // While it is held: it gets angry, red and sparky
