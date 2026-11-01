@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { get } from 'svelte/store';
 	import { lang, t } from '$lib/i18n';
 	import type { Translations } from '$lib/i18n';
@@ -23,6 +23,7 @@
 		backTabLines,
 		konamiLines,
 		friendLines,
+		swapLines,
 		seasonLines,
 		shoutLines,
 		unmuteLine,
@@ -131,18 +132,22 @@
 	let typeTimer: ReturnType<typeof setInterval> | undefined;
 	let hideTimer: ReturnType<typeof setTimeout> | undefined;
 
+	// During a swap the newcomer speaks too: the bubble, the face and the mouth follow it
+	let speaker: 'main' | 'guest' = 'main';
+	const speakerEngine = () => (speaker === 'guest' ? guestEngine : engine);
+
 	function say(line: string, face: Expression = 'normal') {
 		if (traveling) {
 			queued = { line, face };
 			return;
 		}
-		engine?.setExpression(face);
+		speakerEngine()?.setExpression(face);
 		if (muted || !visible) return;
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
 		speaking = true;
 		const done = () => {
-			engine?.setTalking(false);
+			speakerEngine()?.setTalking(false);
 			hideTimer = setTimeout(() => {
 				speaking = false;
 				if (mode === 'docked') engine?.setExpression('normal');
@@ -159,7 +164,7 @@
 			return;
 		}
 		shown = 0;
-		engine?.setTalking(true);
+		speakerEngine()?.setTalking(true);
 		typeTimer = setInterval(() => {
 			shown++;
 			if (shown >= total) {
@@ -178,7 +183,7 @@
 	}
 
 	// ── Motion: docked (spring to the section anchor), held, flying (physics), returning ──
-	type Mode = 'docked' | 'held' | 'flying' | 'returning';
+	type Mode = 'docked' | 'held' | 'flying' | 'returning' | 'launching';
 	let mode: Mode = 'docked';
 	const body: Body = { x: 0, y: 0, vx: 0, vy: 0, angle: 0, spin: 0 };
 	let size = 170;
@@ -289,15 +294,21 @@
 		const w = bubbleEl.offsetWidth;
 		const h = bubbleEl.offsetHeight;
 		const half = size * 0.36; // half the visible model, inside the padded box
-		const onLeft = body.x > innerWidth / 2;
+		const sp = speaker === 'guest' ? guest : body;
+		const onLeft = sp.x > innerWidth / 2;
 		// The edge nearest the mascot is pinned, so a line growing as it types
 		// extends away from it, never over it
-		let edge = onLeft ? body.x + half * 0.5 : body.x - half * 0.5;
-		let y = body.y - half - h - 4;
+		let edge = onLeft ? sp.x + half * 0.5 : sp.x - half * 0.5;
+		let y = sp.y - half - h - 4;
 		if (y < NAV_H + 8) {
-			// No room above: beside it, on the side facing the page
-			edge = onLeft ? body.x - half - 4 : body.x + half + 4;
-			y = body.y - h / 2;
+			if (guestShown) {
+				// Two bots side by side: below them, so the bubble doesn't cover the other one
+				y = sp.y + half + 4;
+			} else {
+				// No room above: beside it, on the side facing the page
+				edge = onLeft ? sp.x - half - 4 : sp.x + half + 4;
+				y = sp.y - h / 2;
+			}
 		}
 		y = Math.max(NAV_H + 8, Math.min(innerHeight - h - 8, y));
 		const x = onLeft
@@ -309,7 +320,7 @@
 	function updateQuiet(dtMs: number) {
 		const speed = Math.hypot(body.vx, body.vy);
 		let moving: boolean;
-		if (mode === 'flying') moving = true;
+		if (mode === 'flying' || mode === 'launching') moving = true;
 		else if (mode === 'held') moving = speed > HELD_TALK_SPEED;
 		else {
 			const a = baseAnchor();
@@ -380,6 +391,19 @@
 				mode = 'docked';
 				hits = 0;
 			}
+		} else if (mode === 'launching') {
+			// Straight up on the rocket, a little shaky, until it is off the screen
+			launchT += dt;
+			body.vy -= 2800 * dt;
+			body.y += body.vy * dt;
+			body.vx = Math.sin(launchT * 16) * 60;
+			body.x += body.vx * dt;
+			body.angle = Math.sin(launchT * 11) * 0.07;
+			if (body.y < -(size / 2 + launchTail)) {
+				const done = launchDone;
+				launchDone = null;
+				done?.();
+			}
 		} else if (mode === 'held' && performance.now() - lastDrag > 90) {
 			// Held still: no pointer moves, so it is not moving either
 			body.vx = body.vy = 0;
@@ -388,6 +412,23 @@
 		if (visible) {
 			place(dt);
 			engine?.tick(dtMs, { vx: body.vx, vy: body.vy, angle: body.angle });
+			if (guestShown && guestEngine && guestEl) {
+				// The newcomer settles beside the one on stage and stays there
+				const gx = guestTargetX();
+				const k = 24;
+				const c = 2 * Math.sqrt(k);
+				guest.vx += ((gx - guest.x) * k - guest.vx * c) * dt;
+				guest.vy += ((body.y - guest.y) * k - guest.vy * c) * dt;
+				const v = Math.hypot(guest.vx, guest.vy);
+				if (v > GLIDE_MAX) {
+					guest.vx *= GLIDE_MAX / v;
+					guest.vy *= GLIDE_MAX / v;
+				}
+				guest.x += guest.vx * dt;
+				guest.y += guest.vy * dt;
+				guestEl.style.transform = `translate3d(${guest.x - size / 2}px, ${guest.y - size / 2}px, 0)`;
+				guestEngine.tick(dtMs, { vx: guest.vx, vy: guest.vy, angle: 0 });
+			}
 		}
 		raf = requestAnimationFrame(frame);
 	}
@@ -527,7 +568,16 @@
 
 	function onIdleCheck() {
 		const now = performance.now();
-		if (document.hidden || !visible || muted || mode !== 'docked' || traveling || speaking) return;
+		if (
+			document.hidden ||
+			!visible ||
+			muted ||
+			mode !== 'docked' ||
+			traveling ||
+			speaking ||
+			swapping
+		)
+			return;
 		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
 		lastIdleLine = now;
 		const l = get(lang);
@@ -647,14 +697,167 @@
 		say(categoryLine[l](get(t)[key], n), 'wow');
 	}
 
+	// ── Swapping bots: the new one flies in, they greet, the old one leaves on a rocket ──
+	let guestEl: HTMLDivElement | undefined = $state();
+	let guestCanvas: HTMLCanvasElement | undefined = $state();
+	let guestShown = $state(false);
+	let swapping = $state(false);
+	let guestEngine: VoxelMascot | null = null;
+	const guest = { x: 0, y: 0, vx: 0, vy: 0 };
+	let guestSide = 1;
+	let swapToken: object | null = null;
+	let pendingSwap: CharacterId | null = null;
+	let launchDone: (() => void) | null = null;
+	let launchT = 0;
+	let launchTail = 0;
+
+	// Where the newcomer stands: beside the one on stage, on the side with room
+	function guestTargetX() {
+		return Math.max(radius, Math.min(innerWidth - radius, body.x + guestSide * size * 0.92));
+	}
+
+	function endSwap() {
+		guestEngine?.dispose();
+		guestEngine = null;
+		guestShown = false;
+		engine?.setThrust(false);
+		engine?.setRocket(false);
+		canvas.style.height = '';
+		speaker = 'main';
+		swapping = false;
+		swapToken = null;
+		launchDone = null;
+		shout = null;
+		if (mode === 'launching') mode = 'docked';
+	}
+
+	function abortSwap() {
+		endSwap();
+		pendingSwap = null;
+	}
+
+	async function runSwap(to: CharacterId) {
+		const token = {};
+		swapToken = token;
+		swapping = true;
+		const lines = swapLines[get(lang)][to];
+		const alive = () => swapToken === token;
+		const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+		const until = async (cond: () => boolean, max: number) => {
+			const t0 = performance.now();
+			while (alive() && !cond() && performance.now() - t0 < max) await wait(60);
+		};
+		const speak = async (text: string, face: Expression, who: 'main' | 'guest', ms: number) => {
+			await until(() => !traveling, 2500);
+			if (!alive()) return;
+			engine?.setTalking(false);
+			guestEngine?.setTalking(false);
+			speaker = who;
+			say(text, face);
+			await wait(ms);
+		};
+		try {
+			const { createVoxelMascot } = await import('./voxelEngine');
+			if (!alive()) return;
+			// Arrives from the screen edge on its side
+			guestSide = body.x > innerWidth / 2 ? -1 : 1;
+			guest.x = guestSide > 0 ? innerWidth + size : -size;
+			guest.y = body.y - size * 0.5;
+			guest.vx = guest.vy = 0;
+			guestShown = true;
+			await tick();
+			if (!alive() || !guestCanvas || !guestEl) return abortSwap();
+			guestEl.style.width = guestEl.style.height = `${size}px`;
+			guestEngine = createVoxelMascot(guestCanvas, to, reducedMotion);
+			guestEngine.setExpression('happy');
+			await until(() => Math.hypot(guestTargetX() - guest.x, body.y - guest.y) < 30, 2800);
+			if (!alive()) return;
+
+			// They greet each other
+			engine?.setExpression('happy');
+			engine?.bump(0.5);
+			guestEngine.bump(0.5);
+			guestEngine.lookAt(body.x - guest.x, 0);
+			await speak(pick(lines.bye), 'happy', 'main', 2500);
+			if (!alive()) return;
+			await speak(pick(lines.hello), 'happy', 'guest', 2300);
+			if (!alive()) return;
+
+			// Rocket on, countdown, lift-off
+			speaker = 'main';
+			speaking = false;
+			clearInterval(typeTimer);
+			engine?.setTalking(false);
+			guestEngine?.setTalking(false);
+			launchTail = Math.round(size * 0.95);
+			canvas.style.height = `${size + launchTail}px`;
+			engine?.setRocket(true);
+			engine?.bump(0.7);
+			engine?.setExpression('wow');
+			for (const n of ['3…', '2…', '1…']) {
+				shout = n;
+				await wait(520);
+				if (!alive()) return;
+			}
+			engine?.setThrust(true);
+			engine?.setExpression('happy');
+			shout = pick(lines.go);
+			await wait(450);
+			if (!alive()) return;
+			launchT = 0;
+			body.vy = -80;
+			mode = 'launching';
+			await Promise.race([new Promise<void>((r) => (launchDone = r)), wait(5000)]);
+			if (!alive()) return;
+
+			// The newcomer takes the stage where it stands: same model, same spot
+			body.x = guest.x;
+			body.y = guest.y;
+			body.vx = body.vy = body.angle = body.spin = 0;
+			mode = 'docked';
+			character = to;
+			engine?.setCharacter(to);
+			queued = null;
+			hits = 0;
+			endSwap();
+		} catch {
+			// Anything unexpected: just switch, without the show
+			if (swapToken === token) {
+				endSwap();
+				character = to;
+				engine?.setCharacter(to);
+			}
+		}
+		if (pendingSwap && pendingSwap !== character) {
+			const next = pendingSwap;
+			pendingSwap = null;
+			void runSwap(next);
+		} else pendingSwap = null;
+	}
+
 	function onMascotSet(e: Event) {
 		const id = (e as CustomEvent<CharacterId | 'off'>).detail;
 		store(CHAR_KEY, id);
 		if (id === 'off') {
+			if (swapping) abortSwap();
 			visible = false;
 			return;
 		}
+		if (swapping) {
+			pendingSwap = id;
+			return;
+		}
+		const wasVisible = visible;
 		visible = true;
+		if (wasVisible && id === character) {
+			say(pick(clickLines[get(lang)]), 'happy');
+			return;
+		}
+		// Both bots on screen and motion allowed: they swap with a little show
+		if (wasVisible && engine && !reducedMotion && mode === 'docked') {
+			void runSwap(id);
+			return;
+		}
 		character = id;
 		if (engine) engine.setCharacter(id);
 		else void start(id); // it was saved as off: load three.js only now
@@ -735,6 +938,8 @@
 		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
 			cancelled = true;
+			swapToken = null;
+			guestEngine?.dispose();
 			clearInterval(idleTimer);
 			cancelAnimationFrame(raf);
 			clearInterval(typeTimer);
@@ -755,7 +960,7 @@
 	});
 </script>
 
-<div class="mascot" class:is-hidden={!visible} bind:this={el}>
+<div class="mascot" class:is-hidden={!visible} class:is-busy={swapping} bind:this={el}>
 	<canvas bind:this={canvas} aria-hidden="true"></canvas>
 	<button
 		class="mascot-hit"
@@ -774,6 +979,12 @@
 		}}
 	></button>
 </div>
+
+{#if guestShown}
+	<div class="mascot mascot-guest" bind:this={guestEl}>
+		<canvas bind:this={guestCanvas} aria-hidden="true"></canvas>
+	</div>
+{/if}
 
 {#if visible && shout}
 	<div class="mascot-shout" bind:this={shoutEl} aria-hidden="true">{shout}</div>

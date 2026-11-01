@@ -11,6 +11,10 @@
 .mascot.is-hidden {
 	display: none;
 }
+/* During a bot swap nobody grabs the one that is about to leave */
+.mascot.is-busy .mascot-hit {
+	pointer-events: none;
+}
 .mascot canvas {
 	width: 100%;
 	height: 100%;

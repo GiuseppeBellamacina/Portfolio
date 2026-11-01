@@ -603,3 +603,66 @@ export const unmuteLine: Lines<string> = {
 	it: 'Eccomi. **Mi avevi zittito**, ma ti perdono.',
 	en: 'I’m back. **You muted me**, but I forgive you.'
 };
+
+// Swapping bots (keyed by the one that arrives): what the one leaving says to the newcomer,
+// the newcomer's reply, and the shout as the rocket lights
+export const swapLines: Lines<
+	Record<CharacterId, { bye: string[]; hello: string[]; go: string[] }>
+> = {
+	it: {
+		arancino: {
+			bye: [
+				'Ehi **Arancino**! Tocca a te: tienimi il posto **al caldo**.',
+				'Eccoti, **Arancino**! Il sito è tuo. **Non fidarti delle sue idee.**',
+				'Ciao **Arancino**! Il turno è tuo. Io vado **in vacanza**.'
+			],
+			hello: [
+				'Grazie **Turi**! Vai tranquillo, qui ci penso io.',
+				'Tranquillo, **ho visto tutto** dal terminale. Buon viaggio!',
+				'Ci penso io! Mi sono allenato a **fluttuare**.'
+			],
+			go: ['DECOLLOOO!', 'Ferie, arrivo!', 'Addioooo!']
+		},
+		turi: {
+			bye: [
+				'Ehi **Turi**! Eccoti. Io sono un po’ **croccante**: mi serve una pausa.',
+				'Ciao **Turi**! Ti passo il testimone. È ancora **caldo**.',
+				'**Turi**! Ti lascio il sito e **la sua testa piena di idee**.'
+			],
+			hello: [
+				'Ci penso io! **Ho il cappello**, so cosa faccio.',
+				'Grazie **Arancino**! Vai a riposare, ti abbiamo **rosolato** abbastanza.',
+				'Passo! … no, cioè, **prendo il turno**.'
+			],
+			go: ['Verso la **Sicilia**!', 'Decolloooo!', 'Ciaooooo!']
+		}
+	},
+	en: {
+		arancino: {
+			bye: [
+				'Hey **Arancino**! Your turn: keep my spot **warm**.',
+				'There you are, **Arancino**! The site is yours. **Don’t trust his ideas.**',
+				'Hi **Arancino**! Your shift. I’m off **on holiday**.'
+			],
+			hello: [
+				'Thanks **Turi**! Off you go, I’ve got this.',
+				'Don’t worry, **I saw everything** from the terminal. Safe trip!',
+				'I’ve got this! I trained at **floating**.'
+			],
+			go: ['LIFTOFFF!', 'Holiday, here I come!', 'Byeeeee!']
+		},
+		turi: {
+			bye: [
+				'Hey **Turi**! There you are. I’m a bit **crispy**: I need a break.',
+				'Hi **Turi**! Passing you the baton. It’s still **hot**.',
+				'**Turi**! I’m leaving you the site and **his head full of ideas**.'
+			],
+			hello: [
+				'I’ve got this! **I have the hat**, I know what I’m doing.',
+				'Thanks **Arancino**! Go rest, we’ve **browned** you enough.',
+				'Pass! … no, I mean, **I’ll take the shift**.'
+			],
+			go: ['Off to **Sicily**!', 'Liftoffff!', 'Byeeeee!']
+		}
+	}
+};

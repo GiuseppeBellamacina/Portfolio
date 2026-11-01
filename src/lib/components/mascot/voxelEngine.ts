@@ -116,7 +116,9 @@ export function createVoxelMascot(
 	const sparkState = Array.from({ length: PARTICLES }, () => ({
 		p: new Vector3(),
 		v: new Vector3(),
-		life: 0
+		life: 0,
+		size: 1,
+		decay: 0.9
 	}));
 	let nextSpark = 0;
 
@@ -306,12 +308,14 @@ export function createVoxelMascot(
 		camera.updateProjectionMatrix();
 	}
 
-	function emit(at: Vector3, velocity: Vector3) {
+	function emit(at: Vector3, velocity: Vector3, size = 1, decay = 0.9) {
 		const s = sparkState[nextSpark];
 		nextSpark = (nextSpark + 1) % PARTICLES;
 		s.p.copy(at);
 		s.v.copy(velocity);
 		s.life = 1;
+		s.size = size;
+		s.decay = decay;
 	}
 
 	// Propeller: rotate the flagged voxels around the vertical axis through x = z = 0
@@ -361,8 +365,8 @@ export function createVoxelMascot(
 			}
 		}
 		if (thrust > 0.05 && rocketOn && !reducedMotion) {
-			// Flames: many fast cubes shot down from the nozzle
-			flameBudget += dt * 160 * thrust;
+			// Flames: many big, fast, short-lived cubes shot down from the nozzle
+			flameBudget += dt * 130 * thrust;
 			while (flameBudget >= 1) {
 				flameBudget -= 1;
 				const from = nozzle
@@ -372,23 +376,25 @@ export function createVoxelMascot(
 				emit(
 					from,
 					new Vector3(
-						(Math.random() - 0.5) * 2.4,
-						-(6 + Math.random() * 5),
-						(Math.random() - 0.5) * 2
-					)
+						(Math.random() - 0.5) * 2.6,
+						-(9 + Math.random() * 7),
+						(Math.random() - 0.5) * 2.2
+					),
+					2.7,
+					1.45
 				);
 			}
 		}
 		sparkState.forEach((s, i) => {
 			if (s.life > 0) {
-				s.life -= dt * 0.9;
+				s.life -= dt * s.decay;
 				s.p.addScaledVector(s.v, dt);
 			}
 			const k = Math.max(0, s.life);
 			dummy.position.copy(s.p);
 			dummy.rotation.set(0, 0, 0);
 			// Angry sparks are bigger, so the burst reads at a glance
-			dummy.scale.setScalar(k * (1 + anger * 0.9));
+			dummy.scale.setScalar(k * s.size * (1 + anger * 0.9));
 			dummy.updateMatrix();
 			sparks.setMatrixAt(i, dummy.matrix);
 		});
