@@ -17,6 +17,12 @@
 		backLines,
 		placeLines,
 		clickLines,
+		ideaLines,
+		idleLines,
+		streakLines,
+		backTabLines,
+		konamiLines,
+		friendLines,
 		seasonLines,
 		shoutLines,
 		unmuteLine,
@@ -228,9 +234,13 @@
 	let quietMs = 0;
 	let lastDrag = 0;
 
+	// A celebratory jump: it lands without complaining
+	let playful = false;
+
 	function onImpact(speed: number) {
 		hits++;
 		engine?.bump(Math.min(1, speed / 2500));
+		if (playful) return;
 		const now = performance.now();
 		if (now - lastComplaint < 900) return;
 		lastComplaint = now;
@@ -340,6 +350,7 @@
 			if (restMs > 700) {
 				mode = 'returning';
 				shout = null;
+				playful = false;
 				// Unwind the spin by the shortest way round
 				body.angle = Math.atan2(Math.sin(body.angle), Math.cos(body.angle));
 				// A complaint from the landing beats the generic "back to my spot"
@@ -468,20 +479,113 @@
 		if (!muted) shout = pick(shoutLines[get(lang)]);
 	}
 
+	// Taps in a row (each within 2.5 s of the last) end in a line of their own
+	let tapStreak = 0;
+	let lastTap = 0;
+	let totalTaps = 0;
+
 	function onTap() {
 		engine?.bump(0.35);
 		if (muted) {
 			muted = false;
 			store(MUTE_KEY, null);
 			say(unmuteLine[get(lang)], 'happy');
-		} else {
-			const s = season();
-			const lines = s && Math.random() < 0.4 ? seasonLines[get(lang)][s] : clickLines[get(lang)];
-			say(pick(lines), 'happy');
+			return;
 		}
+		const now = performance.now();
+		tapStreak = now - lastTap < 2500 ? tapStreak + 1 : 1;
+		lastTap = now;
+		totalTaps++;
+		const l = get(lang);
+		const streak = streakLines[l][tapStreak];
+		if (streak) {
+			say(streak.text, streak.face);
+			if (tapStreak >= 15) tapStreak = 0;
+			return;
+		}
+		const s = season();
+		const r = Math.random();
+		// The third tap always tells about the other bot, so nobody misses it
+		const pool =
+			totalTaps === 3 || r < 0.2
+				? friendLines[l][character]
+				: r < 0.4
+					? ideaLines[l]
+					: s && r < 0.6
+						? seasonLines[l][s]
+						: clickLines[l];
+		say(pick(pool), 'happy');
+	}
+
+	// ── Personality: it speaks up when left alone, and when you come back ──
+	const IDLE_MS = 30000; // no interaction for this long
+	const IDLE_GAP_MS = 45000; // and at most one such line per this
+	let lastActivity = performance.now();
+	let lastIdleLine = -IDLE_GAP_MS;
+	let hiddenAt = 0;
+	let idleTimer: ReturnType<typeof setInterval> | undefined;
+
+	function onIdleCheck() {
+		const now = performance.now();
+		if (document.hidden || !visible || muted || mode !== 'docked' || traveling || speaking) return;
+		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
+		lastIdleLine = now;
+		const l = get(lang);
+		say(pick(Math.random() < 0.7 ? idleLines[l] : ideaLines[l]), 'wink');
+	}
+
+	function onActivity() {
+		lastActivity = performance.now();
+	}
+
+	function onVisibility() {
+		const now = performance.now();
+		if (document.hidden) {
+			hiddenAt = now;
+			return;
+		}
+		lastActivity = now;
+		if (hiddenAt && now - hiddenAt > 60000 && visible && !muted && mode === 'docked')
+			say(pick(backTabLines[get(lang)]), 'happy');
+		hiddenAt = 0;
+	}
+
+	// ↑↑↓↓←→←→BA (outside text fields): a jump, a spin, a line on landing
+	const KONAMI = [
+		'arrowup',
+		'arrowup',
+		'arrowdown',
+		'arrowdown',
+		'arrowleft',
+		'arrowright',
+		'arrowleft',
+		'arrowright',
+		'b',
+		'a'
+	];
+	let konamiKeys: string[] = [];
+
+	function onKey(e: KeyboardEvent) {
+		lastActivity = performance.now();
+		const t = e.target as HTMLElement | null;
+		if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+		konamiKeys = [...konamiKeys, e.key.toLowerCase()].slice(-KONAMI.length);
+		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
+		konamiKeys = [];
+		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
+		queued = { line: pick(konamiLines[get(lang)]), face: 'happy' };
+		playful = true;
+		hits = 0;
+		restMs = 0;
+		body.vy = -1500;
+		body.vx = (Math.random() < 0.5 ? -1 : 1) * 300;
+		body.spin = 18;
+		engine?.bump(1);
+		mode = 'flying';
 	}
 
 	function onWindowPointerMove(e: PointerEvent) {
+		lastActivity = performance.now();
 		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
 	}
 
@@ -498,6 +602,7 @@
 
 	function onScroll() {
 		const now = performance.now();
+		lastActivity = now;
 		const dt = now - lastScrollT;
 		const instant = dt > 0 && dt < 400 ? (Math.abs(scrollY - lastScrollY) / dt) * 1000 : 0;
 		scrollSpeed = scrollSpeed * 0.6 + instant * 0.4;
@@ -624,8 +729,13 @@
 		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('mascot-set', onMascotSet);
+		window.addEventListener('keydown', onKey);
+		window.addEventListener('pointerdown', onActivity, { passive: true });
+		document.addEventListener('visibilitychange', onVisibility);
+		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
 			cancelled = true;
+			clearInterval(idleTimer);
 			cancelAnimationFrame(raf);
 			clearInterval(typeTimer);
 			clearTimeout(hideTimer);
@@ -638,6 +748,9 @@
 			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('mascot-set', onMascotSet);
+			window.removeEventListener('keydown', onKey);
+			window.removeEventListener('pointerdown', onActivity);
+			document.removeEventListener('visibilitychange', onVisibility);
 		};
 	});
 </script>
