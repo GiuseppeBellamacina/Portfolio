@@ -51,6 +51,12 @@
 		if (starsLoading) return;
 		starsLoading = true;
 		const fetchPromises = projects.map(async (project) => {
+			if (project.skipStars) {
+				project.starsLoaded = true;
+				project.stars = undefined;
+				projects = [...projects];
+				return;
+			}
 			try {
 				const cacheKey = `github_stars_${project.githubUrl}`;
 				const cached = localStorage.getItem(cacheKey);
@@ -363,6 +369,10 @@
 	}
 
 	function toggleView() {
+		// The mascot comments the switch
+		window.dispatchEvent(
+			new CustomEvent('projects-view', { detail: viewMode === 'carousel' ? 'grid' : 'carousel' })
+		);
 		if (viewMode === 'carousel') {
 			stopAutoPlay();
 			stopSnapAnimation();
