@@ -807,9 +807,9 @@
 	// The code, typed on the keyboard or as the hidden terminal command `konami`
 	function triggerKonami() {
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
-		// Not only the jump: sometimes a scene (never on phones, never over another one)
+		// Not only the jump: sometimes a scene (never over another one)
 		const pickScene = pick(KONAMI_SCENES);
-		if (pickScene === 'daft' && engine && !strip && !swapping && !riding) {
+		if (pickScene === 'daft' && engine && !swapping && !riding) {
 			void runDaftPunk();
 			return;
 		}
@@ -1063,9 +1063,14 @@
 			if (!alive()) return;
 			const home = baseAnchor();
 			const gap = size * 0.62;
-			const cx = Math.max(gap + size * 0.6, Math.min(innerWidth - gap - size * 0.6, home.x));
+			// Phones: the stage is the centre of the screen below the strip (the lines are shown in the strip)
+			const cx = strip
+				? innerWidth / 2
+				: Math.max(gap + size * 0.6, Math.min(innerWidth - gap - size * 0.6, home.x));
 			// Low enough that their lines fit above them
-			const cy = Math.min(innerHeight - size * 0.75, Math.max(home.y, NAV_H + size * 0.36 + 160));
+			const cy = strip
+				? (navBottom + stripHeight() + innerHeight) / 2
+				: Math.min(innerHeight - size * 0.75, Math.max(home.y, NAV_H + size * 0.36 + 160));
 			// It leaves by the nearest edge and comes back disguised from the same one
 			const side = home.x > innerWidth / 2 ? 1 : -1;
 			const offX = side > 0 ? innerWidth + size : -size;
