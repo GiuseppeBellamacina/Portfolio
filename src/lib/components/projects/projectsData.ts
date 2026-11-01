@@ -108,7 +108,7 @@ export const projects: Project[] = [
 		descriptionIt:
 			'Traduzione neuro-simbolica <strong>Text-to-Gloss</strong>: un piccolo LLM (<strong>Qwen2.5-0.5B</strong>) impara a trasformare frasi inglesi in <strong>sequenze di glosse ASL</strong>.<br><strong>Idee chiave:</strong><ul><li><strong>Decoding vincolato</strong> — un <code>LogitsProcessor</code> basato su un <strong>Trie</strong> di token a doppia radice maschera ogni token che non è una glossa, così il modello può generare solo glosse valide (~15K vocaboli)</li><li>Reinforcement learning con <strong>GRPO</strong> e <strong>reward deterministiche basate su regole</strong> (ROUGE-L, BLEU-4, ordine delle glosse, verifier scaling ispirato a RECIPE, formato, ripetizioni) — nessun reward model neurale</li><li>Pipeline <strong>SFT → GRPO</strong> con LoRA / QLoRA a 4 bit, in ~11 GB di VRAM</li></ul><strong>Setup di ricerca:</strong> matrice di ablation a 15 celle (baseline, SFT, GRPO, ablation su reward/loss/decoding), quattro dataset (ASLG-PC12, RWTH-PHOENIX-Weather 2014T, WOS-46985, CoNLL-2003), pipeline su cluster SLURM con monitoraggio live, logging W&B e suite pytest.',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/neuro_symbolic_t2g',
-		image: '/assets/projects/neuro-t2g-wip.webp',
+		image: '/assets/projects/neuro-t2g.webp',
 		isWip: true
 	},
 	{
