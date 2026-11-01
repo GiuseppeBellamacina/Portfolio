@@ -237,11 +237,15 @@
 		say(pick(complaints[get(lang)]), hits >= 3 || speed > 2600 ? 'dizzy' : 'angry');
 	}
 
-	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, so it
-	// moves at a fraction of the mascot's speed and stays readable during a fast throw
+	// The shout trails the mascot: it closes SHOUT_FOLLOW of the gap per second, and never
+	// moves faster than a share of the mascot's own speed (plus a gentle drift), so it
+	// stays readable during a throw and doesn't sprint to catch up as the mascot stops
 	const SHOUT_FOLLOW = 4;
+	const SHOUT_DRIFT = 60; // px/s, so it still arrives when the mascot is nearly still
+	const SHOUT_SPEED_SHARE = 0.8;
 	let shoutX: number | null = null;
 	let shoutY = 0;
+	let shoutPhase = 0;
 
 	function place(dt = 0) {
 		el.style.transform = `translate3d(${body.x - size / 2}px, ${body.y - size / 2}px, 0)`;
@@ -254,10 +258,22 @@
 				shoutY = ty;
 			} else {
 				const k = 1 - Math.exp(-SHOUT_FOLLOW * dt);
-				shoutX += (tx - shoutX) * k;
-				shoutY += (ty - shoutY) * k;
+				let mx = (tx - shoutX) * k;
+				let my = (ty - shoutY) * k;
+				const maxStep = (SHOUT_DRIFT + SHOUT_SPEED_SHARE * Math.hypot(body.vx, body.vy)) * dt;
+				const len = Math.hypot(mx, my);
+				if (len > maxStep) {
+					mx *= maxStep / len;
+					my *= maxStep / len;
+				}
+				shoutX += mx;
+				shoutY += my;
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
+			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
+			const share = Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			shoutPhase += dt * (3 + 22 * share);
+			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
 		if (!bubbleEl || !speaking || traveling) return;
 		const w = bubbleEl.offsetWidth;
