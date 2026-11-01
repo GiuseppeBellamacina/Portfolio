@@ -71,6 +71,12 @@
 		inputEl?.focus();
 	}
 
+	// Phones: once the keyboard is up, bring the whole terminal into the visible area
+	function onInputFocus() {
+		if (!matchMedia('(max-width: 767px)').matches) return;
+		setTimeout(() => terminalEl?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 350);
+	}
+
 	function makeContext(args: string[], tr: Translation): CommandContext {
 		return {
 			args,
@@ -247,11 +253,14 @@
 				bind:this={inputEl}
 				bind:value={inputValue}
 				onkeydown={handleKeydown}
+				onfocus={onInputFocus}
 				type="text"
 				class="term-input"
 				spellcheck="false"
 				autocomplete="off"
 				autocapitalize="off"
+				autocorrect="off"
+				enterkeyhint="send"
 				disabled={inputLocked}
 			/>
 		</form>

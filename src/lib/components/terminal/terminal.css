@@ -12,6 +12,8 @@
 		0 0 24px rgba(var(--indigo-rgb), 0.08);
 	font-family: var(--font-mono);
 	cursor: text;
+	/* Focusing the input scrolls the terminal to just under Turi's strip */
+	scroll-margin-top: calc(var(--turi-strip, 0px) + 8px);
 }
 
 /* ── Title bar ── */
@@ -219,7 +221,8 @@
 		font-size: 0.78rem;
 	}
 	.terminal-body {
-		height: min(400px, 62vh);
+		/* With the keyboard up the visible height shrinks (resizes-content), and the body shrinks with it */
+		height: clamp(160px, calc(100dvh - var(--turi-strip, 84px) - 110px), 400px);
 	}
 }
 @media (max-width: 480px) {
@@ -231,6 +234,6 @@
 	}
 	.terminal-body {
 		padding: 0.8rem 0.9rem;
-		height: min(340px, 60vh);
+		height: clamp(160px, calc(100dvh - var(--turi-strip, 84px) - 110px), 340px);
 	}
 }
