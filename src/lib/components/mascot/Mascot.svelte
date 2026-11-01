@@ -824,7 +824,10 @@
 	}
 
 	function settle() {
-		// The page stopped: the ride is over, wherever it got to
+		// The page stopped: the ride is over, wherever it got to. The speed is only measured
+		// on scroll events, so it would stay at its last value after a flick (phones): reset it,
+		// or a card comment waiting for a slow page would wait forever
+		scrollSpeed = 0;
 		if (riding) endRide();
 		if (pendingCard !== null) tryCardComment();
 		if (inView === section) return;
