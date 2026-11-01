@@ -634,7 +634,7 @@ export const swapLines: Lines<
 				'Grazie **Arancino**! Vai a riposare, ti abbiamo **rosolato** abbastanza.',
 				'Passo! … no, cioè, **prendo il turno**.'
 			],
-			go: ['Verso la **Sicilia**!', 'Decolloooo!', 'Ciaooooo!']
+			go: ['Verso la Sicilia!', 'Decolloooo!', 'Ciaooooo!']
 		}
 	},
 	en: {
