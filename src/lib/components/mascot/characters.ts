@@ -218,9 +218,8 @@ function addHat(head: Voxel[], hat: Hat): Voxel[] {
 			trim: '#60a5fa',
 			body: (y) => (y % 2 === 0 ? '#93c5fd' : '#e0e7ff'),
 			pompom: '#fde68a',
-			// The pompom reaches y 6 + height: 11, so it clears the top of the frame (it touched it at 12)
-			height: 5,
-			droop: -0.25
+			height: 7,
+			droop: -0.17
 		});
 	} else if (hat === 'party') {
 		const stripes = ['#f472b6', '#60a5fa', '#facc15'];
@@ -276,7 +275,8 @@ function turi(hat: Hat): Character {
 		voxels: [...head, ...ears, ...addHat(head, hat)],
 		face: { x0: -3, y0: 1 },
 		faceOn: 'glow',
-		frameTop: 9,
+		// Room for the tallest hat (the pompoms of the santa hat and the nightcap reach y 13)
+		frameTop: 13,
 		palette: (css, night) => ({
 			base: css('--primary-color', '#818cf8'),
 			shade: css('--mascot-shade', css('--secondary-color', '#a78bfa')),
