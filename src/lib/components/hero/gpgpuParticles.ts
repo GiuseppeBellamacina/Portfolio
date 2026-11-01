@@ -55,10 +55,10 @@ export async function initGpgpuParticles(
 	// a smaller disc seen from further away so it fits a portrait screen, a lower pixel ratio,
 	// 30 fps and no cursor ring. Desktop is untouched.
 	const light = W <= 768 || window.matchMedia('(pointer: coarse)').matches;
-	const LIGHT_SIZE = 96; // 96x96 = 9216 particelle
+	const LIGHT_SIZE = 112; // 112x112 = 12544 particelle
 	const ACTIVE_SIZE = light ? LIGHT_SIZE : SIZE;
 	const LENGTH = ACTIVE_SIZE * ACTIVE_SIZE;
-	const GALAXY_RADIUS = light ? 4.6 : 8.0;
+	const GALAXY_RADIUS = light ? 6.0 : 8.0;
 	const CAM_ZOOM = light ? 1.6 : 1;
 	const MAX_PIXEL_RATIO = light ? 1.5 : 2;
 
@@ -102,11 +102,19 @@ export async function initGpgpuParticles(
 		const halfFov = ((BASE_FOV / 2) * Math.PI) / 180;
 		camera.fov = (2 * Math.atan((Math.tan(halfFov) * fullH) / heroH) * 180) / Math.PI;
 		camera.aspect = W / fullH;
-		// On phones the bright core sits behind the photo, not behind the typed subtitle
-		camera.setViewOffset(W, fullH, 0, ext + (light ? 0.06 * heroH : 0), W, H);
+		// The galaxy's centre is always anchored to the centre of the profile photo
+		const photo = interactionTarget.querySelector('.profile-container');
+		let centreY = heroH / 2;
+		if (photo) {
+			const pr = photo.getBoundingClientRect();
+			centreY = pr.top + pr.height / 2 - interactionTarget.getBoundingClientRect().top;
+		}
+		camera.setViewOffset(W, fullH, 0, ext + heroH / 2 - centreY, W, H);
 		camera.updateProjectionMatrix();
 	}
 	frameToHero();
+	// The hero's entrance animation moves the photo a little: frame again once it has settled
+	const reframeTimer = setTimeout(frameToHero, 1500);
 
 	// ── Scene ──
 	const scene = new Scene();
@@ -322,7 +330,7 @@ export async function initGpgpuParticles(
 		// c2, not c1: c1 is pure white in every variant, which as a big soft
 		// sprite reads as a flat white blob — c2 carries each palette's actual
 		// tint (the "just past white" tone) so the glow still looks tinted.
-		if (coreGlowMat) coreGlowMat.color.copy(getCSSColor('--galaxy-c2', '#f5f0ff'));
+		if (coreGlowMat) coreGlowMat.color.copy(getCSSColor('--galaxy-c5', '#c4b5fd'));
 	}
 
 	// ── Core glow sprite: a soft radial bloom over the galactic
@@ -354,7 +362,7 @@ export async function initGpgpuParticles(
 	coreGlowTex = createGlowTexture();
 	coreGlowMat = new SpriteMaterial({
 		map: coreGlowTex,
-		color: getCSSColor('--galaxy-c2', '#f5f0ff'),
+		color: getCSSColor('--galaxy-c5', '#c4b5fd'),
 		transparent: true,
 		blending: AdditiveBlending,
 		depthWrite: false,
@@ -483,6 +491,10 @@ export async function initGpgpuParticles(
                 // of position, fighting the dark edge colors above.
                 col += vec3(vVelocity * 0.4);
 
+                // No white-hot centre: the core takes the soft tint and thins out
+                float coreMix = smoothstep(0.0, 0.3, dist);
+                col = mix(uColorC5, col, coreMix);
+
                 // Depth cueing: the disc tilts through a camera-distance range of roughly
                 // 1.3 to 14.5 units from near edge to far edge (centre ~7.9, scaled with the
                 // camera on phones): particles nearer the camera read brighter, farther ones
@@ -498,7 +510,7 @@ export async function initGpgpuParticles(
                 float pDist = length(gl_PointCoord.xy - 0.5) * 2.0;
                 float core = pow(max(0.0, 1.0 - pDist), 4.0);
                 float halo = pow(max(0.0, 1.0 - pDist), 1.2) * 0.35;
-                float alpha = (core + halo) * vScale * uAlpha;
+                float alpha = (core + halo) * vScale * uAlpha * mix(0.3, 1.0, coreMix);
 
                 if (alpha < 0.01) discard;
 
@@ -623,7 +635,7 @@ export async function initGpgpuParticles(
 		if (coreGlowMat) {
 			// Same fade-in curve as the particles, plus a small hover boost so the
 			// core visibly brightens together with the particle ring interaction.
-			coreGlowMat.opacity = fadeT * fadeT * (0.3 + hoverProgress * 0.12);
+			coreGlowMat.opacity = fadeT * fadeT * (0.05 + hoverProgress * 0.03);
 		}
 
 		renderer.render(scene, camera);
@@ -718,6 +730,7 @@ export async function initGpgpuParticles(
 
 	let disposed = false;
 	function cleanup() {
+		clearTimeout(reframeTimer);
 		if (disposed) return;
 		disposed = true;
 		cancelAnimationFrame(raf);
