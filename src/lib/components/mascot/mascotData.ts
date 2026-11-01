@@ -48,7 +48,10 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			}
 		],
 		projects: [
-			{ text: 'I progetti di punta **girano da soli**. Io li commento, gratis.', face: 'happy' },
+			{
+				text: 'Nel carosello i **progetti di punta**. **Cliccane uno** e te lo commento, gratis.',
+				face: 'happy'
+			},
 			{
 				text: 'Vuoi vederli tutti? C’è il pulsante **“Tutti i progetti”**. Sono una trentina, porta pazienza.',
 				face: 'wink'
@@ -89,7 +92,10 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 			}
 		],
 		projects: [
-			{ text: 'The highlights **spin on their own**. Commentary is on the house.', face: 'happy' },
+			{
+				text: 'The carousel holds the **highlights**. **Click one** and I’ll comment it, on the house.',
+				face: 'happy'
+			},
 			{
 				text: 'Want them all? Hit **“All projects”**. There are about thirty, brace yourself.',
 				face: 'wink'

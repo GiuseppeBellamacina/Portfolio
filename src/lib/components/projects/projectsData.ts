@@ -131,6 +131,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'PDF2LaTeX',
+		importance: 3,
 		description:
 			'Transforms N PDFs into a single, organic and complete <strong>LaTeX</strong> document through an agentic <strong>LangGraph</strong> pipeline with a modern, minimal React UI. Inspired by the Translatio workflow.<br><strong>Agentic pipeline (4 agents):</strong><ul><li><strong>Analyzer</strong> — analyzes each PDF (summary, topics, formulas, figures) in parallel</li><li><strong>Planner</strong> — merges all analyses with the user prompt into a global document structure</li><li><strong>Writer</strong> — writes the LaTeX of each section in parallel</li><li><strong>Reviewer</strong> — fixes compilation errors and inconsistencies, looping with <code>pdflatex</code></li></ul><strong>Stack:</strong> React + Vite + Tailwind frontend ↔ <strong>FastAPI</strong> backend over WebSocket/REST, PyMuPDF extraction, SQLite. Multi-provider (OpenAI, Anthropic, Ollama, custom, fake) with Fernet-encrypted API keys. Docker image bundles TeX Live for <code>pdflatex</code> compilation.',
 		techTags: ['LangGraph', 'FastAPI', 'React', 'LaTeX', 'LLM', 'OCR'],
@@ -200,7 +201,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'The Legend of Turi',
-		importance: 2,
+		importance: 3,
 		description:
 			'A <strong>top-down action-adventure</strong> game inspired by The Legend of Zelda — with a distinctly Sicilian soul, built entirely in <strong>Unity</strong> (C#).<br><strong>Features:</strong><ul><li>Hand-crafted tile maps and multi-room exploration</li><li>Enemy AI with patrol and chase behaviours</li><li>Combat system with weapons, hitboxes and health management</li><li>Dialogue system and interactive NPCs</li><li>Original story following the hero Turi across the Sicilian countryside</li></ul>Packaged as a standalone Windows executable — downloadable directly from the GitHub release.',
 		techTags: ['C#', 'Unity'],
@@ -362,6 +363,7 @@ export const projects: Project[] = [
 	},
 	{
 		title: 'Neuron Shell',
+		importance: 3,
 		description:
 			'Interactive online SSH shell with dashboard and commands for interacting with and monitoring the training of various deep learning models.<br><strong>Key features:</strong><ul><li>Web-based SSH terminal for remote server interaction</li><li>Real-time training dashboard with live metrics</li><li>Commands to control and monitor deep learning experiments</li></ul>Built with <strong>SvelteKit</strong> and <strong>TypeScript</strong>. Currently in active development.',
 		techTags: ['SvelteKit', 'TypeScript', 'SSH', 'Deep Learning'],

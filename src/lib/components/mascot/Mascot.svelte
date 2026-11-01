@@ -507,22 +507,11 @@
 		say(fill(line.text), line.face);
 	}
 
-	let lastProjectLine = 0;
-	function onProjectActive(e: Event) {
-		// The carousel advances every few seconds: comment at most every 12 s
-		if (section !== 'projects' || mode !== 'docked' || traveling) return;
-		if (performance.now() - lastProjectLine < 12000) return;
-		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
-		if (!line) return;
-		lastProjectLine = performance.now();
-		say(line, 'happy');
-	}
-
-	// A project opened from the carousel or the mosaic always gets a comment
+	// Only a project the visitor opens (carousel or mosaic) gets a comment; while the
+	// carousel turns on its own he stays quiet
 	function onProjectOpen(e: Event) {
 		const line = projectLines[get(lang)][(e as CustomEvent<string>).detail];
 		if (!line || mode !== 'docked') return;
-		lastProjectLine = performance.now();
 		say(line, 'wow');
 	}
 
@@ -616,7 +605,6 @@
 
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
 		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('project-active', onProjectActive);
 		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('mascot-set', onMascotSet);
@@ -631,7 +619,6 @@
 			engine?.dispose();
 			window.removeEventListener('pointermove', onWindowPointerMove);
 			window.removeEventListener('scroll', onScroll);
-			window.removeEventListener('project-active', onProjectActive);
 			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('mascot-set', onMascotSet);
