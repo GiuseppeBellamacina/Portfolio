@@ -1235,7 +1235,7 @@ export const sceneLines: Lines<{
 // The Arancino is from CATANIA (arancinu, with the point like the Etna), proud,
 // warm and a bit of a drama queen; when it is made angry the wild side comes out. The dialect is
 // kept to Catanese words (camurria, mizzica, avaia, ammuninni, mbare, carusu, "a Muntagna",
-// Liotru, Sant'Aituzza) and none of Palermo's (no amunì, picciotto)
+// Liotru, Sant'Aituzza)
 export const arancinoLines: Lines<{
 	click: string[];
 	idle: string[];
@@ -1245,7 +1245,7 @@ export const arancinoLines: Lines<{
 }> = {
 	it: {
 		click: [
-			'happy|**Mizzica**, un cliente! Sono **arancinu**, eh: a **Catania** si dice così, e non si discute.',
+			'happy|**Mizzica**, un visitatore! Sono **arancinu**, eh: a **Catania** si dice così, e non si discute.',
 			'smug|Io sono a punta, come **a Muntagna**. Chi ha la punta ha carattere.',
 			'happy|**Ammuninni**, che si fa? Io ho tutto il tempo: sono già fritto.',
 			'wink|A **Catania** l’arancinu è a punta, come l’**Etna**. Il resto è un’altra storia.',
@@ -1253,6 +1253,8 @@ export const arancinoLines: Lines<{
 			'shy|Se ci vai, a **Catania**, passa da **Sant’Aituzza**. Poi ringraziami.',
 			'happy|**Avaia**, ancora tu? Mi piaci, **mbare**. Ma non dirlo in giro.',
 			'wink|**Mbare**, sei ansioso per qualcosa, ma **futtitinni** ca è **a megghiu cosa**.',
+			'love|**Ni ni emu** na via **Plebiscito** e **n’ammuccamu** na bela **puppetta i cavaddu**?',
+			'smug|**Mbare**, tu sughi un **seltz limone e sale**?',
 			'smug|**Liotru** è l’elefante, io sono l’**arancinu**. A **Catania** abbiamo i simboli giusti.',
 			'wink|Mi chiamano **carusu**, ma sono croccante dentro e fuori. Il cuore è tenero.',
 			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
@@ -1296,7 +1298,7 @@ export const arancinoLines: Lines<{
 	},
 	en: {
 		click: [
-			'happy|**Mizzica**, a customer! I’m an **arancinu**: in **Catania** that’s what we say, and it’s not up for debate.',
+			'happy|**Mizzica**, a visitor! I’m an **arancinu**: in **Catania** that’s what we say, and it’s not up for debate.',
 			'smug|I’m pointed, like **a Muntagna**, our **Etna**. Whoever has a point has character.',
 			'happy|**Ammuninni**, what are we doing? I have all the time: I’m already fried.',
 			'wink|In **Catania** the arancinu is pointed, like **Etna**. The rest is another story.',
@@ -1304,6 +1306,8 @@ export const arancinoLines: Lines<{
 			'shy|If you ever go to **Catania**, stop by **Sant’Aituzza**. Then thank me.',
 			'happy|**Avaia**, you again? I like you, **mbare**. But don’t tell anyone.',
 			'wink|**Mbare**, you’re anxious about something, but **futtitinni** (don’t care), it’s **a megghiu cosa** (the best thing).',
+			'love|**Ni ni emu** na via **Plebiscito** e **n’ammuccamu** na bela **puppetta i cavaddu**? (Shall we go to Via Plebiscito and eat a nice horse meatball?)',
+			'smug|**Mbare**, tu sughi un **seltz limone e sale**? (Having a seltz, lemon and salt?)',
 			'smug|**Liotru** is the elephant, I’m the **arancinu**. In **Catania** we have the right symbols.',
 			'wink|They call me **carusu**, but I’m crunchy inside and out. The heart is tender.',
 			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
