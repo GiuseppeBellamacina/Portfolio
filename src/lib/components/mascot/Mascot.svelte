@@ -787,6 +787,9 @@
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
 		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
+		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
+		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
+		synthEngine?.lookAt(e.clientX - synthAt.x, 250 + (e.clientY - synthAt.y) * 0.5);
 	}
 
 	// ── Page events: section in view, carousel and skills changes, terminal command ──
@@ -977,6 +980,7 @@
 	let synthEl: HTMLDivElement | undefined = $state();
 	let synthCanvas: HTMLCanvasElement | undefined = $state();
 	let synthEngine: VoxelMascot | null = null;
+	const synthAt = { x: 0, y: 0 };
 	/** With two bots on stage the bubble's side (above or below them) is chosen once */
 	let duoBelow: boolean | null = null;
 	let synthShown = $state(false);
@@ -1049,6 +1053,8 @@
 				synthEl.style.width = synthEl.style.height = `${W}px`;
 				synthEl.style.transform = `translate3d(${cx - W / 2}px, ${cy + size * 0.32 - W / 2}px, 0)`;
 				synthEngine = createVoxelMascot(synthCanvas, 'synth', true);
+				synthAt.x = cx;
+				synthAt.y = cy + size * 0.32;
 				synthEngine.lookAt(0, 500);
 				synthEngine.setExpression(pick(SYNTH_LEDS));
 			}

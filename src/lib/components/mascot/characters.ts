@@ -440,8 +440,9 @@ export function thomas(): Character {
 export function guyman(): Character {
 	const { cells, put, has } = grid();
 	const RX = 7.5;
-	// The glass edge seen from the side: z above this is glass
-	const edge = (y: number) => -1 - 0.8 * Math.max(0, y);
+	// The glass edge seen from the side: z above this is glass. It covers the face and the
+	// front of the crown, ending just past the top; the back is gold
+	const edge = (y: number) => 0.5 - 0.3 * Math.max(0, y);
 	for (const [x, y, z] of headShell(RX, 10, 8.5, -8, 2.2)) {
 		const inX = Math.abs(x) <= RX - 2;
 		const glass = inX && y > -6 && z > edge(y);
