@@ -246,76 +246,17 @@ body.nav-menu-open .mascot-shout {
 	top: 0;
 	z-index: 10001;
 	pointer-events: none;
-	aspect-ratio: 2.6;
-	border-radius: 8px 8px 4px 4px;
-	background: linear-gradient(#2a2f45, #141829);
-	border: 2px solid #4b5372;
-	box-shadow:
-		0 8px 18px rgba(0, 0, 0, 0.45),
-		0 0 22px rgba(var(--primary-rgb), 0.35);
-	display: flex;
-	flex-direction: column;
-	padding: 6px 12px 8px;
-	gap: 6px;
-	box-sizing: border-box;
-	animation: synthIn 0.45s ease-out both;
+	transition: opacity 0.5s ease;
+	animation: synthIn 0.45s ease-out backwards;
 }
-.mascot-synth .knobs,
-.mascot-synth .leds,
-.mascot-synth .keys {
+.mascot-synth canvas {
 	display: block;
-	flex: 1;
-	min-height: 0;
-}
-.mascot-synth .knobs {
-	background: radial-gradient(circle, #e2e8f0 0 28%, transparent 32%) 0 0 / 14.28% 100%;
-}
-.mascot-synth .leds {
-	display: flex !important;
-	align-items: flex-end;
-	gap: 4px;
-}
-.mascot-synth .leds i {
-	flex: 1;
+	width: 100%;
 	height: 100%;
-	border-radius: 2px;
-	background: linear-gradient(#f472b6, #60a5fa);
-	transform-origin: bottom;
-	animation: ledBeat 0.48s ease-in-out infinite alternate;
-}
-.mascot-synth .leds i:nth-child(2) {
-	animation-delay: -0.15s;
-}
-.mascot-synth .leds i:nth-child(3) {
-	animation-delay: -0.3s;
-}
-.mascot-synth .leds i:nth-child(4) {
-	animation-delay: -0.1s;
-}
-.mascot-synth .leds i:nth-child(5) {
-	animation-delay: -0.35s;
-}
-.mascot-synth .keys {
-	background: repeating-linear-gradient(90deg, #f1f5f9 0 8%, #0f172a 8% 9%);
-	border-radius: 2px;
 }
 @keyframes synthIn {
 	from {
 		opacity: 0;
 		translate: 0 12px;
-	}
-}
-@keyframes ledBeat {
-	from {
-		transform: scaleY(0.25);
-	}
-	to {
-		transform: scaleY(1);
-	}
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.mascot-synth .leds i {
-		animation: none;
 	}
 }

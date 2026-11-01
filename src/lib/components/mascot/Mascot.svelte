@@ -105,6 +105,8 @@
 	// Round robin per list: every line comes out once, in shuffled order, before any repeats
 	const GAGS = ['tape', 'speaker', 'off'] as const;
 	const KONAMI_SCENES = ['jump', 'daft'] as const;
+	// The synth's LED matrix is a face grid: these patterns light it up on the beat
+	const SYNTH_LEDS: Expression[] = ['happy', 'wow', 'dizzy', 'star', 'love', 'angry', 'tired'];
 	// Which kind of line a tap or a quiet spell gets, also from a bag: the repeats set the mix
 	// (a tap: 8 in 20 its own lines, 4 the friend, 3 an idea, 3 the season, 2 trivia)
 	const TAP_KINDS = [
@@ -381,15 +383,15 @@
 		// extends away from it, never over it
 		let edge = onLeft ? sp.x + half * 0.5 : sp.x - half * 0.5;
 		let y = sp.y - half - h - 4;
-		if (y < NAV_H + 8) {
-			if (guestShown) {
-				// Two bots side by side: below them, so the bubble doesn't cover the other one
-				y = sp.y + half + 4;
-			} else {
-				// No room above: beside it, on the side facing the page
-				edge = onLeft ? sp.x - half - 4 : sp.x + half + 4;
-				y = sp.y - h / 2;
-			}
+		if (guestShown) {
+			// Two bots side by side: above them if there is room for a long line, else below.
+			// Decided once, so the bubble doesn't flip sides as a line grows or the bots bob
+			duoBelow ??= sp.y - half - 150 < NAV_H + 8;
+			if (duoBelow) y = sp.y + half + 4;
+		} else if (y < NAV_H + 8) {
+			// No room above: beside it, on the side facing the page
+			edge = onLeft ? sp.x - half - 4 : sp.x + half + 4;
+			y = sp.y - h / 2;
 		}
 		y = Math.max(NAV_H + 8, Math.min(innerHeight - h - 8, y));
 		const x = onLeft
@@ -516,6 +518,7 @@
 				guestEl.style.transform = `translate3d(${guest.x - size / 2}px, ${guest.y - size / 2}px, 0)`;
 				guestEngine.tick(dtMs, { vx: guest.vx, vy: guest.vy, angle: 0 });
 			}
+			synthEngine?.tick(dtMs, { vx: 0, vy: 0, angle: 0 });
 		}
 		raf = requestAnimationFrame(frame);
 	}
@@ -972,6 +975,10 @@
 	let sceneSwapped = false;
 	let beatTimer: ReturnType<typeof setInterval> | undefined;
 	let synthEl: HTMLDivElement | undefined = $state();
+	let synthCanvas: HTMLCanvasElement | undefined = $state();
+	let synthEngine: VoxelMascot | null = null;
+	/** With two bots on stage the bubble's side (above or below them) is chosen once */
+	let duoBelow: boolean | null = null;
 	let synthShown = $state(false);
 
 	function sceneKit() {
@@ -1009,7 +1016,8 @@
 			const home = baseAnchor();
 			const gap = size * 0.62;
 			const cx = Math.max(gap + size * 0.6, Math.min(innerWidth - gap - size * 0.6, home.x));
-			const cy = home.y;
+			// Low enough that their lines fit above them
+			const cy = Math.min(innerHeight - size * 0.75, Math.max(home.y, NAV_H + size * 0.36 + 160));
 			// It leaves by the nearest edge and comes back disguised from the same one
 			const side = home.x > innerWidth / 2 ? 1 : -1;
 			const offX = side > 0 ? innerWidth + size : -size;
@@ -1034,9 +1042,15 @@
 			await tick();
 			if (!alive() || !guestCanvas || !guestEl) return abortSwap();
 			guestEl.style.width = guestEl.style.height = `${size}px`;
-			if (synthEl) {
-				synthEl.style.width = `${size * 0.95}px`;
-				synthEl.style.transform = `translate3d(${cx - size * 0.475}px, ${cy + size * 0.2}px, 0)`;
+			// The synth stands in front of them, a little lower: a voxel model of its own,
+			// still (no hover), seen a little from above
+			const W = size * 1.25;
+			if (synthEl && synthCanvas) {
+				synthEl.style.width = synthEl.style.height = `${W}px`;
+				synthEl.style.transform = `translate3d(${cx - W / 2}px, ${cy + size * 0.32 - W / 2}px, 0)`;
+				synthEngine = createVoxelMascot(synthCanvas, 'synth', true);
+				synthEngine.lookAt(0, 500);
+				synthEngine.setExpression(pick(SYNTH_LEDS));
 			}
 			guestEngine = createVoxelMascot(guestCanvas, other, reducedMotion);
 			guestEngine.setExpression('happy');
@@ -1052,6 +1066,8 @@
 			beatTimer = setInterval(() => {
 				engine?.bump(0.22);
 				guestEngine?.bump(0.22);
+				synthEngine?.bump(0.12);
+				synthEngine?.setExpression(pick(SYNTH_LEDS));
 			}, 480);
 			for (const [i, raw] of L.chat.entries()) {
 				await speak(raw, 'happy', i % 2 === 0 ? 'guest' : 'main', 2600);
@@ -1060,8 +1076,8 @@
 			speaking = false;
 			clearInterval(beatTimer);
 
-			// They leave, the synth goes with them
-			synthShown = false;
+			// They leave; the synth fades out as they go
+			if (synthEl) synthEl.style.opacity = '0';
 			sceneGoal = { x: offX, y: cy };
 			guestGoal = { x: side > 0 ? -size : innerWidth + size, y: cy };
 			// Both off the screen before the guest is dropped, so nobody vanishes in plain sight
@@ -1107,6 +1123,9 @@
 		}
 		sceneGoal = guestGoal = null;
 		synthShown = false;
+		synthEngine?.dispose();
+		synthEngine = null;
+		duoBelow = null;
 		clearInterval(beatTimer);
 		guestEngine?.dispose();
 		guestEngine = null;
@@ -1396,9 +1415,7 @@
 
 {#if synthShown}
 	<div class="mascot-synth" bind:this={synthEl} aria-hidden="true">
-		<span class="knobs"></span>
-		<span class="leds"><i></i><i></i><i></i><i></i><i></i></span>
-		<span class="keys"></span>
+		<canvas bind:this={synthCanvas}></canvas>
 	</div>
 {/if}
 

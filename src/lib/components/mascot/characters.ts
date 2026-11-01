@@ -348,19 +348,22 @@ function headShell(rx: number, ry: number, rz: number, yCut: number, p = 2.6) {
 	return out;
 }
 
-/** An ear disc: a ring standing out of the side of the head, two layers deep */
+/** An ear piece: a ring standing out of the side of the head, stepped two layers deep, its middle dark */
 function ear(
 	put: (x: number, y: number, z: number, r: Role) => void,
 	x: number,
 	side: number,
+	cy: number,
+	cz: number,
 	inner: number,
 	outer: number,
 	role: Role
 ) {
-	for (let y = -6; y <= 4; y++)
-		for (let z = -6; z <= 4; z++) {
-			const r = Math.hypot(y + 1, z + 1);
-			if (r >= inner && r <= outer) put(x, y, z, role);
+	for (let y = cy - 5; y <= cy + 5; y++)
+		for (let z = cz - 5; z <= cz + 5; z++) {
+			const r = Math.hypot(y - cy, z - cz);
+			if (r < inner) put(x - side, y, z, 'shade');
+			else if (r <= outer) put(x, y, z, role);
 			if (r >= inner && r <= outer - 0.9) put(x + side, y, z, role);
 		}
 }
@@ -371,78 +374,77 @@ const metal = (x: number, y: number, z: number): Role => {
 	return n > 0.86 ? 'accent' : n > 0.5 ? 'shade' : 'base';
 };
 
+/** The front-most voxel at (x, y), or `from` when there is none in front of it */
+function front(has: (x: number, y: number, z: number) => boolean, x: number, y: number, from = 12) {
+	let z = from;
+	while (z > -12 && !has(x, y, z)) z--;
+	return z;
+}
+
 /**
- * Thomas Bangalter's helmet: a silver dome with a wide black visor band that wraps round
- * the sides, a bright rim above and below it, a chin piece, and a ring over each ear
+ * Thomas Bangalter's helmet: a tall silver dome; across the front a black visor band that
+ * follows the curve of the helmet round to the ears, one voxel proud of it, with a thin
+ * bright rim above and below; the chin bulges a little under it; a ring over each ear
  */
 export function thomas(): Character {
 	const { cells, put, has } = grid();
-	for (const [x, y, z] of headShell(8, 8.5, 8.5, -7)) {
-		const wrap = z > -3;
+	for (const [x, y, z] of headShell(8, 9, 8.5, -8, 2.4)) {
+		const wrap = z > -2;
 		const band = wrap && y >= -3 && y <= 1;
 		const rim = wrap && (y === 2 || y === -4);
 		put(x, y, z, band ? 'dark' : rim ? 'accent' : metal(x, y, z));
 	}
-	// The visor stands out of the face as one flat black pane, framed by the rim
-	for (let x = -6; x <= 6; x++) {
+	// The visor stands one voxel proud of the shell, rims included, across the front
+	for (let x = -7; x <= 7; x++)
 		for (let y = -4; y <= 2; y++) {
-			let z = 9;
-			while (z > 0 && !has(x, y, z)) z--;
-			put(x, y, z + 1, y === 2 || y === -4 || Math.abs(x) === 6 ? 'accent' : 'dark');
+			const z = front(has, x, y);
+			if (z < 2) continue;
+			put(x, y, z + 1, y === 2 || y === -4 ? 'accent' : 'dark');
 		}
-	}
-	// A glint on the visor
-	put(-3, 0, 9, 'glow');
-	put(-2, 1, 9, 'glow');
-	// The chin juts out a little under the visor
+	// Glints on the glass
+	for (const [x, y] of [
+		[-4, 0],
+		[-3, 1],
+		[-4, 1]
+	])
+		put(x, y, front(has, x, y), 'glow');
+	// The chin bulges a little under the visor
 	for (let x = -4; x <= 4; x++)
-		for (const y of [-7, -6]) {
-			let z = 9;
-			while (z > 0 && !has(x, y, z)) z--;
-			put(x, y, z + 1, metal(x, y, z + 1));
-		}
-	ear(put, 9, 1, 1.5, 3.4, 'accent');
-	ear(put, -9, -1, 1.5, 3.4, 'accent');
+		for (const y of [-7, -6]) put(x, y, front(has, x, y) + 1, metal(x, y, 9));
+	ear(put, 9, 1, -1, -2, 1.6, 3.8, 'base');
+	ear(put, -9, -1, -1, -2, 1.6, 3.8, 'base');
 	return {
 		voxels: [...cells.values()],
 		face: { x0: 200, y0: 200 },
 		faceOn: 'glow',
 		palette: () => ({
-			base: '#b7bcc5',
-			shade: '#868d99',
-			accent: '#dfe3ea',
+			base: '#b4b9c2',
+			shade: '#7f8693',
+			accent: '#d5dae2',
 			dark: '#0b0c10',
-			glow: '#aab3c2'
+			glow: '#c9ced8'
 		})
 	};
 }
 
 /**
- * Guy-Manuel de Homem-Christo's helmet: a gold egg whose whole front and crown is one
- * black glass dome, a gold collar at the base, and a large ring over each ear
+ * Guy-Manuel de Homem-Christo's helmet: a gold egg; the black glass covers the middle of
+ * the face and sweeps up and back over the crown, framed by gold at the sides; gold at the
+ * back, round the ears and in a slim band at the bottom; a large ring over each ear
  */
 export function guyman(): Character {
 	const { cells, put, has } = grid();
-	for (const [x, y, z] of headShell(8, 9, 8.5, -6, 2.2)) {
-		// The glass reaches further back the higher it goes, like a motorbike visor
-		const glass = y > -5 && Math.abs(x) < 6.6 && z > -1.5 - 0.35 * Math.max(0, y);
+	for (const [x, y, z] of headShell(8, 9.5, 8.5, -7, 2.2)) {
+		const glass = y > -6 && Math.abs(x) < 5.6 && z + 0.55 * Math.max(0, y) > 0;
 		put(x, y, z, glass ? 'dark' : metal(x, y, z));
 	}
-	// A long reflection down the glass
-	for (let y = 0; y <= 6; y++) {
-		let z = 10;
-		while (z > 0 && !has(-3, y, z)) z--;
-		put(-3, y, z, 'glow');
-	}
-	// The collar: a thick gold ring at the bottom, wider than the head
-	for (let x = -10; x <= 10; x++)
-		for (let z = -10; z <= 10; z++) {
-			const o = (x / 9.2) ** 2 + (z / 9.4) ** 2;
-			if (o <= 1 && o > 0.62)
-				for (const y of [-8, -7]) put(x, y, z, y === -8 ? 'shade' : metal(x, y, z));
-		}
-	ear(put, 9, 1, 1.8, 3.9, 'base');
-	ear(put, -9, -1, 1.8, 3.9, 'base');
+	// Reflections on the glass: a long streak and a short one
+	for (let y = -2; y <= 6; y++) put(-3, y, front(has, -3, y), 'glow');
+	for (let y = 4; y <= 6; y++) put(-4, y, front(has, -4, y), 'glow');
+	// The bottom band curls forward a little under the chin
+	for (let x = -5; x <= 5; x++) put(x, -7, front(has, x, -7) + 1, metal(x, -7, 9));
+	ear(put, 9, 1, -1, -2, 1.8, 4.2, 'base');
+	ear(put, -9, -1, -1, -2, 1.8, 4.2, 'base');
 	return {
 		voxels: [...cells.values()],
 		face: { x0: 200, y0: 200 },
@@ -452,13 +454,81 @@ export function guyman(): Character {
 			shade: '#b9870f',
 			accent: '#f7d453',
 			dark: '#0e0e12',
-			glow: '#6b7383'
+			glow: '#5d6472'
 		})
 	};
 }
 
-/** Models that are not bots: the two helmets of the Daft Punk scene */
-export const MODELS = { thomas, guyman };
+/**
+ * The duo's DJ synth: a deck with a keyboard (white keys with grooves, black keys raised in
+ * groups of two and three), a back panel with coloured pads, faders, knobs on top, and a
+ * 7×5 LED matrix in the middle, which is its "face": the scene lights it on the beat
+ */
+export function synth(): Character {
+	const { cells, put } = grid();
+	const add = (x: number, y: number, z: number, color: string) =>
+		cells.set(`${x},${y},${z}`, { x, y, z, role: 'base', color });
+	for (let x = -14; x <= 14; x++)
+		for (let z = -6; z <= 4; z++) {
+			put(x, 0, z, 'shade');
+			put(x, 1, z, 'base');
+		}
+	// Keys three voxels wide with a groove after each; black keys sit on the grooves
+	for (let x = -13; x <= 13; x++) {
+		const col = x + 13;
+		const groove = col % 3 === 2;
+		const key = Math.floor(col / 3);
+		for (let z = 0; z <= 3; z++) put(x, 2, z, groove ? 'shade' : 'accent');
+		if (groove && [0, 1, 3, 4, 5].includes(key % 7))
+			for (let z = 1; z <= 3; z++) put(x, 3, z, 'dark');
+	}
+	// The back panel
+	for (let x = -14; x <= 14; x++)
+		for (let y = 2; y <= 9; y++)
+			for (let z = -6; z <= -2; z++) put(x, y, z, y === 9 ? 'shade' : 'base');
+	// LED matrix with its dark bezel (the face grid: x -3..3, y 8..4)
+	for (let x = -4; x <= 4; x++) for (let y = 3; y <= 9; y++) put(x, y, -1, 'dark');
+	// Pads, left: two rows of coloured squares
+	const pads = ['#f472b6', '#60a5fa', '#a78bfa', '#34d399'];
+	for (let x = -12; x <= -6; x++)
+		for (let y = 4; y <= 8; y++) {
+			const px = x + 12;
+			const py = y - 4;
+			if (px % 3 === 2 || py % 3 === 2) continue;
+			add(x, y, -1, pads[(Math.floor(px / 3) + Math.floor(py / 3) * 2) % pads.length]);
+		}
+	// Faders, right: dark slots with a bright cap each
+	for (const [x, cap] of [
+		[6, 7],
+		[8, 5],
+		[10, 8],
+		[12, 6]
+	]) {
+		for (let y = 4; y <= 8; y++) put(x, y, -1, 'dark');
+		put(x, cap, 0, 'accent');
+	}
+	// Knobs on top
+	for (const x of [-12, -9, -6, 6, 9, 12])
+		for (let z = -5; z <= -4; z++) {
+			put(x, 10, z, 'accent');
+			put(x + 1, 10, z, 'accent');
+		}
+	return {
+		voxels: [...cells.values()],
+		face: { x0: -3, y0: 8 },
+		faceOn: 'glow',
+		palette: () => ({
+			base: '#2b2f42',
+			shade: '#1a1d2b',
+			accent: '#e9edf5',
+			dark: '#0b0c12',
+			glow: '#ff4fb8'
+		})
+	};
+}
+
+/** Models that are not bots: the two helmets and the synth of the Daft Punk scene */
+export const MODELS = { thomas, guyman, synth };
 export type ModelId = CharacterId | keyof typeof MODELS;
 
 export const CHARACTERS: Record<CharacterId, (hat: Hat) => Character> = { turi, arancino };
