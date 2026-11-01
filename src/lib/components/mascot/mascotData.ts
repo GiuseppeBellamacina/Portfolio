@@ -1242,6 +1242,7 @@ export const arancinoLines: Lines<{
 	angry: string[];
 	hit: string[];
 	annoyed: string[];
+	konami: string[];
 }> = {
 	it: {
 		click: [
@@ -1259,7 +1260,9 @@ export const arancinoLines: Lines<{
 			'wink|Mi chiamano **carusu**, ma sono croccante dentro e fuori. Il cuore è tenero.',
 			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
 			'happy|Se mi tocchi ancora, ti offro un pezzo. Sono generoso. Forse.',
-			'smug|**Camurria** è la parola che serve per tutto. Anche per un deploy che non parte.'
+			'smug|**Camurria** è la parola che serve per tutto. Anche per un deploy che non parte.',
+			'smug|Hai cliccato un arancinu e ti senti qualcuno? **T’immùcchi quattru**, **mbare**.',
+			'wink|Ti credi di essere il primo che mi tocca? **T’immùcchi quattru**.'
 		],
 		idle: [
 			'sleepy|**Che camurria**, questo silenzio. Parlami, **minchia**.',
@@ -1278,7 +1281,8 @@ export const arancinoLines: Lines<{
 			'angry|**Cu t’u fici fari?** Io sono **di Catania**, mica di plastica!',
 			'angry|Ti avevano detto di non toccare gli arancini? E tu **ti ni futti**, vero? Ora vedi.',
 			'angry|**Che camurria**! Basta! Ti faccio vedere io, che a **Catania** non si scherza!',
-			'angry|Io fumo come **a Muntagna**, attento. Quando erutto, non sono pochi i danni.'
+			'angry|Io fumo come **a Muntagna**, attento. Quando erutto, non sono pochi i danni.',
+			'angry|Ti senti forte a trascinarmi? **T’immùcchi quattru**! Posami!'
 		],
 		hit: [
 			'angry|**Mizzica**, che botta!',
@@ -1286,7 +1290,8 @@ export const arancinoLines: Lines<{
 			'dizzy|**Mammoriri**, che giramento di testa…',
 			'angry|**Avaia**, piano! Sono croccante, non indistruttibile!',
 			'angry|Chi è stato? **Cu fu?** Mi sentite tutti!',
-			'dizzy|Ma che cosa… **Catania** non mi ha preparato a questo.'
+			'dizzy|Ma che cosa… **Catania** non mi ha preparato a questo.',
+			'angry|Mi hai lanciato fin qui e ti senti bravo? **T’immùcchi quattru**.'
 		],
 		annoyed: [
 			'angry|**Basta, che camurria!** Me la fai passare, la voglia?',
@@ -1294,6 +1299,9 @@ export const arancinoLines: Lines<{
 			'angry|**Ma u sai cu sugnu?** **Sono arancinu**, non un tasto!',
 			'angry|**Mammoriri**! Basta toccarmi, o faccio il terremoto!',
 			'angry|Io ti dico basta e tu **ti ni futti**, eh? Beato te.'
+		],
+		konami: [
+			'smug|Hai trovato il codice segreto e ti senti un genio? **T’immùcchi quattru**, **mbare**. Vabbè, bravo.'
 		]
 	},
 	en: {
@@ -1312,7 +1320,9 @@ export const arancinoLines: Lines<{
 			'wink|They call me **carusu**, but I’m crunchy inside and out. The heart is tender.',
 			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
 			'happy|If you tap me again, I’ll offer you a piece. I’m generous. Maybe.',
-			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.'
+			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.',
+			'smug|You clicked an arancinu and you feel like somebody? **T’immùcchi quattru**, **mbare**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
+			'wink|You think you’re the first one to tap me? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
 		],
 		idle: [
 			'sleepy|**What a camurria**, this silence. Talk to me, **minchia**.',
@@ -1331,7 +1341,8 @@ export const arancinoLines: Lines<{
 			'angry|**Cu t’u fici fari?** (Who made you do it?) I’m **from Catania**, not plastic!',
 			'angry|They told you not to touch an arancinu? And you just go “**ti ni futti**” (you couldn’t care less), right? Now you’ll see.',
 			'angry|**What a camurria**! Enough! I’ll show you, **Catania** is no joke!',
-			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.'
+			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.',
+			'angry|You feel strong, dragging me around? **T’immùcchi quattru**! Put me down! (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
 		],
 		hit: [
 			'angry|**Mizzica**, what a bump!',
@@ -1339,7 +1350,8 @@ export const arancinoLines: Lines<{
 			'dizzy|**Mammoriri**, I’m dizzy…',
 			'angry|**Avaia**, gently! I’m crunchy, not indestructible!',
 			'angry|Who did it? **Cu fu?** Everyone will hear me!',
-			'dizzy|What the… **Catania** didn’t prepare me for this.'
+			'dizzy|What the… **Catania** didn’t prepare me for this.',
+			'angry|You threw me all the way here and feel proud? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
 		],
 		annoyed: [
 			'angry|**Enough, what a camurria!** Are you killing my mood?',
@@ -1347,6 +1359,9 @@ export const arancinoLines: Lines<{
 			'angry|**Ma u sai cu sugnu?** (Do you know who I am?) **An arancinu**, not a button!',
 			'angry|**Mammoriri**! Stop touching me, or I’ll cause an earthquake!',
 			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.'
+		],
+		konami: [
+			'smug|You found the secret code and feel like a genius? **T’immùcchi quattru**, **mbare**. Fine, well done.'
 		]
 	}
 };

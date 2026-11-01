@@ -805,7 +805,7 @@
 			void runDaftPunk();
 			return;
 		}
-		const k = parseLine(pick(konamiLines[get(lang)]), 'star');
+		const k = parseLine(pick(own().konami ?? konamiLines[get(lang)]), 'star');
 		queued = { line: k.text, face: k.face };
 		playful = true;
 		hits = 0;
