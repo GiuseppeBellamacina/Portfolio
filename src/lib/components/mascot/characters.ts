@@ -318,46 +318,231 @@ function arancino(): Character {
 	};
 }
 
-/** A voxel Millennium-Falcon-ish freighter, seen from above: disc, two mandibles, side cockpit, radar dish */
+/** Voxels keyed by position: a later write replaces the role of an earlier one */
+function grid() {
+	const cells = new Map<string, Voxel>();
+	const put = (x: number, y: number, z: number, role: Role) =>
+		cells.set(`${x},${y},${z}`, { x, y, z, role });
+	const has = (x: number, y: number, z: number) => cells.has(`${x},${y},${z}`);
+	return { cells, put, has };
+}
+
+/** The outer layer of a rounded head (a superellipsoid cut flat at `yCut`) */
+function headShell(rx: number, ry: number, rz: number, yCut: number, p = 2.6) {
+	const inside = (x: number, y: number, z: number) =>
+		y >= yCut && Math.abs(x / rx) ** p + Math.abs(y / ry) ** p + Math.abs(z / rz) ** p <= 1;
+	const out: [number, number, number][] = [];
+	for (let x = -Math.ceil(rx); x <= Math.ceil(rx); x++)
+		for (let y = yCut; y <= Math.ceil(ry); y++)
+			for (let z = -Math.ceil(rz); z <= Math.ceil(rz); z++) {
+				if (!inside(x, y, z)) continue;
+				const open =
+					!inside(x + 1, y, z) ||
+					!inside(x - 1, y, z) ||
+					!inside(x, y + 1, z) ||
+					!inside(x, y - 1, z) ||
+					!inside(x, y, z + 1) ||
+					!inside(x, y, z - 1);
+				if (open) out.push([x, y, z]);
+			}
+	return out;
+}
+
+/** An ear disc: a ring standing out of the side of the head, two layers deep */
+function ear(
+	put: (x: number, y: number, z: number, r: Role) => void,
+	x: number,
+	side: number,
+	inner: number,
+	outer: number,
+	role: Role
+) {
+	for (let y = -6; y <= 4; y++)
+		for (let z = -6; z <= 4; z++) {
+			const r = Math.hypot(y + 1, z + 1);
+			if (r >= inner && r <= outer) put(x, y, z, role);
+			if (r >= inner && r <= outer - 0.9) put(x + side, y, z, role);
+		}
+}
+
+// Chrome and gold are mottled like polished metal under a light
+const metal = (x: number, y: number, z: number): Role => {
+	const n = hash3(x, y, z);
+	return n > 0.86 ? 'accent' : n > 0.5 ? 'shade' : 'base';
+};
+
+/**
+ * Thomas Bangalter's helmet: a silver dome with a wide black visor band that wraps round
+ * the sides, a bright rim above and below it, a chin piece, and a ring over each ear
+ */
+export function thomas(): Character {
+	const { cells, put, has } = grid();
+	for (const [x, y, z] of headShell(8, 8.5, 8.5, -7)) {
+		const wrap = z > -3;
+		const band = wrap && y >= -3 && y <= 1;
+		const rim = wrap && (y === 2 || y === -4);
+		put(x, y, z, band ? 'dark' : rim ? 'accent' : metal(x, y, z));
+	}
+	// The visor stands out of the face as one flat black pane, framed by the rim
+	for (let x = -6; x <= 6; x++) {
+		for (let y = -4; y <= 2; y++) {
+			let z = 9;
+			while (z > 0 && !has(x, y, z)) z--;
+			put(x, y, z + 1, y === 2 || y === -4 || Math.abs(x) === 6 ? 'accent' : 'dark');
+		}
+	}
+	// A glint on the visor
+	put(-3, 0, 9, 'glow');
+	put(-2, 1, 9, 'glow');
+	// The chin juts out a little under the visor
+	for (let x = -4; x <= 4; x++)
+		for (const y of [-7, -6]) {
+			let z = 9;
+			while (z > 0 && !has(x, y, z)) z--;
+			put(x, y, z + 1, metal(x, y, z + 1));
+		}
+	ear(put, 9, 1, 1.5, 3.4, 'accent');
+	ear(put, -9, -1, 1.5, 3.4, 'accent');
+	return {
+		voxels: [...cells.values()],
+		face: { x0: 200, y0: 200 },
+		faceOn: 'glow',
+		palette: () => ({
+			base: '#b7bcc5',
+			shade: '#868d99',
+			accent: '#dfe3ea',
+			dark: '#0b0c10',
+			glow: '#aab3c2'
+		})
+	};
+}
+
+/**
+ * Guy-Manuel de Homem-Christo's helmet: a gold egg whose whole front and crown is one
+ * black glass dome, a gold collar at the base, and a large ring over each ear
+ */
+export function guyman(): Character {
+	const { cells, put, has } = grid();
+	for (const [x, y, z] of headShell(8, 9, 8.5, -6, 2.2)) {
+		// The glass reaches further back the higher it goes, like a motorbike visor
+		const glass = y > -5 && Math.abs(x) < 6.6 && z > -1.5 - 0.35 * Math.max(0, y);
+		put(x, y, z, glass ? 'dark' : metal(x, y, z));
+	}
+	// A long reflection down the glass
+	for (let y = 0; y <= 6; y++) {
+		let z = 10;
+		while (z > 0 && !has(-3, y, z)) z--;
+		put(-3, y, z, 'glow');
+	}
+	// The collar: a thick gold ring at the bottom, wider than the head
+	for (let x = -10; x <= 10; x++)
+		for (let z = -10; z <= 10; z++) {
+			const o = (x / 9.2) ** 2 + (z / 9.4) ** 2;
+			if (o <= 1 && o > 0.62)
+				for (const y of [-8, -7]) put(x, y, z, y === -8 ? 'shade' : metal(x, y, z));
+		}
+	ear(put, 9, 1, 1.8, 3.9, 'base');
+	ear(put, -9, -1, 1.8, 3.9, 'base');
+	return {
+		voxels: [...cells.values()],
+		face: { x0: 200, y0: 200 },
+		faceOn: 'glow',
+		palette: () => ({
+			base: '#e3b11f',
+			shade: '#b9870f',
+			accent: '#f7d453',
+			dark: '#0e0e12',
+			glow: '#6b7383'
+		})
+	};
+}
+
+/**
+ * A voxel Millennium Falcon seen from above, nose towards +x: a round hull with the rear
+ * arc glowing, a raised turret ring, two mandibles round an open bay, the cockpit tube on
+ * the starboard side joined to the hull by a short corridor, and a radar dish
+ */
 export function falcon(): Character {
-	const voxels: Voxel[] = [];
-	const put = (x: number, y: number, z: number, role: Role) => voxels.push({ x, y, z, role });
-	for (let x = -13; x <= 13; x++)
+	const { cells, put } = grid();
+	const R = 12.4;
+	const topAt = (rr: number) => (rr < 0.3 ? 3 : rr < 0.65 ? 2 : 1);
+	for (let x = -12; x <= 12; x++)
 		for (let y = -12; y <= 12; y++) {
-			const e = (x / 12.5) ** 2 + (y / 11.5) ** 2;
-			if (e > 1) continue;
-			const top = e < 0.28 ? 3 : e < 0.6 ? 2 : 1;
-			const n = hash3(x, y, 1);
+			const rr = Math.hypot(x, y) / R;
+			if (rr > 1) continue;
+			const bay = x >= 8 && Math.abs(y) <= 2;
+			const top = bay ? 0 : topAt(rr);
+			const ang = Math.atan2(y, x);
+			const n = hash3(x, y, 7);
 			for (let z = 0; z <= top; z++) {
-				let role: Role = Math.floor(Math.sqrt(e) * 7) % 2 === 0 && n > 0.3 ? 'shade' : 'base';
-				if (n > 0.93) role = 'accent';
-				if (z === top && e < 0.05) role = 'dark';
+				let role: Role = hash3(x, y, z) > 0.5 ? 'shade' : 'base';
+				if (z === top) {
+					// Hull plating: rings and sectors, a few dark vents and red marks
+					const ring = Math.floor(rr * 6);
+					const sector = Math.floor(((ang + Math.PI) / (2 * Math.PI)) * 16);
+					role = (ring + sector) % 3 === 0 && n > 0.35 ? 'shade' : 'base';
+					if (n > 0.9) role = 'dark';
+					if (n > 0.965) role = 'accent';
+				}
+				if (bay) role = 'dark';
+				// The engines: the whole rear arc of the rim glows
+				if (rr > 0.84 && Math.abs(ang) > Math.PI * 0.7) role = 'glow';
 				put(x, y, z, role);
 			}
 		}
-	// The two mandibles, with the gap between them
+	// Turret: a raised ring round the centre, a dark gun well inside it
+	for (let x = -4; x <= 4; x++)
+		for (let y = -4; y <= 4; y++) {
+			const r = Math.hypot(x, y);
+			if (r >= 2 && r <= 3.6) put(x, y, 4, 'shade');
+			if (r < 1.2) put(x, y, 4, 'dark');
+		}
+	// The mandibles grow out of the hull (from x 6, inside the disc) to the tips
 	for (const s of [1, -1])
-		for (let x = 8; x <= 25; x++)
-			for (let y = 3; y <= (x > 21 ? 6 : 8); y++)
+		for (let x = 6; x <= 22; x++)
+			for (let y = 3; y <= (x > 18 ? 6 : 7); y++)
 				for (let z = 0; z <= 1; z++) {
-					const n = hash3(x, y * s, z);
-					put(x, y * s, z, x === 25 ? 'glow' : n > 0.6 ? 'shade' : 'base');
+					let role: Role = hash3(x, y * s, z) > 0.6 ? 'shade' : 'base';
+					if (z === 1 && x % 4 === 0 && y === 5) role = 'dark';
+					if (x === 22 && z === 1 && (y === 4 || y === 5)) role = 'glow';
+					put(x, y * s, z, role);
 				}
-	// Cockpit tube on the side, with a dark window
-	for (let x = 6; x <= 21; x++)
-		for (let y = -16; y <= -12; y++)
-			for (let z = 0; z <= 2; z++)
-				put(x, y, z, x >= 20 ? 'dark' : hash3(x, y, z) > 0.7 ? 'shade' : 'base');
-	// Radar dish on a stem
-	put(-3, 8, 4, 'shade');
-	for (let x = -6; x <= 0; x++)
-		for (let y = 5; y <= 11; y++)
-			if ((x + 3) ** 2 + (y - 8) ** 2 <= 10)
-				put(x, y, 5, (x + 3) ** 2 + (y - 8) ** 2 <= 2 ? 'dark' : 'base');
-	// Engine glow at the rear
-	for (let y = -6; y <= 6; y++) for (let z = 0; z <= 1; z++) put(-14, y, z, 'glow');
+	// Cockpit: a corridor out of the starboard hull, then a tube running forward to the window
+	for (let x = 2; x <= 5; x++)
+		for (let y = -14; y <= -9; y++)
+			for (let z = 0; z <= 1; z++) put(x, y, z, hash3(x, y, z) > 0.5 ? 'shade' : 'base');
+	for (let x = 1; x <= 14; x++)
+		for (let y = -17; y <= -14; y++)
+			for (let z = 0; z <= 2; z++) {
+				if (z === 2 && (y === -17 || y === -14)) continue; // round the top edges
+				put(
+					x,
+					y,
+					z,
+					x >= 13
+						? z === 0 || y === -17 || y === -14
+							? 'base'
+							: 'dark'
+						: hash3(x, y, z) > 0.6
+							? 'shade'
+							: 'base'
+				);
+			}
+	put(15, -16, 1, 'dark');
+	put(15, -15, 1, 'dark');
+	put(15, -16, 0, 'base');
+	put(15, -15, 0, 'base');
+	// Radar dish on a short mast, port side forward
+	put(3, 7, 2, 'dark');
+	put(3, 7, 3, 'dark');
+	for (let x = 0; x <= 6; x++)
+		for (let y = 4; y <= 10; y++) {
+			const r = Math.hypot(x - 3, y - 7);
+			if (r <= 2.6) put(x, y, 4, r < 1 ? 'shade' : 'base');
+			if (r > 1.8 && r <= 2.6 && x < 3) put(x, y, 5, 'base');
+		}
 	return {
-		voxels,
+		voxels: [...cells.values()],
 		face: { x0: 200, y0: 200 },
 		faceOn: 'glow',
 		palette: () => ({
@@ -369,6 +554,10 @@ export function falcon(): Character {
 		})
 	};
 }
+
+/** Models that are not bots: the falcon and the two helmets of the Daft Punk scene */
+export const MODELS = { falcon, thomas, guyman };
+export type ModelId = CharacterId | keyof typeof MODELS;
 
 export const CHARACTERS: Record<CharacterId, (hat: Hat) => Character> = { turi, arancino };
 

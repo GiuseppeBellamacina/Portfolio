@@ -5,7 +5,7 @@
 	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from '$lib/components/skills/skillsData';
 	import { projects } from '$lib/components/projects/projectsData';
-	import { CHARACTER_IDS, type CharacterId, type Expression } from './characters';
+	import { CHARACTER_IDS, type CharacterId, type Expression, type ModelId } from './characters';
 	import { step, isResting, type Body, type Bounds } from './physics';
 	import {
 		anchors,
@@ -102,22 +102,17 @@
 		}
 	}
 	// Round robin per list: every line comes out once, in shuffled order, before any repeats
-	const bags = new Map<string[], number[]>();
-	const lastPicked = new Map<string[], number>();
-	const oneOf = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
-	function pick(arr: string[]): string {
-		let bag = bags.get(arr);
-		if (!bag?.length) {
-			bag = arr.map((_, i) => i).sort(() => Math.random() - 0.5);
-			// A new round never opens with the line that closed the previous one
-			if (bag.length > 1 && bag[bag.length - 1] === lastPicked.get(arr)) bag.unshift(bag.pop()!);
-			bags.set(arr, bag);
-		}
-		const i = bag.pop()!;
-		lastPicked.set(arr, i);
+	// Every set (lines, scenes, gags) starts at a random item, then goes round in turn,
+	// so all of them come up before any repeats
+	const cursors = new Map<readonly unknown[], number>();
+	function pick<T>(arr: readonly T[]): T {
+		const i = cursors.get(arr) ?? Math.floor(Math.random() * arr.length);
+		cursors.set(arr, (i + 1) % arr.length);
 		return arr[i];
 	}
+	const GAGS = ['tape', 'speaker', 'off'] as const;
+	const KONAMI_SCENES = ['jump', 'daft', 'falcon'] as const;
+	const GLANCES: Expression[] = ['wink', 'think', 'happy', 'smug', 'shy', 'worried'];
 
 	let character: CharacterId = 'turi';
 	const lineCursor: Partial<Record<SectionId, number>> = {};
@@ -137,7 +132,7 @@
 	// Section lines take turns, so coming back to a section doesn't repeat the same one
 	function sectionLine(id: SectionId): Line {
 		const lines = sectionLines[get(lang)][id];
-		const i = lineCursor[id] ?? 0;
+		const i = lineCursor[id] ?? Math.floor(Math.random() * lines.length);
 		lineCursor[id] = (i + 1) % lines.length;
 		return lines[i];
 	}
@@ -214,7 +209,7 @@
 		speaking = false;
 		clearInterval(typeTimer);
 		engine?.setTalking(false);
-		engine?.setGag(oneOf(['tape', 'speaker', 'off'] as const));
+		engine?.setGag(pick(GAGS));
 		store(MUTE_KEY, '1');
 	}
 
@@ -640,7 +635,7 @@
 		const l = get(lang);
 		const streakVariants = streakLines[l][tapStreak];
 		if (streakVariants) {
-			const streak = oneOf(streakVariants);
+			const streak = pick(streakVariants);
 			if (streak.anger) {
 				// Red and sparky for a few seconds, then it cools down on its own
 				engine?.setAngry(true);
@@ -768,7 +763,7 @@
 		konamiKeys = [];
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
 		// Not only the jump: sometimes a scene (never on phones, never over another one)
-		const pickScene = oneOf(['jump', 'daft', 'falcon'] as const);
+		const pickScene = pick(KONAMI_SCENES);
 		if (pickScene !== 'jump' && engine && !strip && !swapping && !riding) {
 			void (pickScene === 'daft' ? runDaftPunk() : runFalcon());
 			return;
@@ -937,7 +932,7 @@
 	function onGlance() {
 		if (document.hidden || !visible || mode !== 'docked' || traveling || speaking) return;
 		if (dozing || swapping || riding || Math.random() < 0.4) return;
-		engine?.setExpression(oneOf(['wink', 'think', 'happy', 'smug', 'shy', 'worried']));
+		engine?.setExpression(pick(GLANCES));
 		setTimeout(() => {
 			if (!speaking && !dozing && mode === 'docked') engine?.setExpression('normal');
 		}, 1400);
@@ -1009,7 +1004,9 @@
 	async function runDaftPunk() {
 		const { alive, wait, until, speak } = sceneKit();
 		const L = sceneLines[get(lang)].daft;
-		const other: CharacterId = character === 'turi' ? 'arancino' : 'turi';
+		// Turi turns up as Thomas (silver), the Arancino as Guy-Man (gold); the other one joins
+		const mine: ModelId = character === 'turi' ? 'thomas' : 'guyman';
+		const other: ModelId = mine === 'thomas' ? 'guyman' : 'thomas';
 		try {
 			const { createVoxelMascot } = await import('./voxelEngine');
 			if (!alive()) return;
@@ -1028,9 +1025,9 @@
 			if (!alive()) return;
 			speaking = false;
 
-			// The duo: the disguised one (silver) on its own side, the other bot (gold) opposite
+			// The duo: its own helmet on its side, the other helmet opposite
 			sceneSwapped = true;
-			engine?.setHelmet('silver');
+			engine?.setCharacter(mine);
 			guest.x = side > 0 ? -size : innerWidth + size;
 			guest.y = cy;
 			guest.vx = guest.vy = 0;
@@ -1046,7 +1043,6 @@
 				synthEl.style.transform = `translate3d(${cx - size * 0.475}px, ${cy + size * 0.2}px, 0)`;
 			}
 			guestEngine = createVoxelMascot(guestCanvas, other, reducedMotion);
-			guestEngine.setHelmet('gold');
 			guestEngine.setExpression('happy');
 			sceneGoal = mainSpot;
 			engine?.setExpression('smug');
@@ -1072,7 +1068,11 @@
 			synthShown = false;
 			sceneGoal = { x: offX, y: cy };
 			guestGoal = { x: side > 0 ? -size : innerWidth + size, y: cy };
-			await until(gone, 3500);
+			// Both off the screen before the guest is dropped, so nobody vanishes in plain sight
+			await until(
+				() => gone() && (guest.x < -size * 0.6 || guest.x > innerWidth + size * 0.6),
+				4500
+			);
 			if (!alive()) return;
 			guestShown = false;
 			guestEngine?.dispose();
@@ -1080,7 +1080,7 @@
 			guestGoal = null;
 
 			// Turi again, without the helmet, as if nothing had happened
-			engine?.setHelmet('none');
+			engine?.setCharacter(character);
 			sceneSwapped = false;
 			sceneGoal = null;
 			await until(() => !traveling, 4000);
@@ -1205,7 +1205,6 @@
 		falconEngine?.dispose();
 		falconEngine = null;
 		clearInterval(beatTimer);
-		engine?.setHelmet('none');
 		guestEngine?.dispose();
 		guestEngine = null;
 		guestShown = false;
@@ -1365,7 +1364,7 @@
 			const { createVoxelMascot } = await import('./voxelEngine');
 			if (cancelled) return;
 			engine = createVoxelMascot(canvas, character, reducedMotion);
-			if (muted) engine.setGag(oneOf(['tape', 'speaker', 'off'] as const));
+			if (muted) engine.setGag(pick(GAGS));
 		} catch {
 			visible = false; // no WebGL: no mascot
 			return;
