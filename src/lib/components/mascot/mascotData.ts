@@ -24,6 +24,32 @@ export type Line = { text: string; face: Expression };
 type Lines<T> = Record<Lang, T>;
 
 /**
+ * Shuffle bag, for every choice with more than one option (lines, faces, scenes, gags):
+ * each round is a fresh random order, every option comes up once per round, and a round
+ * never opens with the option that closed the one before. `key` defaults to the array
+ * itself; pass one when the array is rebuilt on every call.
+ */
+const bags = new Map<unknown, number[]>();
+const lastPicked = new Map<unknown, number>();
+export function pick<T>(arr: readonly T[], key: unknown = arr): T {
+	let bag = bags.get(key);
+	if (!bag?.length) {
+		bag = arr.map((_, i) => i);
+		for (let i = bag.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[bag[i], bag[j]] = [bag[j], bag[i]];
+		}
+		// bag.pop() takes from the end: swap the last one out if it just came up
+		if (bag.length > 1 && bag[bag.length - 1] === lastPicked.get(key))
+			[bag[0], bag[bag.length - 1]] = [bag[bag.length - 1], bag[0]];
+		bags.set(key, bag);
+	}
+	const i = bag.pop()!;
+	lastPicked.set(key, i);
+	return arr[i];
+}
+
+/**
  * Most lines are plain strings that carry their own face as a prefix: 'tired|text', or a few
  * to draw from, 'wink,smug|text'. Without a prefix the caller's default face is used.
  */
@@ -32,7 +58,7 @@ export function parseLine(raw: string, fallback: Expression = 'normal'): Line {
 	if (m) {
 		const faces = m[1].split(',');
 		if (faces.every((f) => f in EXPRESSIONS))
-			return { text: m[2], face: faces[Math.floor(Math.random() * faces.length)] as Expression };
+			return { text: m[2], face: pick(faces, m[1]) as Expression };
 	}
 	return { text: raw, face: fallback };
 }
@@ -1161,11 +1187,10 @@ export const triviaLines: Lines<string[]> = {
 	]
 };
 
-// The Konami code picks one of a few scenes (the jump is in konamiLines). The DJ duo:
-// `chat` alternates guest, main, guest, main, guest. The falcon: one line for each moment
+// The Konami code picks the jump (its lines are konamiLines) or the DJ duo scene, whose
+// `chat` alternates guest, main, guest, main, guest
 export const sceneLines: Lines<{
 	daft: { leave: string[]; chat: string[]; back: string[] };
-	falcon: { start: string[]; mid: string[]; jump: string[] };
 }> = {
 	it: {
 		daft: {
@@ -1183,20 +1208,6 @@ export const sceneLines: Lines<{
 			back: [
 				'worried|Mi sono **perso qualcosa**? Chi erano quei **due**? Io sono qui da **sempre**.',
 				'smug|Eccomi. **Ho saltato** qualcosa? **Niente**, vero? Bene.'
-			]
-		},
-		falcon: {
-			start: [
-				'wow|Aspetta… quella è **un’astronave**? Mi ricorda **quella di Han Solo**.',
-				'wow|Sento un **rumore di motori**. È **un cargo corelliano**, ne sono quasi sicuro.'
-			],
-			mid: [
-				'worried|Ho **un brutto presentimento** su questa cosa.',
-				'happy|Mi **gira intorno**. Mi sento **molto importante**.'
-			],
-			jump: [
-				'star|**Iperspazio!** Ha fatto il Kessel Run in **meno di dodici parsec**. O giù di lì.',
-				'star|Sparita **a velocità luce**. E io **non ho nemmeno salutato**.'
 			]
 		}
 	},
@@ -1216,20 +1227,6 @@ export const sceneLines: Lines<{
 			back: [
 				'worried|Did I **miss something**? Who were those **two**? I’ve been here **all along**.',
 				'smug|Here I am. Did I **skip** anything? **Nothing**, right? Good.'
-			]
-		},
-		falcon: {
-			start: [
-				'wow|Wait… is that **a spaceship**? Looks like **Han Solo’s**.',
-				'wow|I hear **engines**. That’s **a Corellian freighter**, I’m almost sure.'
-			],
-			mid: [
-				'worried|I have **a bad feeling** about this.',
-				'happy|It’s **circling me**. I feel **very important**.'
-			],
-			jump: [
-				'star|**Hyperspace!** It made the Kessel Run in **under twelve parsecs**. Or so.',
-				'star|Gone at **light speed**. And I **didn’t even wave**.'
 			]
 		}
 	}
