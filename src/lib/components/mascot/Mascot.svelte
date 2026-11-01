@@ -27,6 +27,7 @@
 		backTabLines,
 		konamiLines,
 		sceneLines,
+		pick,
 		friendLines,
 		swapLines,
 		projectsViewLines,
@@ -102,20 +103,25 @@
 		}
 	}
 	// Round robin per list: every line comes out once, in shuffled order, before any repeats
-	// Every set (lines, scenes, gags) starts at a random item, then goes round in turn,
-	// so all of them come up before any repeats
-	const cursors = new Map<readonly unknown[], number>();
-	function pick<T>(arr: readonly T[]): T {
-		const i = cursors.get(arr) ?? Math.floor(Math.random() * arr.length);
-		cursors.set(arr, (i + 1) % arr.length);
-		return arr[i];
-	}
 	const GAGS = ['tape', 'speaker', 'off'] as const;
-	const KONAMI_SCENES = ['jump', 'daft', 'falcon'] as const;
+	const KONAMI_SCENES = ['jump', 'daft'] as const;
+	// Which kind of line a tap or a quiet spell gets, also from a bag: the repeats set the mix
+	// (a tap: 8 in 20 its own lines, 4 the friend, 3 an idea, 3 the season, 2 trivia)
+	const TAP_KINDS = [
+		...Array<'click'>(8).fill('click'),
+		...Array<'friend'>(4).fill('friend'),
+		...Array<'idea'>(3).fill('idea'),
+		...Array<'season'>(3).fill('season'),
+		...Array<'trivia'>(2).fill('trivia')
+	];
+	const IDLE_KINDS = [
+		...Array<'trivia'>(11).fill('trivia'),
+		...Array<'idea'>(4).fill('idea'),
+		...Array<'idle'>(5).fill('idle')
+	];
 	const GLANCES: Expression[] = ['wink', 'think', 'happy', 'smug', 'shy', 'worried'];
 
 	let character: CharacterId = 'turi';
-	const lineCursor: Partial<Record<SectionId, number>> = {};
 
 	const TOTAL_PROJECTS = projects.length;
 	const HIGHLIGHTS = projects.filter((p) => p.importance === 3).length;
@@ -129,13 +135,8 @@
 			.replace('{name}', name);
 	}
 
-	// Section lines take turns, so coming back to a section doesn't repeat the same one
-	function sectionLine(id: SectionId): Line {
-		const lines = sectionLines[get(lang)][id];
-		const i = lineCursor[id] ?? Math.floor(Math.random() * lines.length);
-		lineCursor[id] = (i + 1) % lines.length;
-		return lines[i];
-	}
+	// Section lines come from a shuffle bag too, so coming back to a section doesn't repeat itself
+	const sectionLine = (id: SectionId): Line => pick(sectionLines[get(lang)][id]);
 
 	function season(): Season | null {
 		// Hats and seasonal quips are Turi's thing
@@ -654,21 +655,21 @@
 			return;
 		}
 		const s = season();
-		const r = Math.random();
 		// The third tap always tells about the other bot, so nobody misses it
+		const kind = totalTaps === 3 ? 'friend' : pick(TAP_KINDS);
 		let pool = clickLines[l];
 		// Every line brings its own face; this one is only for a line that has none
 		let face: Expression = 'happy';
-		if (totalTaps === 3 || r < 0.2) {
+		if (kind === 'friend') {
 			pool = friendLines[l][character];
 			face = 'smug'; // a bit of complicity: "psst, I have a friend"
-		} else if (r < 0.3) {
+		} else if (kind === 'trivia') {
 			pool = triviaLines[l];
 			face = 'wink';
-		} else if (r < 0.45) {
+		} else if (kind === 'idea') {
 			pool = ideaLines[l];
 			face = 'tired';
-		} else if (s && r < 0.6) {
+		} else if (s && kind === 'season') {
 			pool = seasonLines[l][s];
 			face = s === 'night' ? 'sleepy' : 'happy';
 		}
@@ -718,8 +719,8 @@
 		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
 		lastIdleLine = now;
 		const l = get(lang);
-		const r = Math.random();
-		const pool = r < 0.55 ? triviaLines[l] : r < 0.75 ? ideaLines[l] : idleLines[l];
+		const kind = pick(IDLE_KINDS);
+		const pool = kind === 'trivia' ? triviaLines[l] : kind === 'idea' ? ideaLines[l] : idleLines[l];
 		sayRaw(pick(pool), pool === ideaLines[l] ? 'tired' : 'wink');
 	}
 
@@ -764,8 +765,8 @@
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
 		// Not only the jump: sometimes a scene (never on phones, never over another one)
 		const pickScene = pick(KONAMI_SCENES);
-		if (pickScene !== 'jump' && engine && !strip && !swapping && !riding) {
-			void (pickScene === 'daft' ? runDaftPunk() : runFalcon());
+		if (pickScene === 'daft' && engine && !strip && !swapping && !riding) {
+			void runDaftPunk();
 			return;
 		}
 		const k = parseLine(pick(konamiLines[get(lang)]), 'star');
@@ -965,18 +966,13 @@
 	let launchT = 0;
 	let launchTail = 0;
 
-	// ── Konami scenes: the DJ duo and the falcon (the swap's guest bot and flags are reused) ──
+	// ── Konami scene: the DJ duo (the swap's guest bot and flags are reused) ──
 	let sceneGoal: { x: number; y: number } | null = null;
 	let guestGoal: { x: number; y: number } | null = null;
 	let sceneSwapped = false;
 	let beatTimer: ReturnType<typeof setInterval> | undefined;
 	let synthEl: HTMLDivElement | undefined = $state();
 	let synthShown = $state(false);
-	let falconEl: HTMLDivElement | undefined = $state();
-	let falconCanvas: HTMLCanvasElement | undefined = $state();
-	let falconEngine: VoxelMascot | null = null;
-	let falconShown = $state(false);
-	let hyper = $state(false);
 
 	function sceneKit() {
 		const token = {};
@@ -1094,97 +1090,6 @@
 		endSwap();
 	}
 
-	// A Millennium-Falcon-ish ship circles the bot, then jumps to hyperspace
-	async function runFalcon() {
-		const { alive, wait, speak } = sceneKit();
-		const L = sceneLines[get(lang)].falcon;
-		try {
-			const home = baseAnchor();
-			const cx = home.x;
-			const cy = home.y;
-			falconShown = true;
-			await tick();
-			if (!falconEl || !falconCanvas) return abortSwap();
-			const el = falconEl;
-			const { createVoxelMascot } = await import('./voxelEngine');
-			if (!alive()) return;
-			const rx = size * 1.05;
-			const ry = size * 0.5;
-			const S = size * 1.7; // the ship's square canvas
-			el.style.width = el.style.height = `${S}px`;
-			falconEngine = createVoxelMascot(falconCanvas, 'falcon', reducedMotion);
-			// Seen from above and a little from the side, like a model on a desk
-			falconEngine.lookAt(150, 420);
-			void speak(pick(L.start), 'wow', 'main', 2400);
-			let a = 0;
-			let px = cx + innerWidth;
-			let py = cy;
-			let t = 0;
-			let said = false;
-			const LOOPS = 2.2 * Math.PI * 2;
-			await new Promise<void>((done) => {
-				let prev = performance.now();
-				const loop = (now: number) => {
-					if (!alive()) return done();
-					const dt = Math.min((now - prev) / 1000, 0.05);
-					prev = now;
-					t += dt;
-					a += dt * (3.6 + t * 0.9);
-					// It swoops in from far off, then settles into the orbit
-					const e = Math.min(1, t / 1.1);
-					const k = 1 - (1 - e) ** 3;
-					const x = cx + (innerWidth * 0.7 * (1 - k) + rx * k) * Math.cos(a);
-					const y = cy + ry * k * Math.sin(a) - size * 0.06;
-					const ang = (Math.atan2(y - py, x - px) * 180) / Math.PI;
-					const depth = Math.sin(a); // > 0: in front of the bot
-					el.style.zIndex = depth > 0 ? '10001' : '9999';
-					el.style.transform = `translate3d(${x - S / 2}px, ${y - S / 2}px, 0) rotate(${ang}deg) scale(${0.85 + 0.2 * depth})`;
-					falconEngine?.tick(dt * 1000, { vx: 0, vy: 0, angle: 0 });
-					px = x;
-					py = y;
-					engine?.lookAt(x - body.x, y - body.y);
-					if (!said && a > Math.PI * 2) {
-						said = true;
-						void speak(pick(L.mid), 'worried', 'main', 2000);
-					}
-					if (a >= LOOPS) return done();
-					requestAnimationFrame(loop);
-				};
-				requestAnimationFrame(loop);
-			});
-			if (!alive()) return;
-			// Straight out along its heading, faster and faster, then the jump
-			const heading = Math.atan2(py - cy, px - cx) + (Math.sin(a) >= 0 ? 1 : -1) * (Math.PI / 2);
-			const dirx = Math.cos(heading);
-			const diry = Math.sin(heading);
-			let x = px;
-			let y = py;
-			let v = 500;
-			for (let i = 0; i < 40 && alive(); i++) {
-				v *= 1.12;
-				x += dirx * v * 0.016;
-				y += diry * v * 0.016;
-				el.style.transform = `translate3d(${x - S / 2}px, ${y - S / 2}px, 0) rotate(${(heading * 180) / Math.PI}deg)`;
-				falconEngine?.tick(16, { vx: 0, vy: 0, angle: 0 });
-				await wait(16);
-			}
-			if (!alive()) return;
-			el.classList.add('is-jumping');
-			hyper = true;
-			engine?.bump(0.8);
-			engine?.setExpression('star');
-			await wait(220);
-			falconShown = false;
-			void speak(pick(L.jump), 'star', 'main', 2600);
-			await wait(1100);
-			hyper = false;
-			await wait(1600);
-		} catch {
-			/* endSwap below puts everything back */
-		}
-		endSwap();
-	}
-
 	// Where the newcomer stands: beside the one on stage, on the side with room
 	function guestTargetX() {
 		if (guestGoal) return guestGoal.x;
@@ -1201,9 +1106,7 @@
 			sceneSwapped = false;
 		}
 		sceneGoal = guestGoal = null;
-		synthShown = falconShown = hyper = false;
-		falconEngine?.dispose();
-		falconEngine = null;
+		synthShown = false;
 		clearInterval(beatTimer);
 		guestEngine?.dispose();
 		guestEngine = null;
@@ -1497,16 +1400,6 @@
 		<span class="leds"><i></i><i></i><i></i><i></i><i></i></span>
 		<span class="keys"></span>
 	</div>
-{/if}
-
-{#if falconShown}
-	<div class="mascot-falcon" bind:this={falconEl} aria-hidden="true">
-		<canvas bind:this={falconCanvas}></canvas>
-	</div>
-{/if}
-
-{#if hyper}
-	<div class="mascot-hyper" aria-hidden="true"></div>
 {/if}
 
 {#if visible && shout}
