@@ -10,6 +10,8 @@
 	}
 
 	function scrollToTop() {
+		// The mascot reacts: a lift for a short hop, a rocket ride from far down
+		window.dispatchEvent(new CustomEvent('back-to-top', { detail: { from: window.scrollY } }));
 		window.scrollTo({
 			top: 0,
 			behavior: reduceMotion ? 'auto' : 'smooth'

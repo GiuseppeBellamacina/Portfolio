@@ -565,6 +565,41 @@ export const clickLines: Lines<string[]> = {
 	]
 };
 
+// Back to top, close to the hero: a calm little lift
+export const elevatorLines: Lines<string[]> = {
+	it: [
+		'Prendiamo l’**ascensore**: si sale! Piano **zero**, hero e saluti.',
+		'**Ascensore** in arrivo. La musichetta me la fischietto io.',
+		'Su, su, su: **ascensore**! Prossima fermata, **la cima**.',
+		'Ding! **Ascensore** per la hero. Allacciate le cinture, anche se non servono.'
+	],
+	en: [
+		'Taking the **elevator**: going up! Floor **zero**, hero and goodbyes.',
+		'**Elevator** arriving. I’ll whistle the music myself.',
+		'Up, up, up: **elevator**! Next stop, **the top**.',
+		'Ding! **Elevator** to the hero. Fasten your seatbelts, though you don’t need them.'
+	]
+};
+
+// Back to top from far down: the rocket ride
+export const rideShouts: Lines<string[]> = {
+	it: ['AAAAAH!', 'DECOLLOOO!', 'SI SALEEE!', 'REGGETEVIII!', 'VAAAAI!'],
+	en: ['AAAAAH!', 'LIFTOFFFF!', 'GOING UUUP!', 'HOLD ONNNN!', 'GOOOO!']
+};
+
+export const rideEndLines: Lines<string[]> = {
+	it: [
+		'Atterrato. **Mai più** un razzo senza **cinture**.',
+		'Siamo in cima! Ho il **cuore a 8 bit** che batte forte.',
+		'Hero! Ci ho messo **meno di lui** a ricordarsi la password.'
+	],
+	en: [
+		'Landed. **Never again** a rocket without **seatbelts**.',
+		'We’re at the top! My **8-bit heart** is pounding.',
+		'Hero! It took me **less time than him** to remember the password.'
+	]
+};
+
 // The visitor switches between the carousel and the grid of every project
 export const projectsViewLines: Lines<Record<'grid' | 'carousel', string[]>> = {
 	it: {

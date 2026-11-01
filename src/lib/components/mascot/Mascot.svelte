@@ -27,6 +27,9 @@
 		friendLines,
 		swapLines,
 		projectsViewLines,
+		elevatorLines,
+		rideShouts,
+		rideEndLines,
 		seasonLines,
 		shoutLines,
 		unmuteLine,
@@ -220,8 +223,9 @@
 	function anchor() {
 		const a = baseAnchor();
 		if (reducedMotion) return a;
-		// Never perfectly still: a slow hover around the resting point
-		return { x: a.x + Math.sin(clock * 0.7) * 7, y: a.y + Math.sin(clock * 1.1) * 9 };
+		// Never perfectly still: a slow hover around the resting point (and, on a rocket ride,
+		// dragged behind the page that rushes up)
+		return { x: a.x + Math.sin(clock * 0.7) * 7, y: a.y + Math.sin(clock * 1.1) * 9 + rideLag };
 	}
 
 	function baseAnchor() {
@@ -301,7 +305,7 @@
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
 			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
-			const share = Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			const share = riding ? 1 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
 			shoutPhase += dt * (3 + 22 * share);
 			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
@@ -427,10 +431,13 @@
 			// Held still: no pointer moves, so it is not moving either
 			body.vx = body.vy = 0;
 		}
+		// On a rocket ride it lags behind the page: the faster the page, the further back
+		const lagTarget = riding ? Math.min(innerHeight * 0.28, scrollSpeed * 0.09) : 0;
+		rideLag += (lagTarget - rideLag) * (1 - Math.exp(-dt * 8));
 		updateQuiet(dtMs);
 		if (visible) {
 			place(dt);
-			engine?.tick(dtMs, { vx: body.vx, vy: body.vy, angle: body.angle });
+			engine?.tick(dtMs, { vx: body.vx, vy: body.vy + (riding ? -2400 : 0), angle: body.angle });
 			if (guestShown && guestEngine && guestEl) {
 				// The newcomer settles beside the one on stage and stays there
 				const gx = guestTargetX();
@@ -707,6 +714,7 @@
 		lastScrollT = now;
 		clearTimeout(settleTimer);
 		settleTimer = setTimeout(settle, 280);
+		if (riding && scrollY < 24) endRide();
 	}
 
 	function onSectionInView(id: SectionId) {
@@ -715,12 +723,16 @@
 	}
 
 	function settle() {
+		// The page stopped: the ride is over, wherever it got to
+		if (riding) endRide();
 		if (inView === section) return;
 		section = inView;
 		if (mode !== 'docked') return;
 		// Leave first, talk on arrival: the line is queued until the glide ends
 		const a = baseAnchor();
 		if (!reducedMotion && Math.hypot(a.x - body.x, a.y - body.y) > ARRIVED) traveling = true;
+		// A back-to-top quip is still pending: it is the one to hear on arrival
+		if (performance.now() < quipUntil) return;
 		const line = sectionLine(section);
 		say(fill(line.text), line.face);
 	}
@@ -736,6 +748,52 @@
 	function onProjectsView(e: Event) {
 		const view = (e as CustomEvent<'grid' | 'carousel'>).detail;
 		say(fill(pick(projectsViewLines[get(lang)][view])), view === 'grid' ? 'wow' : 'happy');
+	}
+
+	// ── Back to top: a lift for a short hop, a rocket ride (and a scream) from far down ──
+	let riding = false;
+	let rideLag = 0;
+	/** Until then the section's own line stays quiet, so the quip about the trip is heard */
+	let quipUntil = 0;
+	let rideTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function onBackToTop(e: Event) {
+		if (!visible || !engine || riding || swapping || mode !== 'docked') return;
+		const from = (e as CustomEvent<{ from: number }>).detail.from;
+		const l = get(lang);
+		quipUntil = performance.now() + 5000;
+		if (reducedMotion || from < innerHeight * 2) {
+			say(pick(elevatorLines[l]), 'happy');
+			return;
+		}
+		riding = true;
+		launchTail = Math.round(size * 0.95);
+		canvas.style.height = `${size + launchTail}px`;
+		engine.setRocket(true);
+		engine.setThrust(true);
+		engine.bump(0.7);
+		engine.setExpression('wow');
+		engine.setTalking(true);
+		if (!muted) shout = pick(rideShouts[l]);
+		// Safety net: the page may never report that it stopped
+		rideTimer = setTimeout(endRide, 9000);
+	}
+
+	function endRide() {
+		if (!riding) return;
+		riding = false;
+		quipUntil = performance.now() + 4000;
+		clearTimeout(rideTimer);
+		shout = null;
+		engine?.setTalking(false);
+		engine?.setThrust(false);
+		// The rocket stays on a moment, then is gone
+		setTimeout(() => {
+			if (riding || swapping) return;
+			engine?.setRocket(false);
+			canvas.style.height = '';
+		}, 700);
+		say(pick(rideEndLines[get(lang)]), oneOf(['dizzy', 'star', 'tired']));
 	}
 
 	function onSkillsCategory(e: Event) {
@@ -908,7 +966,7 @@
 			return;
 		}
 		// Both bots on screen and motion allowed: they swap with a little show
-		if (wasVisible && engine && !reducedMotion && mode === 'docked') {
+		if (wasVisible && engine && !reducedMotion && mode === 'docked' && !riding) {
 			void runSwap(id);
 			return;
 		}
@@ -986,6 +1044,7 @@
 		window.addEventListener('project-open', onProjectOpen);
 		window.addEventListener('skills-category', onSkillsCategory);
 		window.addEventListener('projects-view', onProjectsView);
+		window.addEventListener('back-to-top', onBackToTop);
 		window.addEventListener('mascot-set', onMascotSet);
 		window.addEventListener('keydown', onKey);
 		window.addEventListener('pointerdown', onActivity, { passive: true });
@@ -1008,6 +1067,8 @@
 			window.removeEventListener('project-open', onProjectOpen);
 			window.removeEventListener('skills-category', onSkillsCategory);
 			window.removeEventListener('projects-view', onProjectsView);
+			window.removeEventListener('back-to-top', onBackToTop);
+			clearTimeout(rideTimer);
 			window.removeEventListener('mascot-set', onMascotSet);
 			window.removeEventListener('keydown', onKey);
 			window.removeEventListener('pointerdown', onActivity);
