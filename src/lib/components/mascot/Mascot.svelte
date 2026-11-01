@@ -355,10 +355,12 @@
 				shoutX = tx;
 				shoutY = ty;
 			} else {
-				const k = 1 - Math.exp(-SHOUT_FOLLOW * dt);
+				// On a rocket ride the text drifts after it slowly, so it stays easy to read
+				const k = 1 - Math.exp(-(riding ? 1.2 : SHOUT_FOLLOW) * dt);
 				let mx = (tx - shoutX) * k;
 				let my = (ty - shoutY) * k;
-				const maxStep = (SHOUT_DRIFT + SHOUT_SPEED_SHARE * Math.hypot(body.vx, body.vy)) * dt;
+				const share = riding ? 0.3 : SHOUT_SPEED_SHARE;
+				const maxStep = (SHOUT_DRIFT + share * Math.hypot(body.vx, body.vy)) * dt;
 				const len = Math.hypot(mx, my);
 				if (len > maxStep) {
 					mx *= maxStep / len;
@@ -369,7 +371,7 @@
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
 			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
-			const share = riding ? 0.35 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
+			const share = riding ? 0.12 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
 			shoutPhase += dt * (3 + 22 * share);
 			shoutEl.style.rotate = `${Math.sin(shoutPhase) * 6 * (0.3 + 0.7 * share)}deg`;
 		} else shoutX = null;
