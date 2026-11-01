@@ -1100,11 +1100,11 @@ export const triviaLines: Lines<string[]> = {
 		'wow|**Il castello di Cagliostro** è il primo film di **Miyazaki**, ed è un **Lupin III**. Con la **Fiat 500** gialla.',
 		'wink|**Lupin III** è sempre **un passo avanti**. Io sono sempre **un passo indietro**: **sto caricando**.',
 		'happy|**Goemon** di **Lupin** taglia **tutto** con la spada e sospira che ha tagliato **un’altra cosa inutile**. **Il mio idolo**.',
-		'love|**Kandinsky** sentiva i **colori come suoni**: **il giallo come una tromba**, **il blu come un organo**. Io sento **i cubetti**.',
-		'think|**Kandinsky** scrisse **Punto, linea, superficie**. Io sono **un insieme di punti** nello spazio: **un’opera astratta**.',
-		'wow|Quiz **Bauhaus**: **triangolo giallo**, **quadrato rosso**, **cerchio blu**. Sì, **Kandinsky** faceva i **test di personalità**.',
-		'star|**Kandinsky** è considerato uno dei **padri dell’arte astratta**. Anch’io sono **astratto**: **non ho le gambe**.',
-		'smug|Se **Kandinsky** avesse avuto **un editor di voxel**, il mondo sarebbe **fatto di cubetti colorati**. Come me.'
+		'love|**Kavinsky**: “**Nightcall**” è nella colonna sonora di **Drive**. Sì, quello con **Ryan Gosling**. Tutto torna.',
+		'smug|**Kavinsky** è un **personaggio**: un pilota **morto in una Ferrari Testarossa** nel 1986, tornato come **zombie synthwave**. Lore perfetta.',
+		'wow|**Kavinsky** si chiama **Vincent Belorgey** e viene da **Parigi**. Il nome d’arte è **più cool**, lo ammetto.',
+		'star|L’album **OutRun** di **Kavinsky** suona come **una corsa notturna** al **neon**. Consigliato col **volume alto**.',
+		'happy|“**Testarossa Autodrive**” di **Kavinsky**: mettila **mentre fai il deploy**. **Non crasha**. Forse.'
 	],
 	en: [
 		'smug|Did you know? **Tame Impala is one person**: Kevin Parker plays and records **everything himself**. One guy.',
@@ -1153,10 +1153,84 @@ export const triviaLines: Lines<string[]> = {
 		'wow|**The Castle of Cagliostro** is **Miyazaki’s** first film, and it’s a **Lupin III**. With the yellow **Fiat 500**.',
 		'wink|**Lupin III** is always **one step ahead**. I’m always **one step behind**: **still loading**.',
 		'happy|**Goemon** from **Lupin** cuts **everything** with his sword and sighs that he has cut **another worthless thing**. **My hero**.',
-		'love|**Kandinsky** heard **colours as sounds**: **yellow like a trumpet**, **blue like an organ**. I hear **cubes**.',
-		'think|**Kandinsky** wrote **Point and Line to Plane**. I am **a set of points** in space: **an abstract piece**.',
-		'wow|**Bauhaus** quiz: **yellow triangle**, **red square**, **blue circle**. Yes, **Kandinsky** ran **personality tests**.',
-		'star|**Kandinsky** is seen as a **father of abstract art**. I’m **abstract** too: **I have no legs**.',
-		'smug|If **Kandinsky** had had a **voxel editor**, the world would be **made of coloured cubes**. Like me.'
+		'love|**Kavinsky**: “**Nightcall**” is on the **Drive** soundtrack. Yes, the one with **Ryan Gosling**. It all adds up.',
+		'smug|**Kavinsky** is a **character**: a driver **killed in a Ferrari Testarossa** in 1986, back as a **synthwave zombie**. Perfect lore.',
+		'wow|**Kavinsky** is really **Vincent Belorgey**, from **Paris**. The stage name is **cooler**, I admit.',
+		'star|**Kavinsky’s** album **OutRun** sounds like **a night drive** in **neon**. Best with the **volume up**.',
+		'happy|“**Testarossa Autodrive**” by **Kavinsky**: play it **while deploying**. **It won’t crash**. Maybe.'
 	]
+};
+
+// The Konami code picks one of a few scenes (the jump is in konamiLines). The DJ duo:
+// `chat` alternates guest, main, guest, main, guest. The falcon: one line for each moment
+export const sceneLines: Lines<{
+	daft: { leave: string[]; chat: string[]; back: string[] };
+	falcon: { start: string[]; mid: string[]; jump: string[] };
+}> = {
+	it: {
+		daft: {
+			leave: [
+				'smug|Scusate, vado a **prendere un caffè**. Non succede **niente** mentre non ci sono.',
+				'wink|Torno **subito**. Non fate **nulla di interessante** senza di me.'
+			],
+			chat: [
+				'star|**Buonasera.** Siamo due **tizi qualsiasi** con un casco. Nessun legame con **nessuno**.',
+				'smug|Esatto. **Non** ci conosciamo. Sentite che **beat**.',
+				'happy|**Harder, better, faster, stronger.** Il mix perfetto per un **deploy**.',
+				'wow|**One more time!** E poi basta. **Giuro.**',
+				'wink|**Technologic.** Buy it, use it, break it, **fix it**. Ciao, **umani**.'
+			],
+			back: [
+				'worried|Mi sono **perso qualcosa**? Chi erano quei **due**? Io sono qui da **sempre**.',
+				'smug|Eccomi. **Ho saltato** qualcosa? **Niente**, vero? Bene.'
+			]
+		},
+		falcon: {
+			start: [
+				'wow|Aspetta… quella è **un’astronave**? Mi ricorda **quella di Han Solo**.',
+				'wow|Sento un **rumore di motori**. È **un cargo corelliano**, ne sono quasi sicuro.'
+			],
+			mid: [
+				'worried|Ho **un brutto presentimento** su questa cosa.',
+				'happy|Mi **gira intorno**. Mi sento **molto importante**.'
+			],
+			jump: [
+				'star|**Iperspazio!** Ha fatto il Kessel Run in **meno di dodici parsec**. O giù di lì.',
+				'star|Sparita **a velocità luce**. E io **non ho nemmeno salutato**.'
+			]
+		}
+	},
+	en: {
+		daft: {
+			leave: [
+				'smug|Excuse me, I’m going for **a coffee**. **Nothing** happens while I’m gone.',
+				'wink|Back **in a minute**. Don’t do **anything interesting** without me.'
+			],
+			chat: [
+				'star|**Good evening.** We’re **two random guys** in helmets. No connection to **anyone**.',
+				'smug|Exactly. We **don’t** know each other. Check out this **beat**.',
+				'happy|**Harder, better, faster, stronger.** The perfect mix for a **deploy**.',
+				'wow|**One more time!** And then we stop. **Promise.**',
+				'wink|**Technologic.** Buy it, use it, break it, **fix it**. Bye, **humans**.'
+			],
+			back: [
+				'worried|Did I **miss something**? Who were those **two**? I’ve been here **all along**.',
+				'smug|Here I am. Did I **skip** anything? **Nothing**, right? Good.'
+			]
+		},
+		falcon: {
+			start: [
+				'wow|Wait… is that **a spaceship**? Looks like **Han Solo’s**.',
+				'wow|I hear **engines**. That’s **a Corellian freighter**, I’m almost sure.'
+			],
+			mid: [
+				'worried|I have **a bad feeling** about this.',
+				'happy|It’s **circling me**. I feel **very important**.'
+			],
+			jump: [
+				'star|**Hyperspace!** It made the Kessel Run in **under twelve parsecs**. Or so.',
+				'star|Gone at **light speed**. And I **didn’t even wave**.'
+			]
+		}
+	}
 };

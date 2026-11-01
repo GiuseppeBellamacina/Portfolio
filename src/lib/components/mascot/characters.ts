@@ -318,6 +318,58 @@ function arancino(): Character {
 	};
 }
 
+/** A voxel Millennium-Falcon-ish freighter, seen from above: disc, two mandibles, side cockpit, radar dish */
+export function falcon(): Character {
+	const voxels: Voxel[] = [];
+	const put = (x: number, y: number, z: number, role: Role) => voxels.push({ x, y, z, role });
+	for (let x = -13; x <= 13; x++)
+		for (let y = -12; y <= 12; y++) {
+			const e = (x / 12.5) ** 2 + (y / 11.5) ** 2;
+			if (e > 1) continue;
+			const top = e < 0.28 ? 3 : e < 0.6 ? 2 : 1;
+			const n = hash3(x, y, 1);
+			for (let z = 0; z <= top; z++) {
+				let role: Role = Math.floor(Math.sqrt(e) * 7) % 2 === 0 && n > 0.3 ? 'shade' : 'base';
+				if (n > 0.93) role = 'accent';
+				if (z === top && e < 0.05) role = 'dark';
+				put(x, y, z, role);
+			}
+		}
+	// The two mandibles, with the gap between them
+	for (const s of [1, -1])
+		for (let x = 8; x <= 25; x++)
+			for (let y = 3; y <= (x > 21 ? 6 : 8); y++)
+				for (let z = 0; z <= 1; z++) {
+					const n = hash3(x, y * s, z);
+					put(x, y * s, z, x === 25 ? 'glow' : n > 0.6 ? 'shade' : 'base');
+				}
+	// Cockpit tube on the side, with a dark window
+	for (let x = 6; x <= 21; x++)
+		for (let y = -16; y <= -12; y++)
+			for (let z = 0; z <= 2; z++)
+				put(x, y, z, x >= 20 ? 'dark' : hash3(x, y, z) > 0.7 ? 'shade' : 'base');
+	// Radar dish on a stem
+	put(-3, 8, 4, 'shade');
+	for (let x = -6; x <= 0; x++)
+		for (let y = 5; y <= 11; y++)
+			if ((x + 3) ** 2 + (y - 8) ** 2 <= 10)
+				put(x, y, 5, (x + 3) ** 2 + (y - 8) ** 2 <= 2 ? 'dark' : 'base');
+	// Engine glow at the rear
+	for (let y = -6; y <= 6; y++) for (let z = 0; z <= 1; z++) put(-14, y, z, 'glow');
+	return {
+		voxels,
+		face: { x0: 200, y0: 200 },
+		faceOn: 'glow',
+		palette: () => ({
+			base: '#d9d4d6',
+			shade: '#9a989f',
+			accent: '#d4322f',
+			dark: '#2c2c33',
+			glow: '#a5e6ff'
+		})
+	};
+}
+
 export const CHARACTERS: Record<CharacterId, (hat: Hat) => Character> = { turi, arancino };
 
 /**
