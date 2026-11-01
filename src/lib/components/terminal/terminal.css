@@ -194,10 +194,11 @@
 	margin-right: 8px;
 	font-size: clamp(0.78rem, 0.65rem + 0.15vw, 0.85rem);
 }
+/* flex, so the box is exactly the input's height (a block would add the line strut and put the mirror's text above the caret) */
 .input-wrap {
 	position: relative;
 	flex: 1;
-	display: block;
+	display: flex;
 	min-width: 0;
 }
 /* Same box and font as the input, drawn under it: the input's text is transparent, only the caret shows */
@@ -212,7 +213,8 @@
 	color: var(--primary-color);
 }
 .cmd-word {
-	color: var(--neon-green);
+	/* Fixed, not the theme's neon green: in the black-and-white night theme that is grey */
+	color: #4ade80;
 	font-weight: bold;
 }
 .cmd-word.bad {
