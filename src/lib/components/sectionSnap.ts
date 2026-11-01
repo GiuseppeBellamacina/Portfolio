@@ -79,7 +79,10 @@ export function initSectionSnap(): () => void {
 	function snapToAbout() {
 		const about = document.getElementById('about');
 		if (!about) return;
-		smoothScrollTo(about.offsetTop, () => {
+		// On phones Turi's strip sits under the navbar: stop below it
+		const strip =
+			parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--turi-strip')) || 0;
+		smoothScrollTo(about.offsetTop - strip, () => {
 			inHero = false;
 		});
 	}

@@ -322,7 +322,8 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
 	.hero {
-		padding-top: 60px;
+		/* + Turi's strip under the navbar */
+		padding-top: calc(60px + var(--turi-strip, 0px));
 	}
 
 	.hero-content {

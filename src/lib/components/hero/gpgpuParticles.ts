@@ -549,8 +549,7 @@ export async function initGpgpuParticles(
 	const FRAME_MS = light ? 1000 / 30 - 3 : 0;
 	let lastRendered = 0;
 	let warmFrames = 0;
-	let gapSum = 0;
-	let gapCount = 0;
+	const gaps: number[] = [];
 
 	function animate() {
 		raf = requestAnimationFrame(animate);
@@ -561,8 +560,9 @@ export async function initGpgpuParticles(
 			const gap = now - lastRendered;
 			lastRendered = now;
 			if (everRendered && gap < 500 && ++warmFrames > 45) {
-				gapSum += gap;
-				if (++gapCount === 90 && gapSum / gapCount > 50) {
+				gaps.push(gap);
+				// The median, so one stall (a scroll, an image decoding) doesn't doom it
+				if (gaps.length === 90 && gaps.sort((a, b) => a - b)[45] > 50) {
 					cleanup();
 					options.onAbort?.();
 					return;

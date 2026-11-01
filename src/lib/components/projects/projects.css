@@ -754,3 +754,22 @@
 		filter: none;
 	}
 }
+
+/* Phones: the opened project sits below Turi's strip (which keeps showing what it says about it) */
+@media (max-width: 767px) {
+	/* The title clears the strip like every other section's */
+	.projects {
+		padding-top: var(--section-padding);
+	}
+	.exp-backdrop {
+		z-index: 998;
+	}
+	.exp-panel {
+		top: calc(var(--turi-nav, 0px) + var(--turi-strip, 0px) + 8px);
+		height: calc(100dvh - var(--turi-nav, 0px) - var(--turi-strip, 0px) - 16px);
+		transform: translate(-50%, 0) scale(0.92);
+	}
+	.exp-panel.is-open {
+		transform: translate(-50%, 0) scale(1);
+	}
+}
