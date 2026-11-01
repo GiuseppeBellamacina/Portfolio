@@ -134,8 +134,8 @@
 	align-items: center;
 	gap: 0.4rem;
 	padding: 0 0.75rem 0 0.4rem;
-	background: rgba(var(--bg-dark-rgb), 0.95);
-	backdrop-filter: blur(10px);
+	/* Opaque: a blur over the galaxy canvas would be repainted every frame */
+	background: rgb(var(--bg-dark-rgb));
 	border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
 	box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.7);
 	transition: height 0.25s ease;
