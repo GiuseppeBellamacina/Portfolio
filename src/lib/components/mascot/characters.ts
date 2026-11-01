@@ -218,8 +218,9 @@ function addHat(head: Voxel[], hat: Hat): Voxel[] {
 			trim: '#60a5fa',
 			body: (y) => (y % 2 === 0 ? '#93c5fd' : '#e0e7ff'),
 			pompom: '#fde68a',
-			height: 7,
-			droop: -0.17
+			// The pompom reaches y 6 + height: 11, so it clears the top of the frame (it touched it at 12)
+			height: 5,
+			droop: -0.25
 		});
 	} else if (hat === 'party') {
 		const stripes = ['#f472b6', '#60a5fa', '#facc15'];

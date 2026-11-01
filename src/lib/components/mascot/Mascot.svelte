@@ -107,21 +107,28 @@
 	const KONAMI_SCENES = ['jump', 'daft'] as const;
 	// The synth's LED matrix is a face grid: these patterns light it up on the beat
 	const SYNTH_LEDS: Expression[] = ['happy', 'wow', 'dizzy', 'star', 'love', 'angry', 'tired'];
-	// Which kind of line a tap or a quiet spell gets, also from a bag: the repeats set the mix
-	// (a tap: 8 in 20 its own lines, 4 the friend, 3 an idea, 3 the season, 2 trivia)
-	const TAP_KINDS = [
-		...Array<'click'>(8).fill('click'),
-		...Array<'friend'>(4).fill('friend'),
-		...Array<'idea'>(3).fill('idea'),
-		...Array<'season'>(3).fill('season'),
-		...Array<'trivia'>(2).fill('trivia')
-	];
-	const IDLE_KINDS = [
-		...Array<'trivia'>(11).fill('trivia'),
-		...Array<'idea'>(4).fill('idea'),
-		...Array<'idle'>(5).fill('idle')
-	];
 	const GLANCES: Expression[] = ['wink', 'think', 'happy', 'smug', 'shy', 'worried'];
+
+	// Chatter on a tap or in a quiet spell: every line of every source competes, each source
+	// keeps its total weight whatever its size, and a line already said this visit (memory
+	// only, a refresh forgets it) is four times less likely for each time it was said
+	const said = new Map<string, number>();
+	type Source = { lines: readonly (string | Line)[]; weight: number; face: Expression };
+	function chatter(sources: Source[]) {
+		const items: { raw: string; face: Expression; w: number }[] = [];
+		for (const src of sources) {
+			if (!src.lines.length) continue;
+			for (const l of src.lines) {
+				const raw = typeof l === 'string' ? l : l.text;
+				const w = (src.weight / src.lines.length) * 0.25 ** (said.get(raw) ?? 0);
+				items.push({ raw, face: typeof l === 'string' ? src.face : l.face, w });
+			}
+		}
+		let r = Math.random() * items.reduce((a, i) => a + i.w, 0);
+		const it = items.find((i) => (r -= i.w) <= 0) ?? items[items.length - 1];
+		said.set(it.raw, (said.get(it.raw) ?? 0) + 1);
+		sayRaw(it.raw, it.face);
+	}
 
 	let character: CharacterId = 'turi';
 
@@ -207,12 +214,19 @@
 	// The shout is plain text: no bold markers
 	const plain = (s: string) => s.replaceAll('**', '');
 
+	// Powered off (one of the mute gags): it looks at nothing and reacts to nothing
+	let powerOff = false;
+	function setGag(g: 'none' | (typeof GAGS)[number]) {
+		powerOff = g === 'off';
+		engine?.setGag(g);
+	}
+
 	function mute() {
 		muted = true;
 		speaking = false;
 		clearInterval(typeTimer);
 		engine?.setTalking(false);
-		engine?.setGag(pick(GAGS));
+		setGag(pick(GAGS));
 		store(MUTE_KEY, '1');
 	}
 
@@ -563,19 +577,27 @@
 			traveling = true;
 			quietMs = 0;
 			queued = null;
-			engine?.setAngry(true);
-			rant();
+			if (!muted) {
+				engine?.setAngry(true);
+				rant();
+			}
 		}
 		const now = performance.now();
 		lastDrag = now;
 		// Keeps grumbling while it is carried around (heard whenever it slows down)
-		if (now - lastRant > 3200) rant();
+		if (!muted && now - lastRant > 3200) rant();
 		samples.push({ x: e.clientX, y: e.clientY, t: now });
 		while (samples.length > 2 && now - samples[0].t > 90) samples.shift();
 		const first = samples[0];
 		const span = Math.max(16, now - first.t) / 1000;
 		body.vx = (e.clientX - first.x) / span;
 		body.vy = (e.clientY - first.y) / span;
+		// Shaken about fast, it screams like when it is thrown; calmer again, the scream stops
+		if (!muted) {
+			const v = Math.hypot(body.vx, body.vy);
+			if (v > THROW_SPEED && !shout) shout = plain(pick(shoutLines[get(lang)]));
+			else if (v < THROW_SPEED * 0.35) shout = null;
+		}
 		const b = bounds();
 		body.x = Math.max(radius, Math.min(b.width - radius, e.clientX + grabDX));
 		body.y = Math.max(b.top + radius, Math.min(b.height - radius, e.clientY + grabDY));
@@ -598,6 +620,7 @@
 		}
 		if (strip && !reducedMotion && speed < THROW_SPEED) {
 			// Carried, not thrown: on a phone it never stays over the page, it goes back to the strip
+			shout = null;
 			body.vx = body.vy = 0;
 			mode = 'returning';
 			sayRaw(pick(backLines[get(lang)]), 'normal');
@@ -605,6 +628,7 @@
 		}
 		if (reducedMotion || speed < THROW_SPEED) {
 			// Carried, not thrown: it stays where it was put
+			shout = null;
 			const b = bounds();
 			placed = { fx: body.x / b.width, fy: body.y / b.height };
 			body.vx = body.vy = 0;
@@ -629,7 +653,7 @@
 		engine?.bump(0.35);
 		if (muted) {
 			muted = false;
-			engine?.setGag('none');
+			setGag('none');
 			store(MUTE_KEY, null);
 			sayRaw(unmuteLine[get(lang)], 'shy');
 			return;
@@ -661,24 +685,19 @@
 		}
 		const s = season();
 		// The third tap always tells about the other bot, so nobody misses it
-		const kind = totalTaps === 3 ? 'friend' : pick(TAP_KINDS);
-		let pool = clickLines[l];
-		// Every line brings its own face; this one is only for a line that has none
-		let face: Expression = 'happy';
-		if (kind === 'friend') {
-			pool = friendLines[l][character];
-			face = 'smug'; // a bit of complicity: "psst, I have a friend"
-		} else if (kind === 'trivia') {
-			pool = triviaLines[l];
-			face = 'wink';
-		} else if (kind === 'idea') {
-			pool = ideaLines[l];
-			face = 'tired';
-		} else if (s && kind === 'season') {
-			pool = seasonLines[l][s];
-			face = s === 'night' ? 'sleepy' : 'happy';
+		if (totalTaps === 3) {
+			sayRaw(pick(friendLines[l][character]), 'smug');
+			return;
 		}
-		sayRaw(pick(pool), face);
+		// Its own lines, curiosities and ideas anywhere; the section's lines for where it is
+		chatter([
+			{ lines: clickLines[l], weight: 3, face: 'happy' },
+			{ lines: triviaLines[l], weight: 5, face: 'wink' },
+			{ lines: ideaLines[l], weight: 2, face: 'tired' },
+			{ lines: sectionLines[l][section], weight: 3, face: 'happy' },
+			{ lines: friendLines[l][character], weight: 1, face: 'smug' },
+			{ lines: s ? seasonLines[l][s] : [], weight: 2, face: s === 'night' ? 'sleepy' : 'happy' }
+		]);
 	}
 
 	// ── Personality: it speaks up when left alone, and when you come back ──
@@ -724,9 +743,12 @@
 		if (dragging || now - lastActivity < IDLE_MS || now - lastIdleLine < IDLE_GAP_MS) return;
 		lastIdleLine = now;
 		const l = get(lang);
-		const kind = pick(IDLE_KINDS);
-		const pool = kind === 'trivia' ? triviaLines[l] : kind === 'idea' ? ideaLines[l] : idleLines[l];
-		sayRaw(pick(pool), pool === ideaLines[l] ? 'tired' : 'wink');
+		chatter([
+			{ lines: triviaLines[l], weight: 5, face: 'wink' },
+			{ lines: ideaLines[l], weight: 2, face: 'tired' },
+			{ lines: idleLines[l], weight: 3, face: 'wink' },
+			{ lines: sectionLines[l][section], weight: 3, face: 'wink' }
+		]);
 	}
 
 	function onActivity() {
@@ -788,7 +810,7 @@
 
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
-		engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
+		if (!powerOff) engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
 		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
 		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
 		synthEngine?.lookAt(e.clientX - synthAt.x, 250 + (e.clientY - synthAt.y) * 0.5);
@@ -1297,7 +1319,7 @@
 			const { createVoxelMascot } = await import('./voxelEngine');
 			if (cancelled) return;
 			engine = createVoxelMascot(canvas, character, reducedMotion);
-			if (muted) engine.setGag(pick(GAGS));
+			if (muted) setGag(pick(GAGS));
 		} catch {
 			visible = false; // no WebGL: no mascot
 			return;
