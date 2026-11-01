@@ -1261,17 +1261,17 @@ export const arancinoLines: Lines<{
 			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
 			'happy|Se mi tocchi ancora, ti offro un pezzo. Sono generoso. Forse.',
 			'smug|**Camurria** è la parola che serve per tutto. Anche per un deploy che non parte.',
-			'smug|Hai cliccato un arancinu e ti senti qualcuno? **T’immùcchi quattru**, **mbare**.',
-			'wink|Ti credi di essere il primo che mi tocca? **T’immùcchi quattru**.',
+			'smug|**Mbare**, ma chi fai? **T’immùcchi quattru**?',
 			'wink|Qui a **Catania** il futuro lo leggono **Il mago Giusa**, che **non ha confronti**, e **Madame Sahara**. Io leggo solo **il ragù**.',
 			'smug|**Il mago Giusa** da **Santa Venerina** ti aiuta in **amore, fortuna e affari**. Io ti aiuto a cliccare, che è già qualcosa.',
-			'think|**Madame Sahara** ha **il verolibro del ’500**. Io ho **un ragù del ’900**. Chi vince?',
-			'happy|Hai visto i manifesti di **Giusa** su ogni palo della Sicilia? Io non vado sui pali: sono troppo fritto.',
+			'think|**Madame Sahara** ha **il verolibro del ’500**. Io ho **un ragù del 2000**. Chi vince?',
+			'happy|Hai visto i manifesti di **Giusa** su ogni palo della Sicilia? Chissà chi li ha messi. Io non lo so, ma **mi fido**.',
 			'love|**Madame Sahara**, la maga più preparata dell’epoca. Io sono **l’arancinu più preparato** dell’epoca. Ci siamo capiti.'
 		],
 		idle: [
 			'sleepy|**Che camurria**, questo silenzio. Parlami, **minchia**.',
 			'think|Sto guardando **l’Etna** con la mente. Oggi fuma poco.',
+			'smug|**Mbareeeeeee**',
 			'wink|Se resti ancora un po’, ti racconto di **Catania**. Cominciamo da **Sant’Aituzza**.',
 			'sad|Mi manca **a Muntagna**. Da qui non si vede.',
 			'smug|Giuseppe lo sa: **l’arancinu è maschio**, a **Catania**. Poi ognuno ha le sue opinioni.',
@@ -1289,7 +1289,7 @@ export const arancinoLines: Lines<{
 			'angry|Ti avevano detto di non toccare gli arancini? E tu **ti ni futti**, vero? Ora vedi.',
 			'angry|**Che camurria**! Basta! Ti faccio vedere io, che a **Catania** non si scherza!',
 			'angry|Io fumo come **a Muntagna**, attento. Quando erutto, non sono pochi i danni.',
-			'angry|Ti senti forte a trascinarmi? **T’immùcchi quattru**! Posami!'
+			'angry|**Mbare**, viri ca ti fazzu avvulari a **Nicolosi**!'
 		],
 		hit: [
 			'angry|**Mizzica**, che botta!',
@@ -1298,7 +1298,7 @@ export const arancinoLines: Lines<{
 			'angry|**Avaia**, piano! Sono croccante, non indistruttibile!',
 			'angry|Chi è stato? **Cu fu?** Mi sentite tutti!',
 			'dizzy|Ma che cosa… **Catania** non mi ha preparato a questo.',
-			'angry|Mi hai lanciato fin qui e ti senti bravo? **T’immùcchi quattru**.'
+			'angry|**Facci i minchia**, mi siddiai, ni viremu o **Librinu**!'
 		],
 		annoyed: [
 			'angry|**Basta, che camurria!** Me la fai passare, la voglia?',
@@ -1308,7 +1308,7 @@ export const arancinoLines: Lines<{
 			'angry|Io ti dico basta e tu **ti ni futti**, eh? Beato te.'
 		],
 		konami: [
-			'smug|Hai trovato il codice segreto e ti senti un genio? **T’immùcchi quattru**, **mbare**. Vabbè, bravo.'
+			"smug|Hai trovato il codice segreto e ti senti un genio? U sacciu ca t'aiutau u **mago Giusa**, ma io sono più forte di lui."
 		]
 	},
 	en: {
@@ -1328,17 +1328,17 @@ export const arancinoLines: Lines<{
 			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
 			'happy|If you tap me again, I’ll offer you a piece. I’m generous. Maybe.',
 			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.',
-			'smug|You clicked an arancinu and you feel like somebody? **T’immùcchi quattru**, **mbare**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
-			'wink|You think you’re the first one to tap me? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
+			'smug|**Mbare**, who do you think you are? **T’immùcchi quattru**? (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
 			'wink|Here in **Catania** the future is read by **Il mago Giusa**, who “has no rivals”, and **Madame Sahara**. I only read **the ragù**.',
 			'smug|**Il mago Giusa**, from **Santa Venerina**, helps you in love, luck and business. I help you click, which is something.',
-			'think|**Madame Sahara** owns the real 1500s book. I own **a 1900s ragù**. Who wins?',
-			'happy|Have you seen **Giusa’s** posters on every pole in Sicily? I don’t go on poles: I’m too fried.',
+			'think|**Madame Sahara** owns the real 1500s book. I own **a 2000s ragù**. Who wins?',
+			'happy|Have you seen **Giusa’s** posters on every pole in Sicily? Who knows who put them up. I don’t, but **I trust them**.',
 			'love|**Madame Sahara**, “the best-prepared sorceress of the age”. I’m **the best-prepared arancinu** of the age. We understand each other.'
 		],
 		idle: [
 			'sleepy|**What a camurria**, this silence. Talk to me, **minchia**.',
 			'think|I’m looking at **Etna** with my mind. Today it’s smoking little.',
+			'smug|**Mbareeeeeee**',
 			'wink|If you stay a bit longer, I’ll tell you about **Catania**. Let’s start with **Sant’Aituzza**.',
 			'sad|I miss **a Muntagna**. You can’t see it from here.',
 			'smug|Giuseppe knows: **the arancinu is masculine**, in **Catania**. Then everyone has their opinions.',
@@ -1356,7 +1356,7 @@ export const arancinoLines: Lines<{
 			'angry|They told you not to touch an arancinu? And you just go “**ti ni futti**” (you couldn’t care less), right? Now you’ll see.',
 			'angry|**What a camurria**! Enough! I’ll show you, **Catania** is no joke!',
 			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.',
-			'angry|You feel strong, dragging me around? **T’immùcchi quattru**! Put me down! (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
+			'angry|**Mbare**, viri ca ti fazzu avvulari a **Nicolosi**! (Watch it, I’ll make you fly all the way to Nicolosi, a town on the slopes of Etna!)'
 		],
 		hit: [
 			'angry|**Mizzica**, what a bump!',
@@ -1365,7 +1365,7 @@ export const arancinoLines: Lines<{
 			'angry|**Avaia**, gently! I’m crunchy, not indestructible!',
 			'angry|Who did it? **Cu fu?** Everyone will hear me!',
 			'dizzy|What the… **Catania** didn’t prepare me for this.',
-			'angry|You threw me all the way here and feel proud? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
+			'angry|**Facci i minchia**, mi siddiai, ni viremu o **Librinu**! (You jerk, I’ve had enough, see you at Librino, the rough district of Catania!)'
 		],
 		annoyed: [
 			'angry|**Enough, what a camurria!** Are you killing my mood?',
@@ -1375,7 +1375,7 @@ export const arancinoLines: Lines<{
 			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.'
 		],
 		konami: [
-			'smug|You found the secret code and feel like a genius? **T’immùcchi quattru**, **mbare**. Fine, well done.'
+			'smug|You found the secret code and feel like a genius? **U sacciu ca t’aiutau u mago Giusa** (I know Mago Giusa helped you), but I’m stronger than him.'
 		]
 	}
 };
