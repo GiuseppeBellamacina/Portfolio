@@ -13,6 +13,11 @@
 	] as const;
 
 	let isMenuActive = $state(false);
+
+	// The mascot hides while the menu is over it
+	$effect(() => {
+		document.body.classList.toggle('nav-menu-open', isMenuActive);
+	});
 	let navbarElement: HTMLElement;
 	let hamburgerEl: HTMLButtonElement;
 	let scrollY = $state(0);

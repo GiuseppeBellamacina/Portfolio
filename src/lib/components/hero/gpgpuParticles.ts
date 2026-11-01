@@ -1,10 +1,17 @@
+export interface GalaxyOptions {
+	/** Called if the galaxy gave up on its own (a phone too slow to run it) */
+	onAbort?: () => void;
+}
+
 /**
- * Three.js GPGPU Particle System — 3D Tilted Spiral Galaxy (desktop) / Wave field (mobile).
+ * Three.js GPGPU Particle System — 3D Tilted Spiral Galaxy.
  * Renders particles on GPU with simulation shaders, raycasting for cursor interaction.
+ * Phones and touch screens get a lighter version of the same galaxy (see `light`).
  */
 export async function initGpgpuParticles(
 	container: HTMLElement,
-	interactionTarget: HTMLElement
+	interactionTarget: HTMLElement,
+	options: GalaxyOptions = {}
 ): Promise<(() => void) | undefined> {
 	// Respect users who prefer reduced motion — skip the heavy particle system.
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -44,20 +51,26 @@ export async function initGpgpuParticles(
 	let H = container.offsetHeight;
 
 	const SIZE = 192; // 192x192 = 36864 particelle
-	const isMobile = W <= 768;
-	const MOBILE_SIZE = 128; // 128x128 = 16384 particelle (mobile)
-	const ACTIVE_SIZE = isMobile ? MOBILE_SIZE : SIZE;
+	// Phones and touch screens: the same simulation and look, but a quarter of the particles,
+	// a smaller disc seen from further away so it fits a portrait screen, a lower pixel ratio,
+	// 30 fps and no cursor ring. Desktop is untouched.
+	const light = W <= 768 || window.matchMedia('(pointer: coarse)').matches;
+	const LIGHT_SIZE = 96; // 96x96 = 9216 particelle
+	const ACTIVE_SIZE = light ? LIGHT_SIZE : SIZE;
 	const LENGTH = ACTIVE_SIZE * ACTIVE_SIZE;
+	const GALAXY_RADIUS = light ? 4.6 : 8.0;
+	const CAM_ZOOM = light ? 1.6 : 1;
+	const MAX_PIXEL_RATIO = light ? 1.5 : 2;
 
 	// ── Renderer ──
 	const renderer = new WebGLRenderer({
 		antialias: false,
 		alpha: true,
-		powerPreference: 'high-performance',
+		powerPreference: light ? 'default' : 'high-performance',
 		stencil: false
 	});
 	renderer.setSize(W, H);
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
 	renderer.setClearColor(0x000000, 0);
 	const canvas = renderer.domElement;
 	canvas.style.cssText =
@@ -76,14 +89,8 @@ export async function initGpgpuParticles(
 	// ── Camera ──
 	const BASE_FOV = 45;
 	const camera = new PerspectiveCamera(BASE_FOV, W / H, 0.1, 1000);
-	if (isMobile) {
-		// Top-down view for wave field
-		camera.position.set(0, 0, 12);
-		camera.lookAt(0, 0, 0);
-	} else {
-		camera.position.set(0, -6.5, 4.5); // Angolazione a ~45 gradi
-		camera.lookAt(0, 0, 0);
-	}
+	camera.position.set(0, -6.5 * CAM_ZOOM, 4.5 * CAM_ZOOM); // Angolazione a ~45 gradi
+	camera.lookAt(0, 0, 0);
 
 	// The canvas hangs below the hero (it fades into About), so frame the scene as if
 	// it were hero-sized: same scale, centred on the hero, the extra strip below is
@@ -95,7 +102,8 @@ export async function initGpgpuParticles(
 		const halfFov = ((BASE_FOV / 2) * Math.PI) / 180;
 		camera.fov = (2 * Math.atan((Math.tan(halfFov) * fullH) / heroH) * 180) / Math.PI;
 		camera.aspect = W / fullH;
-		camera.setViewOffset(W, fullH, 0, ext, W, H);
+		// On phones the bright core sits behind the photo, not behind the typed subtitle
+		camera.setViewOffset(W, fullH, 0, ext + (light ? 0.17 * heroH : 0), W, H);
 		camera.updateProjectionMatrix();
 	}
 	frameToHero();
@@ -107,22 +115,7 @@ export async function initGpgpuParticles(
 	function createPositionData(): Float32Array {
 		const data = new Float32Array(LENGTH * 4);
 
-		if (isMobile) {
-			// Mobile: particelle sparse su un campo rettangolare ampio
-			const aspect = W / H;
-			const spreadX = 12 * aspect;
-			const spreadY = 12;
-			for (let i = 0; i < LENGTH; i++) {
-				data[i * 4 + 0] = (Math.random() - 0.5) * spreadX * 2;
-				data[i * 4 + 1] = (Math.random() - 0.5) * spreadY * 2;
-				data[i * 4 + 2] = (Math.random() - 0.5) * 0.5; // Quasi piatte
-				data[i * 4 + 3] = 0;
-			}
-			return data;
-		}
-
-		// Desktop: Vero Disco Galattico
-		const GALAXY_RADIUS = 8.0;
+		// Vero Disco Galattico
 		const ARMS = 3;
 
 		function gauss(): number {
@@ -216,8 +209,7 @@ export async function initGpgpuParticles(
 			uDeltaTime: { value: 0 },
 			uIsHovering: { value: 0 },
 			uRingRadius: { value: 0.2 },
-			uRotation: { value: 0 },
-			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
+			uRotation: { value: 0 }
 		},
 		vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`,
 		fragmentShader: `
@@ -229,7 +221,6 @@ export async function initGpgpuParticles(
             uniform float uTime;
             uniform float uIsHovering;
             uniform float uRingRadius;
-            uniform float uIsMobile;
 
             vec2 hash(vec2 p) {
                 p = vec2(dot(p,vec2(2127.1,81.17)), dot(p,vec2(1269.5,283.37)));
@@ -246,36 +237,8 @@ export async function initGpgpuParticles(
 
                 vec2 seed = hash(uv);
 
-                if (uIsMobile > 0.5) {
-                    // ─── MOBILE: Wave field ───
-                    float lifeEnd = 4.0 + seed.y * 3.0;
-                    float lifeTime = mod(seed.x * 100.0 + uTime * 0.3, lifeEnd);
-
-                    vec3 targetPos = refPos;
-
-                    // Multiple overlapping sine waves for organic ocean feel
-                    float px = refPos.x;
-                    float py = refPos.y;
-                    float wave1 = sin(px * 0.4 + uTime * 0.6) * cos(py * 0.3 + uTime * 0.4) * 0.8;
-                    float wave2 = sin(px * 0.7 - uTime * 0.3 + py * 0.5) * 0.4;
-                    float wave3 = cos(px * 0.2 + py * 0.6 + uTime * 0.5) * 0.3;
-                    
-                    targetPos.z = refPos.z + wave1 + wave2 + wave3;
-
-                    // Gentle horizontal drift
-                    targetPos.x += sin(uTime * 0.15 + seed.x * 6.28) * 0.3;
-                    targetPos.y += cos(uTime * 0.12 + seed.y * 6.28) * 0.3;
-
-                    velocity = abs(wave1) * 0.15;
-
-                    // Smooth follow
-                    pos += (targetPos - pos) * 0.04;
-
-                    if (lifeTime < 0.01) {
-                        pos = refPos;
-                    }
-                } else {
-                    // ─── DESKTOP: Galaxy ───
+                {
+                    // ─── Galaxy ───
                     float lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
                     float lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
 
@@ -362,7 +325,7 @@ export async function initGpgpuParticles(
 		if (coreGlowMat) coreGlowMat.color.copy(getCSSColor('--galaxy-c2', '#f5f0ff'));
 	}
 
-	// ── Core glow sprite (desktop only): a soft radial bloom over the galactic
+	// ── Core glow sprite: a soft radial bloom over the galactic
 	// bulge, additive-blended under the fine particle detail so the center
 	// reads as a luminous haze instead of just a denser cluster of dots. A
 	// Sprite (not a rotated plane) always faces the camera with no per-frame
@@ -388,28 +351,28 @@ export async function initGpgpuParticles(
 	let coreGlowTex: InstanceType<typeof CanvasTexture> | null = null;
 	let coreGlowMat: InstanceType<typeof SpriteMaterial> | null = null;
 	let coreGlow: InstanceType<typeof Sprite> | null = null;
-	if (!isMobile) {
-		coreGlowTex = createGlowTexture();
-		coreGlowMat = new SpriteMaterial({
-			map: coreGlowTex,
-			color: getCSSColor('--galaxy-c2', '#f5f0ff'),
-			transparent: true,
-			blending: AdditiveBlending,
-			depthWrite: false,
-			depthTest: false,
-			opacity: 0
-		});
-		coreGlow = new Sprite(coreGlowMat);
-		coreGlow.scale.set(4.2, 4.2, 1);
-		scene.add(coreGlow);
-	}
+	coreGlowTex = createGlowTexture();
+	coreGlowMat = new SpriteMaterial({
+		map: coreGlowTex,
+		color: getCSSColor('--galaxy-c2', '#f5f0ff'),
+		transparent: true,
+		blending: AdditiveBlending,
+		depthWrite: false,
+		depthTest: false,
+		opacity: 0
+	});
+	coreGlow = new Sprite(coreGlowMat);
+	const glowSize = 4.2 * (GALAXY_RADIUS / 8);
+	coreGlow.scale.set(glowSize, glowSize, 1);
+	scene.add(coreGlow);
 
 	// ── Render shader ──
 	const renderMaterial = new ShaderMaterial({
 		uniforms: {
 			uPosition: { value: posTex },
 			uTime: { value: 0 },
-			uParticleScale: { value: 1.0 },
+			// Same dot size on screen whatever the camera distance (the vertex shader divides by it)
+			uParticleScale: { value: light ? CAM_ZOOM * 1.0 : 1.0 },
 			uPixelRatio: { value: renderer.getPixelRatio() },
 			uIsHovering: { value: 0 },
 			uColorC1: { value: new Color(0xffffff) },
@@ -425,7 +388,8 @@ export async function initGpgpuParticles(
 			uColorC11: { value: new Color(0x9d9ad4) },
 			uColorC12: { value: new Color(0xb8b8e0) },
 			uAlpha: { value: 1.0 },
-			uIsMobile: { value: isMobile ? 1.0 : 0.0 }
+			uGalaxyR: { value: GALAXY_RADIUS },
+			uCamRef: { value: 7.9 * CAM_ZOOM }
 		},
 		vertexShader: `
             precision highp float;
@@ -434,7 +398,6 @@ export async function initGpgpuParticles(
             uniform float uTime;
             uniform float uParticleScale;
             uniform float uPixelRatio;
-            uniform float uIsMobile;
 
             varying vec3 vLocalPos;
             varying float vVelocity;
@@ -458,16 +421,9 @@ export async function initGpgpuParticles(
                 // faint background dust, independent of position or lifecycle.
                 vec2 seed2 = hash(seed + 7.31);
 
-                float lifeEnd, lifeTime, animScale;
-                if (uIsMobile > 0.5) {
-                    lifeEnd = 4.0 + seed.y * 3.0;
-                    lifeTime = mod(seed.x * 100.0 + uTime * 0.3, lifeEnd);
-                    animScale = smoothstep(0.01, 0.8, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
-                } else {
-                    lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
-                    lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
-                    animScale = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
-                }
+                float lifeEnd = 3.0 + sin(seed.y * 100.0) * 1.5;
+                float lifeTime = mod(seed.x * 100.0 + uTime * 0.5, lifeEnd);
+                float animScale = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
 
                 float sizeVariance = 0.55 + seed2.x * 1.2;
                 vScale = (animScale + (vVelocity * 1.5)) * sizeVariance;
@@ -477,7 +433,7 @@ export async function initGpgpuParticles(
 
                 vCamDist = -viewSpace.z;
                 float depthFade = 1.0 / vCamDist;
-                float basePtSize = uIsMobile > 0.5 ? 25.0 : 35.0;
+                float basePtSize = 35.0;
                 gl_PointSize = (vScale * basePtSize) * uPixelRatio * uParticleScale * depthFade;
             }
         `,
@@ -502,16 +458,11 @@ export async function initGpgpuParticles(
             uniform vec3 uColorC11;
             uniform vec3 uColorC12;
             uniform float uAlpha;
-            uniform float uIsMobile;
+            uniform float uGalaxyR;
+            uniform float uCamRef;
 
             void main() {
-                float dist;
-                if (uIsMobile > 0.5) {
-                    // Mobile: color by distance from center, wider radius
-                    dist = length(vLocalPos.xy) / 14.0;
-                } else {
-                    dist = length(vLocalPos.xy) / 8.0;
-                }
+                float dist = length(vLocalPos.xy) / uGalaxyR;
 
                 // 12-stop gradient: center → edge. Wider bright core (c1-c5 now
                 // hold until dist ~0.25, up from ~0.18) before easing into the
@@ -532,16 +483,13 @@ export async function initGpgpuParticles(
                 // of position, fighting the dark edge colors above.
                 col += vec3(vVelocity * 0.4);
 
-                // Depth cueing (desktop galaxy only — the disc tilts through a
-                // camera-distance range of roughly 1.3 to 14.5 units from near
-                // edge to far edge, center ~7.9): particles nearer the camera
-                // read brighter, farther ones dimmer, on top of the size falloff
-                // already in the vertex shader — together they sell the tilt, so
-                // the disc reads as a plane in space instead of a flat sheet.
-                if (uIsMobile < 0.5) {
-                    float depthDim = clamp(1.0 + (7.9 - vCamDist) * 0.045, 0.55, 1.35);
-                    col *= depthDim;
-                }
+                // Depth cueing: the disc tilts through a camera-distance range of roughly
+                // 1.3 to 14.5 units from near edge to far edge (centre ~7.9, scaled with the
+                // camera on phones): particles nearer the camera read brighter, farther ones
+                // dimmer, on top of the size falloff already in the vertex shader. Together
+                // they sell the tilt, so the disc reads as a plane in space, not a flat sheet.
+                float depthDim = clamp(1.0 + (uCamRef - vCamDist) * 0.045 * (7.9 / uCamRef), 0.55, 1.35);
+                col *= depthDim;
 
                 // Two-term falloff instead of one hard cone: a tight bright core
                 // (what makes a point read as a crisp star) plus a wide, dim halo
@@ -577,7 +525,7 @@ export async function initGpgpuParticles(
 	let rayPlaneGeo: InstanceType<typeof PlaneGeometry> | null = null;
 	let rayPlaneMat: InstanceType<typeof ShaderMaterial> | null = null;
 	let rayPlane: InstanceType<typeof Mesh> | null = null;
-	if (!isMobile) {
+	if (!light) {
 		rayPlaneGeo = new PlaneGeometry(80, 80);
 		rayPlaneMat = new ShaderMaterial({ visible: false });
 		rayPlane = new Mesh(rayPlaneGeo, rayPlaneMat);
@@ -596,8 +544,31 @@ export async function initGpgpuParticles(
 	const FADE_MS = 1400;
 	let fadeStart = 0;
 
+	// Phones render at 30 fps, and give the galaxy up if they can't even keep ~20 fps once
+	// warmed up: the CSS background that was there before takes over
+	const FRAME_MS = light ? 1000 / 30 - 3 : 0;
+	let lastRendered = 0;
+	let warmFrames = 0;
+	const gaps: number[] = [];
+
 	function animate() {
 		raf = requestAnimationFrame(animate);
+
+		if (light) {
+			const now = performance.now();
+			if (now - lastRendered < FRAME_MS) return;
+			const gap = now - lastRendered;
+			lastRendered = now;
+			if (everRendered && gap < 500 && ++warmFrames > 45) {
+				gaps.push(gap);
+				// The median, so one stall (a scroll, an image decoding) doesn't doom it
+				if (gaps.length === 90 && gaps.sort((a, b) => a - b)[45] > 50) {
+					cleanup();
+					options.onAbort?.();
+					return;
+				}
+			}
+		}
 
 		clock.update();
 		const dt = clock.getDelta();
@@ -607,7 +578,7 @@ export async function initGpgpuParticles(
 		hoverProgress += (targetHover - hoverProgress) * (dt * 3);
 
 		skipFrame = !skipFrame;
-		if (!skipFrame && !isMobile) {
+		if (!skipFrame && !light) {
 			if (mouseIsOver && rayPlane) {
 				raycaster.setFromCamera(mouseNDC, camera);
 				const hits = raycaster.intersectObject(rayPlane);
@@ -634,9 +605,7 @@ export async function initGpgpuParticles(
 		simMaterial.uniforms.uIsHovering.value = hoverProgress;
 		simMaterial.uniforms.uRingRadius.value = 0.5 + Math.sin(time) * 0.1;
 
-		if (!isMobile) {
-			simMaterial.uniforms.uRotation.value += dt * 0.05; // Rotazione lenta (solo desktop)
-		}
+		simMaterial.uniforms.uRotation.value += dt * 0.05; // Rotazione lenta
 
 		renderer.setRenderTarget(rt2);
 		renderer.render(simScene, simCamera);
@@ -718,7 +687,7 @@ export async function initGpgpuParticles(
 		W = container.offsetWidth;
 		H = container.offsetHeight;
 		renderer.setSize(W, H);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
 		frameToHero();
 	}
 
@@ -747,7 +716,10 @@ export async function initGpgpuParticles(
 	});
 	seasonObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 
-	return () => {
+	let disposed = false;
+	function cleanup() {
+		if (disposed) return;
+		disposed = true;
 		cancelAnimationFrame(raf);
 		visObs.disconnect();
 		document.removeEventListener('visibilitychange', onVisibility);
@@ -769,5 +741,6 @@ export async function initGpgpuParticles(
 		if (coreGlowMat) coreGlowMat.dispose();
 		if (coreGlowTex) coreGlowTex.dispose();
 		canvas.remove();
-	};
+	}
+	return cleanup;
 }

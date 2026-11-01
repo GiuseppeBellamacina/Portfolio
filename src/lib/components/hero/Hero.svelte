@@ -149,26 +149,48 @@
 			const { initGpgpuParticles } = await import('./gpgpuParticles');
 			// Too late (component unmounted): init never ran, nothing to clean.
 			if (destroyed || !document.contains(heroContainer)) return;
-			gpgpuCleanup = await initGpgpuParticles(heroContainer, heroSection);
+			gpgpuCleanup = await initGpgpuParticles(heroContainer, heroSection, {
+				// A phone that can't run it gives it up: the CSS background comes back
+				onAbort: () => {
+					heroContainer.classList.remove('galaxy-on');
+					gpgpuCleanup = undefined;
+				}
+			});
 			if (destroyed) {
 				// Unmounted while initializing: release immediately.
 				gpgpuCleanup?.();
 				gpgpuCleanup = undefined;
+			} else if (gpgpuCleanup) {
+				heroContainer.classList.add('galaxy-on');
 			}
 		};
 
-		// Skip heavy GPGPU particles on mobile/low-end devices
-		const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
-		if (!isMobile) {
+		// Phones and touch screens get a lighter galaxy (see gpgpuParticles.ts), later, and not
+		// at all on weak devices: little memory, few cores, or data saver on
+		const nav = navigator as Navigator & {
+			deviceMemory?: number;
+			connection?: { saveData?: boolean };
+		};
+		const touch = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+		const weak =
+			touch &&
+			((nav.deviceMemory ?? 8) < 4 ||
+				(nav.hardwareConcurrency ?? 8) < 4 ||
+				nav.connection?.saveData === true);
+		if (!weak) {
 			// Small delay so the galaxy appears promptly without blocking the TBT window;
-			// the system itself fades in gradually once initialized.
-			idleTimeout = setTimeout(() => {
-				if ('requestIdleCallback' in window) {
-					idleHandle = requestIdleCallback(initGpgpu);
-				} else {
-					initGpgpu();
-				}
-			}, 600) as unknown as number;
+			// the system itself fades in gradually once initialized. Phones wait longer, so
+			// nothing competes with the first paint.
+			idleTimeout = setTimeout(
+				() => {
+					if ('requestIdleCallback' in window) {
+						idleHandle = requestIdleCallback(initGpgpu);
+					} else {
+						initGpgpu();
+					}
+				},
+				touch ? 2000 : 600
+			) as unknown as number;
 		}
 
 		return () => {

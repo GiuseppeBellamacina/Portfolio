@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { lang, t } from '$lib/i18n';
 	import type { Translations } from '$lib/i18n';
@@ -67,6 +67,11 @@
 			left -= r.text.length;
 		}
 		return out;
+	});
+	// Font size of the strip's text, by how long the line is (its box has a fixed height)
+	let fit = $derived.by(() => {
+		const n = runs.reduce((sum, r) => sum + r.text.length, 0);
+		return n <= 70 ? 'fit-l' : n <= 115 ? 'fit-m' : 'fit-s';
 	});
 	let speaking = $state(false);
 	/** Short scream shown while it flies, when normal lines are held back */
@@ -217,7 +222,51 @@
 	let size = 170;
 	let radius = 48;
 	let compact = false;
-	let phone = false;
+	// Under this width the mascot lives in a strip under the navbar, with its own reserved
+	// space for what it says, instead of floating over the page
+	const STRIP_BELOW = 768;
+	const STRIP_H = 84;
+	const STRIP_H_MUTED = 52;
+	let strip = $state(false);
+	let stripEl: HTMLDivElement | undefined = $state();
+	let navBottom = NAV_H;
+	/** The middle of the strip's dock: where the mascot sits on a phone */
+	let dock = { x: 52, y: NAV_H + STRIP_H / 2 };
+	const stripHeight = () => (muted ? STRIP_H_MUTED : STRIP_H);
+
+	// The page reads these two to leave room for the strip (hero padding, scroll offsets, panels)
+	function updateStripVars() {
+		navBottom = Math.round(
+			document.querySelector('.navbar')?.getBoundingClientRect().bottom ?? NAV_H
+		);
+		const h = strip && visible ? stripHeight() : 0;
+		const root = document.documentElement.style;
+		root.setProperty('--turi-nav', `${navBottom}px`);
+		root.setProperty('--turi-strip', `${h}px`);
+		dock = { x: 52, y: navBottom + stripHeight() / 2 };
+	}
+
+	function applyLayout() {
+		compact = innerWidth < 1360;
+		strip = innerWidth < STRIP_BELOW;
+		// The model fills ~78% of the box: the rest is room to lean, squash and shake
+		size = strip ? 88 : compact ? 166 : 214;
+		radius = Math.round(size * 0.25);
+		el.style.width = el.style.height = `${size}px`;
+		updateStripVars();
+	}
+
+	let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+	function onResize() {
+		clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(applyLayout, 120);
+	}
+
+	// Visible, muted or not: the strip's height changes, and with it the page's room
+	$effect(() => {
+		void [visible, muted, strip];
+		untrack(updateStripVars);
+	});
 	let section: SectionId = 'home';
 	let hits = 0;
 	let restMs = 0;
@@ -230,7 +279,8 @@
 
 	function bounds(): Bounds {
 		// clientWidth excludes the scrollbar
-		return { width: document.documentElement.clientWidth, height: innerHeight, radius, top: NAV_H };
+		const top = strip ? navBottom + stripHeight() : NAV_H;
+		return { width: document.documentElement.clientWidth, height: innerHeight, radius, top };
 	}
 
 	function anchor() {
@@ -242,11 +292,11 @@
 	}
 
 	function baseAnchor() {
+		// Phones: in the strip under the navbar, always (after a drag it goes back there)
+		if (strip) return dock;
 		const b = bounds();
 		if (placed) return { x: placed.fx * b.width, y: placed.fy * b.height };
 		const margin = size / 2 + 12;
-		// Phones: top-right, under the navbar, where it covers the least
-		if (phone) return { x: b.width - margin + 8, y: NAV_H + margin };
 		// Below ~1360px the content leaves no side margin: park in the bottom-left corner
 		if (compact) return { x: margin, y: innerHeight - margin - 12 };
 		const a = anchors[section];
@@ -454,7 +504,7 @@
 				const k = 24;
 				const c = 2 * Math.sqrt(k);
 				guest.vx += ((gx - guest.x) * k - guest.vx * c) * dt;
-				guest.vy += ((body.y - guest.y) * k - guest.vy * c) * dt;
+				guest.vy += ((guestTargetY() - guest.y) * k - guest.vy * c) * dt;
 				const v = Math.hypot(guest.vx, guest.vy);
 				if (v > GLIDE_MAX) {
 					guest.vx *= GLIDE_MAX / v;
@@ -539,6 +589,13 @@
 		if (speed > MAX) {
 			body.vx *= MAX / speed;
 			body.vy *= MAX / speed;
+		}
+		if (strip && !reducedMotion && speed < THROW_SPEED) {
+			// Carried, not thrown: on a phone it never stays over the page, it goes back to the strip
+			body.vx = body.vy = 0;
+			mode = 'returning';
+			sayRaw(pick(backLines[get(lang)]), 'normal');
+			return;
 		}
 		if (reducedMotion || speed < THROW_SPEED) {
 			// Carried, not thrown: it stays where it was put
@@ -899,8 +956,11 @@
 
 	// Where the newcomer stands: beside the one on stage, on the side with room
 	function guestTargetX() {
+		// In the strip there is no room beside it: the newcomer stands just below
+		if (strip) return Math.min(innerWidth - radius, body.x + size * 0.45);
 		return Math.max(radius, Math.min(innerWidth - radius, body.x + guestSide * size * 0.92));
 	}
+	const guestTargetY = () => (strip ? navBottom + stripHeight() + size * 0.5 : body.y);
 
 	function endSwap() {
 		guestEngine?.dispose();
@@ -956,7 +1016,7 @@
 			guestEl.style.width = guestEl.style.height = `${size}px`;
 			guestEngine = createVoxelMascot(guestCanvas, to, reducedMotion);
 			guestEngine.setExpression('happy');
-			await until(() => Math.hypot(guestTargetX() - guest.x, body.y - guest.y) < 30, 2800);
+			await until(() => Math.hypot(guestTargetX() - guest.x, guestTargetY() - guest.y) < 30, 2800);
 			if (!alive()) return;
 
 			// They greet each other
@@ -1081,11 +1141,17 @@
 			if (s) observer.observe(s);
 		}
 		raf = requestAnimationFrame(frame);
-		setTimeout(() => {
-			const s = season();
-			const line = s ? parseLine(pick(seasonLines[get(lang)][s]), 'happy') : sectionLine(section);
-			say(fill(line.text), line.face);
-		}, 900);
+		setTimeout(greet, 900);
+	}
+
+	// The first line, said once (on a phone as soon as the strip is up, else when Turi has arrived)
+	let greeted = false;
+	function greet() {
+		if (greeted) return;
+		greeted = true;
+		const s = season();
+		const line = s ? parseLine(pick(seasonLines[get(lang)][s]), 'happy') : sectionLine(section);
+		say(fill(line.text), line.face);
 	}
 
 	onMount(() => {
@@ -1096,21 +1162,19 @@
 		character = (CHARACTER_IDS as string[]).includes(saved ?? '') ? (saved as CharacterId) : 'turi';
 		visible = saved !== 'off';
 
-		compact = innerWidth < 1360;
-		phone = innerWidth < 640;
-		// The model fills ~78% of the box: the rest is room to lean, squash and shake
-		size = innerWidth < 640 ? 132 : compact ? 166 : 214;
-		radius = Math.round(size * 0.25);
-		el.style.width = el.style.height = `${size}px`;
-		// Fly in from the right edge
-		body.x = innerWidth + size;
-		body.y = innerHeight * anchors.home.y;
+		applyLayout();
+		// Fly in from the right edge (on a phone, straight into the strip)
+		body.x = strip ? dock.x : innerWidth + size;
+		body.y = strip ? -size : innerHeight * anchors.home.y;
+		// The strip has room for words before three.js is there: it doesn't stay blank
+		if (strip && visible) setTimeout(greet, 700);
 
 		// Load three.js only once the page has settled, so it never competes with first paint
 		const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1200));
 		// Saved as off: three.js loads only if the terminal brings the mascot back
 		if (visible) idle(() => void start(character), { timeout: 3000 });
 
+		window.addEventListener('resize', onResize);
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
 		window.addEventListener('scroll', onScroll, { passive: true });
 		window.addEventListener('project-open', onProjectOpen);
@@ -1126,6 +1190,9 @@
 		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
 			cancelled = true;
+			clearTimeout(resizeTimer);
+			window.removeEventListener('resize', onResize);
+			document.documentElement.style.removeProperty('--turi-strip');
 			swapToken = null;
 			guestEngine?.dispose();
 			clearInterval(idleTimer);
@@ -1185,7 +1252,35 @@
 	<div class="mascot-shout" bind:this={shoutEl} aria-hidden="true">{shout}</div>
 {/if}
 
-{#if visible && speaking && !muted}
+{#if strip && visible}
+	<div class="mascot-strip" class:is-muted={muted} bind:this={stripEl}>
+		<span class="mascot-dock" aria-hidden="true"></span>
+		<div class="mascot-say {fit}" class:is-dim={!speaking}>
+			{#if muted}
+				<p class="mascot-hint">
+					{$lang === 'it'
+						? 'Turi è in silenzio. Toccalo per riattivarlo.'
+						: 'Turi is muted. Tap him to bring him back.'}
+				</p>
+			{:else if !runs.length}
+				<p class="mascot-hint">
+					{$lang === 'it' ? 'Un attimo, assemblo i cubetti…' : 'One sec, assembling my cubes…'}
+				</p>
+			{:else}
+				<!-- The typed text is for the eyes; screen readers get the whole line once -->
+				<p aria-hidden="true">
+					{#each typedRuns as r}{#if r.bold}<strong>{r.text}</strong>{:else}{r.text}{/if}{/each}
+				</p>
+				<p class="mascot-sr" aria-live="polite">{runs.map((r) => r.text).join('')}</p>
+				<button class="mascot-mute" aria-label={$lang === 'it' ? 'Zittisci' : 'Mute'} onclick={mute}
+					>×</button
+				>
+			{/if}
+		</div>
+	</div>
+{/if}
+
+{#if visible && speaking && !muted && !strip}
 	<div class="mascot-bubble" class:is-away={traveling} bind:this={bubbleEl}>
 		<p>
 			{#each typedRuns as r}{#if r.bold}<strong>{r.text}</strong>{:else}{r.text}{/if}{/each}

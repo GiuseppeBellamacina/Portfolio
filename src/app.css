@@ -1011,3 +1011,17 @@ button:focus:not(:focus-visible) {
 		outline-offset: 2px;
 	}
 }
+
+/* Phones: Turi's strip sits under the navbar (see Mascot.svelte, which sets --turi-strip), so
+   anything that scrolls to a section stops below it */
+@media (max-width: 767px) {
+	/* The strip's room is reserved from the first paint, so it appearing moves nothing
+	   (the mascot then sets the real values; 0 if it is switched off) */
+	:root {
+		--turi-nav: 63px;
+		--turi-strip: 84px;
+	}
+	html {
+		scroll-padding-top: var(--turi-strip, 0px);
+	}
+}
