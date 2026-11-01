@@ -26,6 +26,7 @@
 		annoyedLines,
 		backTabLines,
 		konamiLines,
+		sceneLines,
 		friendLines,
 		swapLines,
 		projectsViewLines,
@@ -294,6 +295,8 @@
 	}
 
 	function baseAnchor() {
+		// A scene is directing it (leaving the stage, taking its place)
+		if (sceneGoal) return sceneGoal;
 		// Phones: in the strip under the navbar, always (after a drag it goes back there)
 		if (strip) return dock;
 		const b = bounds();
@@ -764,6 +767,12 @@
 		if (konamiKeys.length < KONAMI.length || !konamiKeys.every((k, i) => k === KONAMI[i])) return;
 		konamiKeys = [];
 		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
+		// Not only the jump: sometimes a scene (never on phones, never over another one)
+		const pickScene = oneOf(['jump', 'daft', 'falcon'] as const);
+		if (pickScene !== 'jump' && engine && !strip && !swapping && !riding) {
+			void (pickScene === 'daft' ? runDaftPunk() : runFalcon());
+			return;
+		}
 		const k = parseLine(pick(konamiLines[get(lang)]), 'star');
 		queued = { line: k.text, face: k.face };
 		playful = true;
@@ -961,15 +970,242 @@
 	let launchT = 0;
 	let launchTail = 0;
 
+	// ── Konami scenes: the DJ duo and the falcon (the swap's guest bot and flags are reused) ──
+	let sceneGoal: { x: number; y: number } | null = null;
+	let guestGoal: { x: number; y: number } | null = null;
+	let sceneSwapped = false;
+	let beatTimer: ReturnType<typeof setInterval> | undefined;
+	let synthEl: HTMLDivElement | undefined = $state();
+	let synthShown = $state(false);
+	let falconEl: HTMLDivElement | undefined = $state();
+	let falconCanvas: HTMLCanvasElement | undefined = $state();
+	let falconEngine: VoxelMascot | null = null;
+	let falconShown = $state(false);
+	let hyper = $state(false);
+
+	function sceneKit() {
+		const token = {};
+		swapToken = token;
+		swapping = true;
+		const alive = () => swapToken === token;
+		const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+		const until = async (cond: () => boolean, max: number) => {
+			const t0 = performance.now();
+			while (alive() && !cond() && performance.now() - t0 < max) await wait(60);
+		};
+		const speak = async (raw: string, fallback: Expression, who: 'main' | 'guest', ms: number) => {
+			await until(() => !traveling, 2500);
+			if (!alive()) return;
+			engine?.setTalking(false);
+			guestEngine?.setTalking(false);
+			speaker = who;
+			sayRaw(raw, fallback);
+			await wait(ms);
+		};
+		return { alive, wait, until, speak };
+	}
+
+	// Turi goes for a coffee; two helmeted bots arrive, play, and leave; Turi comes back
+	async function runDaftPunk() {
+		const { alive, wait, until, speak } = sceneKit();
+		const L = sceneLines[get(lang)].daft;
+		const other: CharacterId = character === 'turi' ? 'arancino' : 'turi';
+		try {
+			const { createVoxelMascot } = await import('./voxelEngine');
+			if (!alive()) return;
+			const home = baseAnchor();
+			const gap = size * 0.62;
+			const cx = Math.max(gap + size * 0.6, Math.min(innerWidth - gap - size * 0.6, home.x));
+			const cy = home.y;
+			// It leaves by the nearest edge and comes back disguised from the same one
+			const side = home.x > innerWidth / 2 ? 1 : -1;
+			const offX = side > 0 ? innerWidth + size : -size;
+			const gone = () => body.x < -size * 0.6 || body.x > innerWidth + size * 0.6;
+			await speak(pick(L.leave), 'smug', 'main', 2200);
+			if (!alive()) return;
+			sceneGoal = { x: offX, y: cy };
+			await until(gone, 3500);
+			if (!alive()) return;
+			speaking = false;
+
+			// The duo: the disguised one (silver) on its own side, the other bot (gold) opposite
+			sceneSwapped = true;
+			engine?.setHelmet('silver');
+			guest.x = side > 0 ? -size : innerWidth + size;
+			guest.y = cy;
+			guest.vx = guest.vy = 0;
+			const mainSpot = { x: cx + side * gap, y: cy };
+			guestGoal = { x: cx - side * gap, y: cy };
+			guestShown = true;
+			synthShown = true;
+			await tick();
+			if (!alive() || !guestCanvas || !guestEl) return abortSwap();
+			guestEl.style.width = guestEl.style.height = `${size}px`;
+			if (synthEl) {
+				synthEl.style.width = `${size * 0.95}px`;
+				synthEl.style.transform = `translate3d(${cx - size * 0.475}px, ${cy + size * 0.2}px, 0)`;
+			}
+			guestEngine = createVoxelMascot(guestCanvas, other, reducedMotion);
+			guestEngine.setHelmet('gold');
+			guestEngine.setExpression('happy');
+			sceneGoal = mainSpot;
+			engine?.setExpression('smug');
+			await until(
+				() =>
+					Math.hypot(guestGoal!.x - guest.x, guestGoal!.y - guest.y) < 30 &&
+					Math.hypot(mainSpot.x - body.x, mainSpot.y - body.y) < 30,
+				4500
+			);
+			if (!alive()) return;
+			beatTimer = setInterval(() => {
+				engine?.bump(0.22);
+				guestEngine?.bump(0.22);
+			}, 480);
+			for (const [i, raw] of L.chat.entries()) {
+				await speak(raw, 'happy', i % 2 === 0 ? 'guest' : 'main', 2600);
+				if (!alive()) return;
+			}
+			speaking = false;
+			clearInterval(beatTimer);
+
+			// They leave, the synth goes with them
+			synthShown = false;
+			sceneGoal = { x: offX, y: cy };
+			guestGoal = { x: side > 0 ? -size : innerWidth + size, y: cy };
+			await until(gone, 3500);
+			if (!alive()) return;
+			guestShown = false;
+			guestEngine?.dispose();
+			guestEngine = null;
+			guestGoal = null;
+
+			// Turi again, without the helmet, as if nothing had happened
+			engine?.setHelmet('none');
+			sceneSwapped = false;
+			sceneGoal = null;
+			await until(() => !traveling, 4000);
+			await wait(200);
+			if (!alive()) return;
+			speaker = 'main';
+			sayRaw(pick(L.back), 'worried');
+		} catch {
+			/* whatever went wrong, endSwap puts everything back */
+		}
+		endSwap();
+	}
+
+	// A Millennium-Falcon-ish ship circles the bot, then jumps to hyperspace
+	async function runFalcon() {
+		const { alive, wait, speak } = sceneKit();
+		const L = sceneLines[get(lang)].falcon;
+		try {
+			const home = baseAnchor();
+			const cx = home.x;
+			const cy = home.y;
+			falconShown = true;
+			await tick();
+			if (!falconEl || !falconCanvas) return abortSwap();
+			const el = falconEl;
+			const { createVoxelMascot } = await import('./voxelEngine');
+			if (!alive()) return;
+			const rx = size * 1.05;
+			const ry = size * 0.5;
+			const S = size * 1.7; // the ship's square canvas
+			el.style.width = el.style.height = `${S}px`;
+			falconEngine = createVoxelMascot(falconCanvas, 'falcon', reducedMotion);
+			// Seen from above and a little from the side, like a model on a desk
+			falconEngine.lookAt(150, 420);
+			void speak(pick(L.start), 'wow', 'main', 2400);
+			let a = 0;
+			let px = cx + innerWidth;
+			let py = cy;
+			let t = 0;
+			let said = false;
+			const LOOPS = 2.2 * Math.PI * 2;
+			await new Promise<void>((done) => {
+				let prev = performance.now();
+				const loop = (now: number) => {
+					if (!alive()) return done();
+					const dt = Math.min((now - prev) / 1000, 0.05);
+					prev = now;
+					t += dt;
+					a += dt * (3.6 + t * 0.9);
+					// It swoops in from far off, then settles into the orbit
+					const e = Math.min(1, t / 1.1);
+					const k = 1 - (1 - e) ** 3;
+					const x = cx + (innerWidth * 0.7 * (1 - k) + rx * k) * Math.cos(a);
+					const y = cy + ry * k * Math.sin(a) - size * 0.06;
+					const ang = (Math.atan2(y - py, x - px) * 180) / Math.PI;
+					const depth = Math.sin(a); // > 0: in front of the bot
+					el.style.zIndex = depth > 0 ? '10001' : '9999';
+					el.style.transform = `translate3d(${x - S / 2}px, ${y - S / 2}px, 0) rotate(${ang}deg) scale(${0.85 + 0.2 * depth})`;
+					falconEngine?.tick(dt * 1000, { vx: 0, vy: 0, angle: 0 });
+					px = x;
+					py = y;
+					engine?.lookAt(x - body.x, y - body.y);
+					if (!said && a > Math.PI * 2) {
+						said = true;
+						void speak(pick(L.mid), 'worried', 'main', 2000);
+					}
+					if (a >= LOOPS) return done();
+					requestAnimationFrame(loop);
+				};
+				requestAnimationFrame(loop);
+			});
+			if (!alive()) return;
+			// Straight out along its heading, faster and faster, then the jump
+			const heading = Math.atan2(py - cy, px - cx) + (Math.sin(a) >= 0 ? 1 : -1) * (Math.PI / 2);
+			const dirx = Math.cos(heading);
+			const diry = Math.sin(heading);
+			let x = px;
+			let y = py;
+			let v = 500;
+			for (let i = 0; i < 40 && alive(); i++) {
+				v *= 1.12;
+				x += dirx * v * 0.016;
+				y += diry * v * 0.016;
+				el.style.transform = `translate3d(${x - S / 2}px, ${y - S / 2}px, 0) rotate(${(heading * 180) / Math.PI}deg)`;
+				falconEngine?.tick(16, { vx: 0, vy: 0, angle: 0 });
+				await wait(16);
+			}
+			if (!alive()) return;
+			el.classList.add('is-jumping');
+			hyper = true;
+			engine?.bump(0.8);
+			engine?.setExpression('star');
+			await wait(220);
+			falconShown = false;
+			void speak(pick(L.jump), 'star', 'main', 2600);
+			await wait(1100);
+			hyper = false;
+			await wait(1600);
+		} catch {
+			/* endSwap below puts everything back */
+		}
+		endSwap();
+	}
+
 	// Where the newcomer stands: beside the one on stage, on the side with room
 	function guestTargetX() {
+		if (guestGoal) return guestGoal.x;
 		// In the strip there is no room beside it: the newcomer stands just below
 		if (strip) return Math.min(innerWidth - radius, body.x + size * 0.45);
 		return Math.max(radius, Math.min(innerWidth - radius, body.x + guestSide * size * 0.92));
 	}
-	const guestTargetY = () => (strip ? navBottom + stripHeight() + size * 0.5 : body.y);
+	const guestTargetY = () =>
+		guestGoal ? guestGoal.y : strip ? navBottom + stripHeight() + size * 0.5 : body.y;
 
 	function endSwap() {
+		if (sceneSwapped) {
+			engine?.setCharacter(character);
+			sceneSwapped = false;
+		}
+		sceneGoal = guestGoal = null;
+		synthShown = falconShown = hyper = false;
+		falconEngine?.dispose();
+		falconEngine = null;
+		clearInterval(beatTimer);
+		engine?.setHelmet('none');
 		guestEngine?.dispose();
 		guestEngine = null;
 		guestShown = false;
@@ -1254,6 +1490,24 @@
 	<div class="mascot mascot-guest" bind:this={guestEl}>
 		<canvas bind:this={guestCanvas} aria-hidden="true"></canvas>
 	</div>
+{/if}
+
+{#if synthShown}
+	<div class="mascot-synth" bind:this={synthEl} aria-hidden="true">
+		<span class="knobs"></span>
+		<span class="leds"><i></i><i></i><i></i><i></i><i></i></span>
+		<span class="keys"></span>
+	</div>
+{/if}
+
+{#if falconShown}
+	<div class="mascot-falcon" bind:this={falconEl} aria-hidden="true">
+		<canvas bind:this={falconCanvas}></canvas>
+	</div>
+{/if}
+
+{#if hyper}
+	<div class="mascot-hyper" aria-hidden="true"></div>
 {/if}
 
 {#if visible && shout}

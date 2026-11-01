@@ -25,6 +25,7 @@ import {
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {
 	CHARACTERS,
+	falcon,
 	BLINKS,
 	EXPRESSIONS,
 	TEAR_DROP,
@@ -47,7 +48,7 @@ export interface Motion {
 }
 
 export interface VoxelMascot {
-	setCharacter(id: CharacterId): void;
+	setCharacter(id: CharacterId | 'falcon'): void;
 	setExpression(e: Expression): void;
 	setTalking(on: boolean): void;
 	/** Held by the user: turns red, shakes and throws off sparks */
@@ -62,11 +63,14 @@ export interface VoxelMascot {
 	setThrust(on: boolean): void;
 	/** A gag for the muted bot: tape over the mouth, a crossed-out speaker, or powered off */
 	setGag(g: Gag): void;
+	/** A chrome helmet with a visor cut-out (the two robots of the Daft Punk scene) */
+	setHelmet(h: Helmet): void;
 	refreshColors(): void;
 	tick(dtMs: number, motion: Motion): void;
 	dispose(): void;
 }
 
+export type Helmet = 'none' | 'gold' | 'silver';
 export type Gag = 'none' | 'tape' | 'speaker' | 'off';
 
 // Faces for the gags (the lit cells replace the whole face)
@@ -91,7 +95,7 @@ const ROCKET_ROWS: [number, number, string][] = [
 
 export function createVoxelMascot(
 	canvas: HTMLCanvasElement,
-	character: CharacterId,
+	character: CharacterId | 'falcon',
 	reducedMotion: boolean
 ): VoxelMascot {
 	const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -168,6 +172,10 @@ export function createVoxelMascot(
 	let rocket: InstancedMesh | null = null;
 	let rocketOn = false;
 	let gag: Gag = 'none';
+	let helmetKind: Helmet = 'none';
+	let helmet: InstancedMesh | null = null;
+	let bodyMin = new Vector3();
+	let bodyMax = new Vector3();
 	let tape: InstancedMesh | null = null;
 	// Powered off: it topples sideways (fall: 0 upright .. 1 on its side), with a little bounce
 	let fall = 0;
@@ -182,10 +190,10 @@ export function createVoxelMascot(
 		return getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
 	}
 
-	let currentId = character;
+	let currentId: CharacterId | 'falcon' = character;
 	let currentHat: Hat = 'propeller';
 
-	function build(id: CharacterId) {
+	function build(id: CharacterId | 'falcon') {
 		if (mesh) {
 			body.remove(mesh);
 			mesh.dispose();
@@ -195,9 +203,14 @@ export function createVoxelMascot(
 			tape.dispose();
 			tape = null;
 		}
+		if (helmet) {
+			body.remove(helmet);
+			helmet.dispose();
+			helmet = null;
+		}
 		currentId = id;
 		currentHat = hatFor(document.body.classList);
-		model = CHARACTERS[id](currentHat);
+		model = id === 'falcon' ? falcon() : CHARACTERS[id](currentHat);
 		const vs = model.voxels;
 		const min = new Vector3(Infinity, Infinity, Infinity);
 		const max = new Vector3(-Infinity, -Infinity, -Infinity);
@@ -225,6 +238,9 @@ export function createVoxelMascot(
 		spinning = vs.flatMap((v, i) => (v.spin ? [i] : []));
 		cells = faceCells(model);
 		buildTape();
+		bodyMin = min;
+		bodyMax = max;
+		buildHelmet();
 		// Voxels with an open neighbour emit the sparkles
 		const taken = new Set(vs.map((v) => `${v.x},${v.y},${v.z}`));
 		surface = vs
@@ -267,6 +283,71 @@ export function createVoxelMascot(
 		rocket.visible = rocketOn;
 		body.add(rocket);
 		nozzle.set(0, bottomY - 8 - center.y, 0);
+	}
+
+	// A rounded helmet around the body: a dome with a wide visor window across the front
+	// (the bot's own screen shows through), a disc with a hole over each ear, and a chin.
+	// Gold has a black front dome, silver is all chrome
+	function buildHelmet() {
+		if (helmet) {
+			body.remove(helmet);
+			helmet.dispose();
+			helmet = null;
+		}
+		if (helmetKind === 'none') return;
+		const taken = new Set(model.voxels.map((v) => `${v.x},${v.y},${v.z}`));
+		const cx = (bodyMin.x + bodyMax.x) / 2;
+		const cy = (bodyMin.y + bodyMax.y) / 2;
+		const cz = (bodyMin.z + bodyMax.z) / 2;
+		const ax = ((bodyMax.x - bodyMin.x) / 2) * 1.14 + 1.3;
+		const ay = ((bodyMax.y - bodyMin.y) / 2) * 1.14 + 1.3;
+		const az = ((bodyMax.z - bodyMin.z) / 2) * 1.14 + 1.3;
+		const P = 5;
+		const len = (x: number, y: number, z: number, k: number) =>
+			Math.abs((x - cx) / (ax - k)) ** P +
+			Math.abs((y - cy) / (ay - k)) ** P +
+			Math.abs((z - cz) / (az - k)) ** P;
+		const gold = helmetKind === 'gold';
+		const metal = gold ? '#d6a72a' : '#c9ced8';
+		const visorTop = model.face.y0 + 1.6;
+		const visorBottom = model.face.y0 - 5.2;
+		const cs: { x: number; y: number; z: number; c: string }[] = [];
+		const seen = new Set<string>();
+		const add = (x: number, y: number, z: number, c: string) => {
+			const k = `${x},${y},${z}`;
+			if (taken.has(k) || seen.has(k)) return;
+			seen.add(k);
+			cs.push({ x, y, z, c });
+		};
+		for (let x = Math.floor(cx - ax); x <= Math.ceil(cx + ax); x++)
+			for (let y = Math.floor(cy - ay); y <= Math.ceil(cy + ay); y++)
+				for (let z = Math.floor(cz - az); z <= Math.ceil(cz + az); z++) {
+					if (len(x, y, z, 0) > 1 || len(x, y, z, 1.2) <= 1) continue;
+					const front = z - cz > az * 0.15;
+					if (front && y > visorBottom && y < visorTop && Math.abs(x - cx) < ax * 0.93) continue;
+					// Gold: the dome above the visor is black, like the real one
+					add(x, y, z, gold && front && y >= visorTop ? '#17171d' : metal);
+				}
+		// Ear discs: a thick ring with an empty middle, on both sides
+		for (const side of [-1, 1])
+			for (const off of [-0.2, 0.8]) {
+				const x = Math.round(cx + side * (ax + off));
+				for (let y = Math.floor(model.face.y0 - 6); y <= model.face.y0 + 2; y++)
+					for (let z = Math.floor(cz - 5); z <= Math.ceil(cz + 4); z++) {
+						const r = Math.hypot(y - (model.face.y0 - 2), z - (cz - 0.5));
+						if (r >= 1.8 && r <= 3.6) add(x, y, z, gold ? '#caa023' : '#aeb4c0');
+					}
+			}
+		helmet = new InstancedMesh(voxelGeo, voxelMat, cs.length);
+		dummy.rotation.set(0, 0, 0);
+		dummy.scale.setScalar(1);
+		cs.forEach((v, i) => {
+			dummy.position.set(v.x - center.x, v.y - center.y, v.z - center.z);
+			dummy.updateMatrix();
+			helmet!.setMatrixAt(i, dummy.matrix);
+			helmet!.setColorAt(i, color.set(v.c).offsetHSL(0, 0, (hash3(v.x, v.y, v.z) - 0.5) * 0.09));
+		});
+		body.add(helmet);
 	}
 
 	// A strip of grey duct tape across the mouth, a hair crooked, floating just off the face
@@ -509,6 +590,11 @@ export function createVoxelMascot(
 			}
 			paint();
 		},
+		setHelmet(h) {
+			if (h === helmetKind) return;
+			helmetKind = h;
+			buildHelmet();
+		},
 		setRocket(on) {
 			rocketOn = on;
 			if (rocket) rocket.visible = on;
@@ -595,6 +681,7 @@ export function createVoxelMascot(
 			mesh?.dispose();
 			rocket?.dispose();
 			tape?.dispose();
+			helmet?.dispose();
 			voxelGeo.dispose();
 			voxelMat.dispose();
 			sparkGeo.dispose();
