@@ -197,6 +197,54 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 	}
 };
 
+// The experience cards, in the order of the timeline: it comments each one as you scroll past
+export const experienceLines: Lines<string[][]> = {
+	it: [
+		[
+			'tired|La **magistrale** in ML e AI, **mentre lavora**. Dormire? **Domanda sbagliata.**',
+			'star|**Studia ancora**: ogni corso nuovo diventa **un’idea per il sito**. Lo so, **lo so**.'
+		],
+		[
+			'smug|Qui **agenti, RAG e grafi**: roba da gente seria. Io faccio **la mascotte**.',
+			'wink|Sistemi **production-ready**, dice. Il mio ultimo deploy è stato **un refresh**.'
+		],
+		[
+			'think|Due anni tra **turbine eoliche** e **anomalie**. Io, tra le anomalie, **mi sento a casa**.',
+			'smug|Prevedere i guasti delle turbine **gli riesce**. Prevedere i suoi weekend, **no**.'
+		],
+		[
+			'wink|La **triennale** a Catania: dove ha scoperto che **il codice si rompe in modi creativi**.',
+			'shy|Informatica a **Catania**. Qui ha iniziato a dire **“ho un’idea”**. Non ha più smesso.'
+		],
+		[
+			'love|Il **liceo**! Prima dei commit, **prima dei bot**. Prima di **me**. Che tempi.',
+			'star|**Archimede**: “Eureka!”. È lo stesso grido che fa lui **alle 3 di notte**.'
+		]
+	],
+	en: [
+		[
+			'tired|The **master’s** in ML and AI, **while working**. Sleep? **Wrong question.**',
+			'star|**He’s still studying**: every new course becomes **an idea for the site**. I know, **I know**.'
+		],
+		[
+			'smug|Here, **agents, RAG and graphs**: serious stuff. I’m **the mascot**.',
+			'wink|**Production-ready** systems, he says. My last deploy was **a refresh**.'
+		],
+		[
+			'think|Two years among **wind turbines** and **anomalies**. Among anomalies, **I feel at home**.',
+			'smug|Predicting turbine failures, **he manages**. Predicting his own weekends, **no**.'
+		],
+		[
+			'wink|The **bachelor’s** in Catania: where he found out **code breaks in creative ways**.',
+			'shy|Computer science in **Catania**. This is where he started saying **“I have an idea”**. He never stopped.'
+		],
+		[
+			'love|**High school**! Before commits, **before bots**. Before **me**. What times.',
+			'star|**Archimede**: “Eureka!”. The same cry he makes **at 3 a.m.**'
+		]
+	]
+};
+
 // One line per project, keyed by title; used by the carousel and when a project is opened
 export const projectLines: Lines<Record<string, string>> = {
 	it: {
@@ -570,7 +618,16 @@ export const clickLines: Lines<string[]> = {
 		'tired|Ieri notte mi ha aggiunto una funzione. Io volevo solo **stare fermo**.',
 		'tired|Ho smesso di chiedere “perché”. La risposta è sempre **“mi è venuta un’idea”**.',
 		'smug|Il mio hobby preferito? **Non essere riscritto.**',
-		'tired|Sai qual è la differenza tra me e lui? **Io almeno vado in standby.**'
+		'tired|Sai qual è la differenza tra me e lui? **Io almeno vado in standby.**',
+		'love|Mi hai toccato col **dito giusto**. Resta lì, **mi piace**.',
+		'happy|Ehi, **ciao**! Sapevo che prima o poi mi avresti **cliccato**.',
+		'shy|Mi fai **arrossire**. Se avessi una faccia con la pelle.',
+		'think|Mi chiedo se **un bot possa avere le vertigini**. Risposta: **sì**.',
+		'wink|Dicono che **urlo bene**. Prova a lanciarmi… ma **piano**!',
+		'tired|Giuseppe ha detto “**solo un ultimo deploy**”. Lo scrivo qui così lo ricordo: **era mezzanotte**.',
+		'sad|Sai cosa fa un bot quando nessuno lo tocca? **Fluttua.** E pensa a cosa gli farà fare Giuseppe **domani**.',
+		'smug|Il **trucco** per essere un bot felice? **Non leggere i commenti nel codice**.',
+		'star|Ho **diciotto espressioni**. Giuseppe, davanti a una review, **ne ha una sola**.'
 	],
 	en: [
 		'wink|**No tickling!**',
@@ -585,7 +642,16 @@ export const clickLines: Lines<string[]> = {
 		'tired|Last night he added a feature to me. I just wanted to **stay still**.',
 		'tired|I stopped asking “why”. The answer is always **“I had an idea”**.',
 		'smug|My favourite hobby? **Not getting rewritten.**',
-		'tired|Know the difference between him and me? **I at least go on standby.**'
+		'tired|Know the difference between him and me? **I at least go on standby.**',
+		'love|You touched me with **just the right finger**. Stay there, **I like it**.',
+		'happy|Hey, **hi**! I knew you’d **click me** sooner or later.',
+		'shy|You’re making me **blush**. If I had a face with skin.',
+		'think|I wonder if **a bot can get vertigo**. Answer: **yes**.',
+		'wink|They say **I scream well**. Try throwing me… but **gently**!',
+		'tired|Giuseppe said “**just one last deploy**”. I’m writing it down so I remember: **it was midnight**.',
+		'sad|Know what a bot does when nobody touches it? **Floats.** And wonders what Giuseppe will make it do **tomorrow**.',
+		'smug|The **trick** to being a happy bot? **Don’t read the comments in the code**.',
+		'star|I have **eighteen expressions**. Giuseppe, facing a code review, has **one**.'
 	]
 };
 
@@ -660,7 +726,11 @@ export const ideaLines: Lines<string[]> = {
 		'sad|Ogni volta che aggiunge una feature, io peso **un cubetto in più**.',
 		'worried|“Ci vogliono **cinque minuti**”: la frase più pericolosa del sito.',
 		'tired|Gli ho chiesto di fare una pausa. Ha aperto **un altro progetto**.',
-		'sad|Se un giorno sparisco, **cercatemi in un branch dimenticato**.'
+		'sad|Se un giorno sparisco, **cercatemi in un branch dimenticato**.',
+		'tired|Ha detto “**stasera stacco presto**”. Ho segnato l’ora sul mio diario di bordo: **mai**.',
+		'worried|Gli è venuta **un’idea** mentre mi spiegava **un’altra idea**. Io sono **la terza**.',
+		'sad|La sua lista delle idee **cresce più in fretta** di quella dei progetti finiti. Lo dico con **affetto**.',
+		'smug|Ogni volta che dice “**questa volta faccio le cose bene**”, io **apro una scommessa**.'
 	],
 	en: [
 		'worried|When he says “**I have an idea**”, I save everything. Instinct.',
@@ -670,7 +740,11 @@ export const ideaLines: Lines<string[]> = {
 		'sad|Every time he adds a feature, I weigh **one more cube**.',
 		'worried|“It’ll take **five minutes**”: the most dangerous sentence on this site.',
 		'tired|I asked him to take a break. He opened **another project**.',
-		'sad|If I ever vanish, **look for me in a forgotten branch**.'
+		'sad|If I ever vanish, **look for me in a forgotten branch**.',
+		'tired|He said “**I’ll call it a night early**”. I wrote the time in my logbook: **never**.',
+		'worried|He got **an idea** while explaining **another idea** to me. I’m **the third**.',
+		'sad|His list of ideas **grows faster** than his list of finished projects. I say it **fondly**.',
+		'smug|Every time he says “**this time I’ll do it properly**”, I **open a bet**.'
 	]
 };
 
@@ -684,7 +758,11 @@ export const idleLines: Lines<string[]> = {
 		'sleepy|Io **non dormo**. Ma sogno ad occhi aperti un deploy tranquillo.',
 		'wink|Mi annoio. Qualcuno **mi lanci**, per favore. Piano. Ma lanciami.',
 		'smug|Se ti serve qualcosa, **clicca un progetto**: lì ho opinioni.',
-		'tired|Lui ha detto “torno subito”. **Sono passati tre sprint.**'
+		'tired|Lui ha detto “torno subito”. **Sono passati tre sprint.**',
+		'wink|Se resti ancora un po’, **ti assumo come compagnia**. Paga: **cubetti**.',
+		'think|Sto riflettendo sul **senso dell’esistenza**. Poi mi ricordo che ho **una sezione da commentare**.',
+		'sleepy|Mi sento un po’ **pesante**. Sarà il cappello… no, sono **i cubetti** in più.',
+		'smug|Sai che **le idee migliori arrivano sotto la doccia**? A lui **anche di notte**.'
 	],
 	en: [
 		'wink|Hey, still there? I’m **floating** meanwhile. It’s my job.',
@@ -694,7 +772,11 @@ export const idleLines: Lines<string[]> = {
 		'sleepy|I **don’t sleep**. But I daydream about a quiet deploy.',
 		'wink|I’m bored. Someone **throw me**, please. Gently. But throw me.',
 		'smug|If you need something, **click a project**: I have opinions there.',
-		'tired|He said “back in a minute”. **That was three sprints ago.**'
+		'tired|He said “back in a minute”. **That was three sprints ago.**',
+		'wink|If you stay a bit longer, **I’ll hire you as company**. Pay: **cubes**.',
+		'think|I’m pondering **the meaning of existence**. Then I remember I have **a section to comment**.',
+		'sleepy|I feel a bit **heavy**. Must be the hat… no, it’s **the extra cubes**.',
+		'smug|Did you know **the best ideas come in the shower**? For him **at night too**.'
 	]
 };
 
