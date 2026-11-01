@@ -22,6 +22,7 @@
 		ideaLines,
 		idleLines,
 		streakLines,
+		annoyedLines,
 		backTabLines,
 		konamiLines,
 		friendLines,
@@ -548,6 +549,7 @@
 
 	// Taps in a row (each within 2.5 s of the last) end in a line of their own
 	let tapStreak = 0;
+	let calmTimer: ReturnType<typeof setTimeout> | undefined;
 	let lastTap = 0;
 	let totalTaps = 0;
 
@@ -564,10 +566,24 @@
 		lastTap = now;
 		totalTaps++;
 		const l = get(lang);
-		const streak = streakLines[l][tapStreak];
-		if (streak) {
+		const streakVariants = streakLines[l][tapStreak];
+		if (streakVariants) {
+			const streak = oneOf(streakVariants);
+			if (streak.anger) {
+				// Red and sparky for a few seconds, then it cools down on its own
+				engine?.setAngry(true);
+				clearTimeout(calmTimer);
+				calmTimer = setTimeout(() => {
+					if (!dragging) engine?.setAngry(false);
+				}, 3600);
+			}
 			say(streak.text, streak.face);
-			if (tapStreak >= 15) tapStreak = 0;
+			if (tapStreak >= 14) tapStreak = 0;
+			return;
+		}
+		// Between milestones, past the fifth tap, it has had enough
+		if (tapStreak > 5) {
+			say(pick(annoyedLines[l]), tapStreak > 8 ? 'angry' : oneOf(['angry', 'worried']));
 			return;
 		}
 		const s = season();
@@ -1069,6 +1085,7 @@
 			window.removeEventListener('projects-view', onProjectsView);
 			window.removeEventListener('back-to-top', onBackToTop);
 			clearTimeout(rideTimer);
+			clearTimeout(calmTimer);
 			window.removeEventListener('mascot-set', onMascotSet);
 			window.removeEventListener('keydown', onKey);
 			window.removeEventListener('pointerdown', onActivity);

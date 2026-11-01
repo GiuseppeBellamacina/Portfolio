@@ -674,30 +674,94 @@ export const idleLines: Lines<string[]> = {
 	]
 };
 
-// Repeated taps: the Nth tap in a row (each gap under 2.5 s) gets its own line
-export const streakLines: Lines<Record<number, Line>> = {
+// Repeated taps (each within 2.5 s of the last): the Nth one in a row gets a line of its own.
+// `anger` turns it red and sparky for a few seconds
+export type StreakLine = Line & { anger?: boolean };
+export const streakLines: Lines<Record<number, StreakLine[]>> = {
 	it: {
-		5: { text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'shy' },
-		10: {
-			text: '**Dieci tocchi.** Sembri Giuseppe con **un’idea**: non ti ferma più nessuno.',
-			face: 'angry'
-		},
-		15: {
-			text: 'Ho il **cubo che gira**. Ti prego, **una pausa**. Un caffè. Qualunque cosa.',
-			face: 'tired'
-		}
+		5: [{ text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'shy' }],
+		8: [
+			{
+				text: 'Ti avverto: se continui **ti denuncio**. Per molestie. A un bot.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: '**Ultimo avviso**: un altro tocco e chiamo **il mio avvocato**. È un thread di Stack Overflow, ma fa paura.',
+				face: 'angry',
+				anger: true
+			}
+		],
+		11: [
+			{
+				text: 'Fatto: **ordine restrittivo**. Dieci metri dal mio cursore. Anzi, dal mio **localhost**.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'Ho depositato **richiesta di ordine restrittivo**. Il giudice è un **cron job**, ma è severo.',
+				face: 'angry',
+				anger: true
+			}
+		],
+		14: [
+			{
+				text: 'Ho il **cubo che gira**. Ti prego, **una pausa**. Un caffè. Qualunque cosa.',
+				face: 'tired'
+			}
+		]
 	},
 	en: {
-		5: { text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'shy' },
-		10: {
-			text: '**Ten taps.** You’re like Giuseppe with **an idea**: nobody can stop you.',
-			face: 'angry'
-		},
-		15: {
-			text: 'My **cube is spinning**. Please, **a break**. A coffee. Anything.',
-			face: 'tired'
-		}
+		5: [{ text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'shy' }],
+		8: [
+			{
+				text: 'I’m warning you: keep going and **I’ll sue**. For harassment. Of a bot.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: '**Final warning**: one more tap and I’m calling **my lawyer**. It’s a Stack Overflow thread, but it’s scary.',
+				face: 'angry',
+				anger: true
+			}
+		],
+		11: [
+			{
+				text: 'Done: **restraining order**. Ten metres from my cursor. Make that, from my **localhost**.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'I’ve filed for a **restraining order**. The judge is a **cron job**, but a strict one.',
+				face: 'angry',
+				anger: true
+			}
+		],
+		14: [
+			{
+				text: 'My **cube is spinning**. Please, **a break**. A coffee. Anything.',
+				face: 'tired'
+			}
+		]
 	}
+};
+
+// The taps between the streak milestones, once it has had enough
+export const annoyedLines: Lines<string[]> = {
+	it: [
+		'**Basta!**',
+		'Ancora?!',
+		'Non è un **campanello**!',
+		'Smettila, sul serio.',
+		'Ehi! **Mani a posto.**'
+	],
+	en: [
+		'**Stop it!**',
+		'Again?!',
+		'I’m not a **doorbell**!',
+		'Stop, seriously.',
+		'Hey! **Hands to yourself.**'
+	]
 };
 
 // When the visitor comes back to the tab after more than a minute
