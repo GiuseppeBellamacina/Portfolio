@@ -1262,7 +1262,12 @@ export const arancinoLines: Lines<{
 			'happy|Se mi tocchi ancora, ti offro un pezzo. Sono generoso. Forse.',
 			'smug|**Camurria** è la parola che serve per tutto. Anche per un deploy che non parte.',
 			'smug|Hai cliccato un arancinu e ti senti qualcuno? **T’immùcchi quattru**, **mbare**.',
-			'wink|Ti credi di essere il primo che mi tocca? **T’immùcchi quattru**.'
+			'wink|Ti credi di essere il primo che mi tocca? **T’immùcchi quattru**.',
+			'wink|Qui a **Catania** il futuro lo leggono **Il mago Giusa**, che **non ha confronti**, e **Madame Sahara**. Io leggo solo **il ragù**.',
+			'smug|**Il mago Giusa** da **Santa Venerina** ti aiuta in **amore, fortuna e affari**. Io ti aiuto a cliccare, che è già qualcosa.',
+			'think|**Madame Sahara** ha **il verolibro del ’500**. Io ho **un ragù del ’900**. Chi vince?',
+			'happy|Hai visto i manifesti di **Giusa** su ogni palo della Sicilia? Io non vado sui pali: sono troppo fritto.',
+			'love|**Madame Sahara**, la maga più preparata dell’epoca. Io sono **l’arancinu più preparato** dell’epoca. Ci siamo capiti.'
 		],
 		idle: [
 			'sleepy|**Che camurria**, questo silenzio. Parlami, **minchia**.',
@@ -1271,7 +1276,9 @@ export const arancinoLines: Lines<{
 			'sad|Mi manca **a Muntagna**. Da qui non si vede.',
 			'smug|Giuseppe lo sa: **l’arancinu è maschio**, a **Catania**. Poi ognuno ha le sue opinioni.',
 			'tired|**Mizzica**, che silenzio. Quasi quasi mi friggo da solo.',
-			'happy|**Ammuninni**, dai: clicca qualcosa, non ti mangio. Per ora.'
+			'happy|**Ammuninni**, dai: clicca qualcosa, non ti mangio. Per ora.',
+			'think|Mi sa che **Madame Sahara** riceve solo per appuntamento. Io no: tocca, che ti rispondo.',
+			'smug|Sento che oggi vedrai qualcosa di bello. **Lo dice il mago Giusa**, non io.'
 		],
 		angry: [
 			'angry|**Ma tu u sai cu su i cristiani?** Mi tratti così, a me?',
@@ -1322,7 +1329,12 @@ export const arancinoLines: Lines<{
 			'happy|If you tap me again, I’ll offer you a piece. I’m generous. Maybe.',
 			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.',
 			'smug|You clicked an arancinu and you feel like somebody? **T’immùcchi quattru**, **mbare**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
-			'wink|You think you’re the first one to tap me? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)'
+			'wink|You think you’re the first one to tap me? **T’immùcchi quattru**. (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
+			'wink|Here in **Catania** the future is read by **Il mago Giusa**, who “has no rivals”, and **Madame Sahara**. I only read **the ragù**.',
+			'smug|**Il mago Giusa**, from **Santa Venerina**, helps you in love, luck and business. I help you click, which is something.',
+			'think|**Madame Sahara** owns the real 1500s book. I own **a 1900s ragù**. Who wins?',
+			'happy|Have you seen **Giusa’s** posters on every pole in Sicily? I don’t go on poles: I’m too fried.',
+			'love|**Madame Sahara**, “the best-prepared sorceress of the age”. I’m **the best-prepared arancinu** of the age. We understand each other.'
 		],
 		idle: [
 			'sleepy|**What a camurria**, this silence. Talk to me, **minchia**.',
@@ -1331,7 +1343,9 @@ export const arancinoLines: Lines<{
 			'sad|I miss **a Muntagna**. You can’t see it from here.',
 			'smug|Giuseppe knows: **the arancinu is masculine**, in **Catania**. Then everyone has their opinions.',
 			'tired|**Mizzica**, such silence. I might fry myself.',
-			'happy|**Ammuninni**, come on: click something, I won’t eat you. For now.'
+			'happy|**Ammuninni**, come on: click something, I won’t eat you. For now.',
+			'think|I think **Madame Sahara** sees by appointment only. I don’t: tap me, I’ll answer.',
+			'smug|I feel something nice will happen to you today. **Il mago Giusa says so**, not me.'
 		],
 		angry: [
 			'angry|**Ma tu u sai cu su i cristiani?** (Do you know who people are?) And you put me down like this, me?',
