@@ -657,3 +657,32 @@
 .hero .social-links a {
 	filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.8));
 }
+
+/* Phones: a quiet cue at the bottom of the hero, so the lower part doesn't feel empty */
+.scroll-cue {
+	display: none;
+}
+@media (max-width: 768px) {
+	.scroll-cue {
+		display: block;
+		position: absolute;
+		left: 50%;
+		bottom: 1.1rem;
+		translate: -50% 0;
+		color: var(--primary-color);
+		opacity: 0.7;
+		font-size: 1.1rem;
+		animation: cueBob 2.4s ease-in-out infinite;
+	}
+}
+@keyframes cueBob {
+	50% {
+		transform: translateY(6px);
+		opacity: 0.35;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.scroll-cue {
+		animation: none;
+	}
+}

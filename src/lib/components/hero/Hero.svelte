@@ -306,4 +306,7 @@
 			</a>
 		</div>
 	</div>
+	<a href="#about" class="scroll-cue" aria-hidden="true" tabindex="-1">
+		<i class="fas fa-chevron-down"></i>
+	</a>
 </section>
