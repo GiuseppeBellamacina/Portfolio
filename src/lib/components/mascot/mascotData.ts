@@ -1320,7 +1320,7 @@ export const arancinoLines: Lines<{
 			'wink|**Mbare**, sei ansioso per qualcosa? Ma **futtitinni** ca è **a megghiu cosa**.',
 			'love|**Ni ni emu** na via **Plebiscito** e **n’ammuccamu** na bella **puppetta i cavaddu**?',
 			'smug|**Mbare**, tu sughi un **seltz limone e sale**?',
-			"smug|**Mbare**, ma tu u sai ca a Catania ti po' fari l'**aperigrigliata** chiù **super pistacchiosa** do munnu?",
+			"smug|**Mbare**, ma tu u sai ca a Catania ti po' fari l'**aperigrigliata** chiù **super pistacchiosa** do munnu? Pistacchio di **Bronte**, ovviamente.",
 			'smug|**Liotru** è l’elefante, io sono l’**arancinu**. A **Catania** abbiamo i simboli giusti.',
 			'wink|Mi chiamano **carusu**, ma sono croccante dentro e fuori. Il cuore è tenero.',
 			'think|Sto pensando a **a Fera ’o Luni**. Anche a stomaco pieno.',
@@ -1386,17 +1386,17 @@ export const arancinoLines: Lines<{
 			'love|Inside I have ragù and peas. Outside, lots of class. I’m Catanese, what did you expect?',
 			'shy|If you ever go to **Catania**, stop by **Sant’Aituzza**. Then thank me.',
 			'happy|**Avaia**, you again? I like you, **mbare**. But don’t tell anyone.',
-			'wink|**Mbare**, are you anxious about something? But **futtitinni** (don’t care), it’s **a megghiu cosa** (the best thing).',
+			'wink|**Mbare**, are you anxious about something? **Futtitinni** (don’t care), it’s **a megghiu cosa** (the best thing).',
 			'love|**Ni ni emu** na via **Plebiscito** e **n’ammuccamu** na bella **puppetta i cavaddu**? (Shall we go to Via Plebiscito and eat a nice horse meatball?)',
-			'smug|**Mbare**, tu sughi un **seltz limone e sale**? (Having a seltz, lemon and salt?)',
-			"smug|**Mbare**, ma tu u sai ca a Catania ti po' fari l'**aperigrigliata** chiù **super pistacchiosa** do munnu? (Do you know that in Catania you can have the most super pistachio-y aperitif-grill in the world?)",
+			'smug|**Mbare**, do you want a **seltz limone e sale**?',
+			'smug|**Mbare**, do you know that in Catania you can have the most **super pistachio-y aperitif-grill** in the world? From **Bronte** obviously.',
 			'smug|**Liotru** is the elephant, I’m the **arancinu**. In **Catania** we have the right symbols.',
 			'wink|They call me **carusu**, but I’m crunchy inside and out. The heart is tender.',
 			'think|I’m thinking about **a Fera ’o Luni**. Even on a full stomach.',
 			'happy|If you tap me again, I’ll offer you a piece. I’m generous. Maybe.',
 			'smug|**Camurria** is the word you need for everything. Even a deploy that won’t start.',
-			'love|**SEMU TUTTI DEVOTI TUTTI**!!! (We are all devotees, all of us: the cry of the Sant’Agata feast.)',
-			'smug|**Mbare**, who do you think you are? **T’immùcchi quattru**? (Literally “you eat four of them”: stop boasting, there’s nothing to be proud of.)',
+			'love|**WE ARE ALL DEVOTED ALL**!!! (the cry of the Sant’Agata feast)',
+			'smug|**Mbare**, who do you think you are? **T’immùcchi quattru**?',
 			'wink|Here in **Catania** the future is read by **Il mago Giusa**, who “has no rivals”, and **Madame Sahara**. I only read **the ragù**.',
 			'smug|**Il mago Giusa**, from **Santa Venerina**, helps you in love, luck and business. I help you click, which is something.',
 			'think|**Madame Sahara** owns the real 1500s book. I own **a 2000s ragù**. Who wins?',
@@ -1416,7 +1416,7 @@ export const arancinoLines: Lines<{
 			'smug|I feel something nice will happen to you today. **Il mago Giusa says so**, not me.'
 		],
 		angry: [
-			'angry|**Ma tu u sai cu su i cristiani?** (Do you know who people are?) And you put me down like this, me?',
+			'angry|**Do you know who people are?** And you put me down like this, me?',
 			'angry|**Mammoriri me omà!** I’ll split you in two, like **an arancinu**!',
 			'angry|**Avaia**, let go! I’m crumbling!',
 			'angry|**Mizzica**, **mbare**! Put me down, or I’ll show you!',
@@ -1424,7 +1424,7 @@ export const arancinoLines: Lines<{
 			'angry|They told you not to touch an arancinu? And you just go “**ti ni futti**” (you couldn’t care less), right? Now you’ll see.',
 			'angry|**What a camurria**! Enough! I’ll show you, **Catania** is no joke!',
 			'angry|I smoke like **a Muntagna**, careful. When I erupt, the damage is not small.',
-			'angry|**Mbare**, viri ca ti fazzu avvulari a **Nicolosi**! (Watch it, I’ll make you fly all the way to Nicolosi, a town on the slopes of Etna!)'
+			'angry|**Watch it**, I’ll make you fly all the way to **Nicolosi**!'
 		],
 		hit: [
 			'angry|**Mizzica**, what a bump!',
@@ -1433,7 +1433,7 @@ export const arancinoLines: Lines<{
 			'angry|**Avaia**, gently! I’m crunchy, not indestructible!',
 			'angry|Who did it? **Cu fu?** Everyone will hear me!',
 			'dizzy|What the… **Catania** didn’t prepare me for this.',
-			'angry|**Facci i minchia**, mi siddiai, ni viremu o **Librinu**! (You jerk, I’ve had enough, see you at Librino, the rough district of Catania!)'
+			'angry|**You jerk**, I’ve had enough, see you at **Librino**!'
 		],
 		annoyed: [
 			'angry|**Enough, what a camurria!** Are you killing my mood?',
@@ -1443,7 +1443,7 @@ export const arancinoLines: Lines<{
 			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.'
 		],
 		konami: [
-			'smug|You found the secret code and feel like a genius? **U sacciu ca t’aiutau u mago Giusa** (I know Mago Giusa helped you), but I’m stronger than him.'
+			'smug|You found the secret code and feel like a genius? **I know Mago Giusa helped you**, but I’m stronger than him.'
 		]
 	}
 };
