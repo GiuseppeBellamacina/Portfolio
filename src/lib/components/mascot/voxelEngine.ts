@@ -78,29 +78,30 @@ const GAG_FACES: Record<Exclude<Gag, 'none'>, string[]> = {
 	off: ['.......', '.......', '.......', '.......', '.......']
 };
 
-// Shimmer by mood: events per second, lightness shift, hue shift (swing: either way)
+// Shimmer by mood: pulses per second, lightness shift, hue shift, share of the cap of voxels
+// shimmering at once (swing: the hue goes either way)
 const SHIMMER: Partial<
-	Record<Expression, { rate: number; dl: number; dh: number; swing?: boolean }>
+	Record<Expression, { rate: number; dl: number; dh: number; share: number; swing?: boolean }>
 > & {
-	normal: { rate: number; dl: number; dh: number; swing?: boolean };
+	normal: { rate: number; dl: number; dh: number; share: number; swing?: boolean };
 } = {
-	normal: { rate: 2.5, dl: 0.06, dh: 0.01 },
-	happy: { rate: 5, dl: 0.09, dh: 0.02 },
-	love: { rate: 6, dl: 0.08, dh: 0.05 },
-	star: { rate: 7, dl: 0.12, dh: 0.03 },
-	wow: { rate: 6, dl: 0.1, dh: 0 },
-	wink: { rate: 4, dl: 0.08, dh: 0.02 },
-	talk: { rate: 3, dl: 0.06, dh: 0.01 },
-	smug: { rate: 3, dl: 0.06, dh: 0.02 },
-	shy: { rate: 3, dl: 0.07, dh: 0.06 },
-	think: { rate: 2.5, dl: 0.05, dh: -0.01 },
-	sad: { rate: 1.5, dl: -0.07, dh: -0.03 },
-	tear: { rate: 1.5, dl: -0.08, dh: -0.04 },
-	worried: { rate: 3, dl: -0.05, dh: -0.02 },
-	tired: { rate: 1, dl: -0.06, dh: -0.01 },
-	sleepy: { rate: 0.7, dl: -0.07, dh: -0.02 },
-	angry: { rate: 7, dl: 0.06, dh: -0.04 },
-	dizzy: { rate: 8, dl: 0.08, dh: 0.06, swing: true }
+	normal: { rate: 2.5, dl: 0.06, dh: 0.01, share: 0.5 },
+	happy: { rate: 5, dl: 0.09, dh: 0.02, share: 0.9 },
+	love: { rate: 6, dl: 0.08, dh: 0.05, share: 1 },
+	star: { rate: 7, dl: 0.12, dh: 0.03, share: 1 },
+	wow: { rate: 6, dl: 0.1, dh: 0, share: 0.9 },
+	wink: { rate: 4, dl: 0.08, dh: 0.02, share: 0.7 },
+	talk: { rate: 3, dl: 0.06, dh: 0.01, share: 0.6 },
+	smug: { rate: 3, dl: 0.06, dh: 0.02, share: 0.6 },
+	shy: { rate: 3, dl: 0.07, dh: 0.06, share: 0.7 },
+	think: { rate: 2.5, dl: 0.05, dh: -0.01, share: 0.5 },
+	sad: { rate: 1.5, dl: -0.07, dh: -0.03, share: 0.5 },
+	tear: { rate: 1.5, dl: -0.08, dh: -0.04, share: 0.5 },
+	worried: { rate: 3, dl: -0.05, dh: -0.02, share: 0.6 },
+	tired: { rate: 1, dl: -0.06, dh: -0.01, share: 0.35 },
+	sleepy: { rate: 0.7, dl: -0.07, dh: -0.02, share: 0.3 },
+	angry: { rate: 7, dl: 0.06, dh: -0.04, share: 1 },
+	dizzy: { rate: 8, dl: 0.08, dh: 0.06, share: 1, swing: true }
 };
 
 const PARTICLES = 110;
@@ -420,8 +421,11 @@ export function createVoxelMascot(
 		shimmerMs -= dtMs;
 		if (shimmerMs <= 0) {
 			shimmerMs = (1000 / m.rate) * (0.5 + Math.random());
-			const max = Math.ceil(baseColor.length * 0.05);
-			for (let n = 0, add = 1 + (Math.random() < 0.4 ? 1 : 0); n < 8 && add > 0; n++) {
+			// Up to a fifth of the voxels at once, scaled by the mood; each pulse tops up towards that
+			const max = Math.ceil(baseColor.length * 0.2);
+			const target = max * m.share;
+			const want = Math.max(1, Math.ceil((target - shimmering.size) * 0.8));
+			for (let n = 0, add = want; n < want * 4 && add > 0; n++) {
 				const i = Math.floor(Math.random() * baseColor.length);
 				if (!shimmerable[i] || shimmering.has(i) || shimmering.size >= max) continue;
 				add--;
@@ -430,8 +434,12 @@ export function createVoxelMascot(
 				shimmering.set(i, {
 					age: 0,
 					dur: (700 + Math.random() * 800) * slow,
-					dl: m.dl * (0.6 + Math.random() * 0.8),
-					dh: m.dh * (m.swing ? (Math.random() < 0.5 ? -1 : 1) : 1) * (0.6 + Math.random() * 0.8)
+					dl: m.dl * 1.6 * (0.6 + Math.random() * 0.8),
+					dh:
+						m.dh *
+						1.5 *
+						(m.swing ? (Math.random() < 0.5 ? -1 : 1) : 1) *
+						(0.6 + Math.random() * 0.8)
 				});
 			}
 		}
