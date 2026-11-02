@@ -71,6 +71,8 @@
 	position: fixed;
 	left: 0;
 	top: 0;
+	/* Shown by Mascot.svelte once it has put the text next to the mascot: not a frame at the corner */
+	visibility: hidden;
 	z-index: 10001;
 	pointer-events: none;
 	font-family: 'Sora', sans-serif;
