@@ -883,6 +883,47 @@ export const streakLines: Lines<Record<number, StreakLine[]>> = {
 };
 
 // The taps between the streak milestones, once it has had enough
+// Tapped too many times in a row (desktop): it tries to dodge, and if worn out it keeps away
+// from the cursor for a while. First hop, worn out, and when it calms down
+export const dodgeLines: Lines<{ hop: string[]; flee: string[]; calm: string[] }> = {
+	it: {
+		hop: [
+			'worried|**Eh no!** Stavolta non mi prendi.',
+			'smug|Troppo lento. **Riprova**.',
+			'wink|Ahah, **mancato**!',
+			'worried|Ti ho visto arrivare. Non toccarmi più.'
+		],
+		flee: [
+			'angry|Ok, **basta**. Ora me ne sto alla larga da te.',
+			'tired|Mi hai **stancato**. Sto lontano dal cursore per un po’.',
+			'worried|Se non la smetti **scappo davvero**.'
+		],
+		calm: [
+			'tired|Uff… mi sono **stancato di scappare**. Facciamo pace?',
+			'happy|Va bene, **tregua**. Ma piano.',
+			'sleepy|Ho il fiatone. Se vuoi tocca, ma con **gentilezza**.'
+		]
+	},
+	en: {
+		hop: [
+			'worried|**Oh no!** You won’t catch me this time.',
+			'smug|Too slow. **Try again**.',
+			'wink|Haha, **missed**!',
+			'worried|I saw you coming. Don’t touch me again.'
+		],
+		flee: [
+			'angry|Ok, **enough**. I’m keeping away from you now.',
+			'tired|You **wore me out**. I’m staying away from the cursor for a while.',
+			'worried|If you don’t stop I’ll **really run**.'
+		],
+		calm: [
+			'tired|Phew… I’m **tired of running**. Truce?',
+			'happy|Fine, **truce**. But gently.',
+			'sleepy|I’m out of breath. Tap if you like, but **gently**.'
+		]
+	}
+};
+
 export const annoyedLines: Lines<string[]> = {
 	it: [
 		'angry|**Basta!**',
