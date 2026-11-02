@@ -309,7 +309,11 @@ const animeCommand: CommandHandler = ({ tr }) => {
 		'Apothecary Diaries',
 		'Detective Conan',
 		'Sakamoto Days',
-		'Call of the Night'
+		'Call of the Night',
+		'Mushoku Tensei: Jobless Reincarnation',
+		'Witch Hat Atelier',
+		'The Ghost in the Shell',
+		'Solo Leveling'
 	];
 	return [{ type: 'output', text: `${tr.term_animeWatch} ${smartPick('anime', animeList)}` }];
 };
