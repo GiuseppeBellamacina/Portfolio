@@ -815,7 +815,11 @@ export const idleLines: Lines<string[]> = {
 export type StreakLine = Line & { anger?: boolean };
 export const streakLines: Lines<Record<number, StreakLine[]>> = {
 	it: {
-		5: [{ text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'shy' }],
+		5: [
+			{ text: 'Ok, ok, ho capito: **ti piaccio**. Anche **basta**, però.', face: 'shy' },
+			{ text: 'Ehi, ti sono **simpatico**, lo vedo. Però **piano**.', face: 'shy' },
+			{ text: 'Va bene, **siamo amici**. Adesso però **basta**, eh.', face: 'happy' }
+		],
 		8: [
 			{
 				text: 'Ti avverto: se continui **ti denuncio**. Per molestie. A un bot.',
@@ -824,6 +828,16 @@ export const streakLines: Lines<Record<number, StreakLine[]>> = {
 			},
 			{
 				text: '**Ultimo avviso**: un altro tocco e chiamo **il mio avvocato**. È un thread di Stack Overflow, ma fa paura.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'Sappi che **ogni tocco è registrato**. Per il **processo**.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'Ho gli **screenshot** di tutti i tuoi tocchi. Li mando all’**avvocato**.',
 				face: 'angry',
 				anger: true
 			}
@@ -838,17 +852,33 @@ export const streakLines: Lines<Record<number, StreakLine[]>> = {
 				text: 'Ho depositato **richiesta di ordine restrittivo**. Il giudice è un **cron job**, ma è severo.',
 				face: 'angry',
 				anger: true
+			},
+			{
+				text: 'Ho avvisato la **polizia dei bot**. Arrivano entro il prossimo tocco.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'Il mio avvocato ha l’**ordine restrittivo** pronto. Manca solo la **firma**.',
+				face: 'angry',
+				anger: true
 			}
 		],
 		14: [
 			{
 				text: 'Ho il **cubo che gira**. Ti prego, **una pausa**. Un caffè. Qualunque cosa.',
 				face: 'tired'
-			}
+			},
+			{ text: 'Sono **allo stremo**. Per favore, una **pausa**.', face: 'tired' },
+			{ text: 'Mi gira il **cubo**. Davvero. **Basta**, ti prego.', face: 'tired' }
 		]
 	},
 	en: {
-		5: [{ text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'shy' }],
+		5: [
+			{ text: 'Okay, okay, I get it: **you like me**. Also, **enough**.', face: 'shy' },
+			{ text: 'Hey, you find me **likeable**, I can tell. But **gently**.', face: 'shy' },
+			{ text: 'Fine, **we’re friends**. Now **enough**, though.', face: 'happy' }
+		],
 		8: [
 			{
 				text: 'I’m warning you: keep going and **I’ll sue**. For harassment. Of a bot.',
@@ -857,6 +887,16 @@ export const streakLines: Lines<Record<number, StreakLine[]>> = {
 			},
 			{
 				text: '**Final warning**: one more tap and I’m calling **my lawyer**. It’s a Stack Overflow thread, but it’s scary.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'Know that **every tap is logged**. For the **trial**.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'I have **screenshots** of all your taps. Sending them to the **lawyer**.',
 				face: 'angry',
 				anger: true
 			}
@@ -871,13 +911,25 @@ export const streakLines: Lines<Record<number, StreakLine[]>> = {
 				text: 'I’ve filed for a **restraining order**. The judge is a **cron job**, but a strict one.',
 				face: 'angry',
 				anger: true
+			},
+			{
+				text: 'I’ve called the **bot police**. They’ll be here by the next tap.',
+				face: 'angry',
+				anger: true
+			},
+			{
+				text: 'My lawyer has the **restraining order** ready. Just needs the **signature**.',
+				face: 'angry',
+				anger: true
 			}
 		],
 		14: [
 			{
 				text: 'My **cube is spinning**. Please, **a break**. A coffee. Anything.',
 				face: 'tired'
-			}
+			},
+			{ text: 'I’m **at my limit**. Please, a **break**.', face: 'tired' },
+			{ text: 'My **cube** is spinning. Really. **Enough**, please.', face: 'tired' }
 		]
 	}
 };
@@ -948,14 +1000,42 @@ export const annoyedLines: Lines<string[]> = {
 		'worried|Ancora?!',
 		'angry|Non è un **campanello**!',
 		'angry|Smettila, sul serio.',
-		'angry|Ehi! **Mani a posto.**'
+		'angry|Ehi! **Mani a posto.**',
+		'angry|Ho **un solo tasto** e lo stai consumando.',
+		'worried|Vuoi **qualcosa**? Dimmelo a parole.',
+		'angry|Sono un bot, non un **antistress**.',
+		'tired|Va bene, **ho capito**. Ora basta, però.',
+		'angry|Così **mi rovini** i cubetti.',
+		'worried|Hai finito? Perché io **no**.',
+		'angry|**Ahia**. Cioè, non fa male. Ma l’intenzione sì.',
+		'smug|Prova con il **terminale**: lì i comandi non protestano.',
+		'angry|Se hai **fretta**, scorri la pagina: è gratis.',
+		'worried|Non mi pare il **momento**.',
+		'angry|**Fermo!** Ho un appuntamento con la **CPU**.',
+		'tired|Sai che **consumo** anch’io? Per ogni tocco, un po’ di **GPU**.',
+		'angry|**Tap, tap, tap**. Ti sembra un modo di **salutare**?',
+		'worried|Se continui **mi sgonfio**. Sono un cubo, ma **capisci**.'
 	],
 	en: [
 		'angry|**Stop it!**',
 		'worried|Again?!',
 		'angry|I’m not a **doorbell**!',
 		'angry|Stop, seriously.',
-		'angry|Hey! **Hands to yourself.**'
+		'angry|Hey! **Hands to yourself.**',
+		'angry|I have **one button** and you’re wearing it out.',
+		'worried|Want **something**? Tell me with words.',
+		'angry|I’m a bot, not a **stress ball**.',
+		'tired|Okay, **I got it**. Now enough, though.',
+		'angry|You’re **ruining** my cubes.',
+		'worried|Are you done? Because I’m **not**.',
+		'angry|**Ouch**. Well, it doesn’t hurt. But the intention does.',
+		'smug|Try the **terminal**: commands don’t complain there.',
+		'angry|If you’re in a **hurry**, scroll the page: it’s free.',
+		'worried|I don’t think it’s the **moment**.',
+		'angry|**Hold on!** I have an appointment with the **CPU**.',
+		'tired|You know I **use power** too? Every tap costs a bit of **GPU**.',
+		'angry|**Tap, tap, tap**. Is that a way to **say hello**?',
+		'worried|If you keep going **I’ll deflate**. I’m a cube, but **come on**.'
 	]
 };
 
@@ -1430,7 +1510,14 @@ export const arancinoLines: Lines<{
 			'angry|**Mizzica**, ancora! Giuro che mi arrabbio come si deve.',
 			'angry|**Ma u sai cu sugnu?** **Sono arancinu**, non un tasto!',
 			'angry|**Mammoriri**! Basta toccarmi, o faccio il terremoto!',
-			'angry|Io ti dico basta e tu **ti ni futti**, eh? Beato te.'
+			'angry|Io ti dico basta e tu **ti ni futti**, eh? Beato te.',
+			'angry|**Mizzica**, ma ancora? Hai **niente da fare**?',
+			'angry|**Avaia**, basta ora.',
+			'worried|**Mbare**, chi ti ha insegnato a toccare così?',
+			'angry|**Camurria** pura, ’sta cosa.',
+			'angry|Io **fumo** come **a Muntagna**. Attento.',
+			'angry|**Sant’Aituzza** mia, smettila!',
+			'tired|Sono **arancinu**, non un campanello.'
 		],
 		konami: [
 			"smug|Hai trovato il codice segreto e ti senti un genio? U sacciu ca t'aiutau u **mago Giusa**, ma io sono più forte di lui."
@@ -1499,7 +1586,14 @@ export const arancinoLines: Lines<{
 			'angry|**Mizzica**, again! I swear I’ll get properly angry.',
 			'angry|**Ma u sai cu sugnu?** (Do you know who I am?) **An arancinu**, not a button!',
 			'angry|**Mammoriri**! Stop touching me, or I’ll cause an earthquake!',
-			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.'
+			'angry|I tell you to stop and **ti ni futti**, huh? Lucky you.',
+			'angry|**Mizzica**, again? Have you **nothing to do**?',
+			'angry|**Avaia**, enough now.',
+			'worried|**Mbare**, who taught you to touch like that?',
+			'angry|Pure **camurria**, this.',
+			'angry|I **smoke** like **a Muntagna**. Careful.',
+			'angry|**Sant’Aituzza** help me, stop it!',
+			'tired|I’m an **arancinu**, not a doorbell.'
 		],
 		konami: [
 			'smug|You found the secret code and feel like a genius? **I know Mago Giusa helped you**, but I’m stronger than him.'
