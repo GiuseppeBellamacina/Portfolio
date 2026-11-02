@@ -226,8 +226,23 @@
 	// Powered off (one of the mute gags): it looks at nothing and reacts to nothing
 	let powerOff = false;
 	function setGag(g: 'none' | (typeof GAGS)[number]) {
+		const wasOff = powerOff;
 		powerOff = g === 'off';
 		engine?.setGag(g);
+		if (!powerOff || wasOff || swapping) return;
+		// Just switched off: it drops where it is and stays there, like any dead weight
+		const b = bounds();
+		const floor = b.height - radius;
+		if (reducedMotion) {
+			body.vx = body.vy = 0;
+			body.y = floor;
+			placed = { fx: body.x / b.width, fy: floor / b.height };
+			mode = 'docked';
+			return;
+		}
+		body.vx = body.vy = body.spin = 0;
+		restMs = 0;
+		mode = 'flying';
 	}
 
 	function mute() {
@@ -309,7 +324,8 @@
 
 	function anchor() {
 		const a = baseAnchor();
-		if (reducedMotion) return a;
+		// Powered off it doesn't hover either
+		if (reducedMotion || powerOff) return a;
 		// Never perfectly still: a slow hover around the resting point (and, on a rocket ride,
 		// dragged behind the page that rushes up)
 		return { x: a.x + Math.sin(clock * 0.7) * 7, y: a.y + Math.sin(clock * 1.1) * 9 + rideLag };
@@ -509,7 +525,8 @@
 				body.x += body.vx * dt;
 				body.y += body.vy * dt;
 			}
-			body.angle *= Math.exp(-6 * dt);
+			// (a powered-off bot stays at the angle it fell at)
+			if (!powerOff) body.angle *= Math.exp(-6 * dt);
 			if (mode === 'returning' && Math.hypot(a.x - body.x, a.y - body.y) < ARRIVED) {
 				mode = 'docked';
 				hits = 0;
@@ -860,7 +877,7 @@
 
 	// The code, typed on the keyboard or as the hidden terminal command `konami`
 	function triggerKonami() {
-		if (!visible || muted || mode !== 'docked' || reducedMotion) return;
+		if (!visible || muted || powerOff || mode !== 'docked' || reducedMotion) return;
 		// Not only the jump: sometimes a scene (never over another one)
 		const pickScene = pick(KONAMI_SCENES);
 		if (pickScene === 'daft' && engine && !swapping && !riding) {

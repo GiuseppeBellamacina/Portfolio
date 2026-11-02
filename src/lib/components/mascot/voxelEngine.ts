@@ -558,8 +558,10 @@ export function createVoxelMascot(
 			body.rotation.set(pitch, yaw, 0);
 
 			const speed = Math.hypot(motion.vx, motion.vy);
-			const bob = reducedMotion ? 0 : Math.sin(time * 2.2) * 0.35;
-			const sway = reducedMotion ? 0 : Math.sin(time * 1.3) * 0.06;
+			// Powered off it is an object: no hovering bob, no sway
+			const still = reducedMotion || gag === 'off';
+			const bob = still ? 0 : Math.sin(time * 2.2) * 0.35;
+			const sway = still ? 0 : Math.sin(time * 1.3) * 0.06;
 			// Lean into the direction of travel, plus the spin from the physics
 			const lean = Math.max(-0.5, Math.min(0.5, -motion.vx / 2500));
 			// Powered off: tips over and bounces once, then lies still
