@@ -115,6 +115,7 @@
 	// keeps its total weight whatever its size, and a line already said this visit (memory
 	// only, a refresh forgets it) is four times less likely for each time it was said
 	const said = new Map<string, number>();
+	let lastChatter = '';
 	type Source = { lines: readonly (string | Line)[]; weight: number; face: Expression };
 	function chatter(sources: Source[]) {
 		const items: { raw: string; face: Expression; w: number }[] = [];
@@ -122,13 +123,20 @@
 			if (!src.lines.length) continue;
 			for (const l of src.lines) {
 				const raw = typeof l === 'string' ? l : l.text;
-				const w = (src.weight / src.lines.length) * 0.25 ** (said.get(raw) ?? 0);
+				// A source with few lines (the hero has 3) counts for less, or those lines would
+				// come back every few taps; and the line just said is out for the next one
+				const small = Math.min(1, src.lines.length / 6);
+				const w =
+					raw === lastChatter
+						? 0
+						: ((src.weight * small) / src.lines.length) * 0.25 ** (said.get(raw) ?? 0);
 				items.push({ raw, face: typeof l === 'string' ? src.face : l.face, w });
 			}
 		}
 		let r = Math.random() * items.reduce((a, i) => a + i.w, 0);
 		const it = items.find((i) => (r -= i.w) <= 0) ?? items[items.length - 1];
 		said.set(it.raw, (said.get(it.raw) ?? 0) + 1);
+		lastChatter = it.raw;
 		sayRaw(it.raw, it.face);
 	}
 
@@ -153,7 +161,11 @@
 	}
 
 	// Section lines come from a shuffle bag too, so coming back to a section doesn't repeat itself
-	const sectionLine = (id: SectionId): Line => pick(sectionLines[get(lang)][id]);
+	const sectionLine = (id: SectionId): Line => {
+		const line = pick(sectionLines[get(lang)][id]);
+		said.set(line.text, (said.get(line.text) ?? 0) + 1);
+		return line;
+	};
 
 	function season(): Season | null {
 		// Hats and seasonal quips are Turi's thing
