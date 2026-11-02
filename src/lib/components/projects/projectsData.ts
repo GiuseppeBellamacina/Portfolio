@@ -12,8 +12,10 @@ export interface Project {
 	isWip?: boolean;
 	/** Never ask the GitHub API for the stars (private repo: the call would just 404) */
 	skipStars?: boolean;
-	/** 3 = in the carousel and a 2×2 mosaic tile, 2 = a 2×1 tile, default 1 */
+	/** 3 = in the carousel and the biggest mosaic tile, 2 and the default = the other sizes (see the mosaic) */
 	importance?: 2 | 3;
+	/** The cover was made with an image generator: its mosaic tile stays small */
+	aiCover?: boolean;
 	/** Headline result, only when verified (README/CV) */
 	metric?: string;
 	externalLink?: {
@@ -153,7 +155,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Progetto di Reinforcement Learning per il modulo universitario di RL.<br>Applica <strong>Group Relative Policy Optimization (GRPO)</strong> per il fine-tuning di un piccolo LLM open-weight (~0.5B–1.5B parametri) affinché generi <strong>JSON e codice Python sintatticamente validi</strong>.<br><strong>Scelte progettuali chiave:</strong><ul><li>Funzioni di reward programmatiche tramite <code>json.loads</code> e <code>ast.parse</code> — segnale binario rigoroso, nessun modello di reward neurale</li><li><strong>LoRA / PEFT</strong> per addestramento efficiente in memoria</li><li><strong>Unsloth</strong> per fine-tuning veloce, <strong>vLLM</strong> per inferenza ad alto throughput</li><li>Valutazione su metriche <strong>Pass@k</strong> che confrontano l'aderenza sintattica pre e post addestramento</li></ul>Dataset sintetico generato programmaticamente. Architettura completa e risultati nel report formale.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/GRPO-strict-generation',
-		image: '/assets/projects/grpo.webp'
+		image: '/assets/projects/grpo.webp',
+		aiCover: true
 	},
 	{
 		title: 'CVRP Solver',
@@ -201,7 +204,8 @@ export const projects: Project[] = [
 			type: 'hackathon',
 			icon: 'fas fa-trophy'
 		},
-		image: '/assets/projects/guardian.webp'
+		image: '/assets/projects/guardian.webp',
+		aiCover: true
 	},
 	{
 		title: 'The Legend of Turi',
@@ -238,7 +242,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			'Confronto sistematico di architetture CNN per il restauro di immagini sul dataset <strong>DIV2K</strong> (800 train / 100 val a risoluzione 2K).<br><strong>Architetture implementate:</strong><ul><li><strong>UNet</strong> — encoder-decoder con skip connections (~7.8M parametri)</li><li><strong>Residual UNet</strong> — predice il residuo di rumore per convergenza più rapida</li><li><strong>Attention UNet</strong> — attenzione selettiva tramite attention gates (~13.7M parametri)</li><li><strong>DnCNN</strong> — CNN feed-forward con batch norm per denoising cieco</li><li><strong>Denoising Autoencoder</strong> — encoder-decoder a collo di bottiglia addestrato per ricostruire immagini pulite</li><li><strong>Pix2Pix GAN</strong> — rete avversaria condizionale per traduzione immagine-immagine</li></ul><strong>Degradazioni:</strong> Rumore Gaussiano (σ=100), dithering di quantizzazione (2–8 bit), salt &amp; pepper.<br>Training: mixed precision AMP · loss L1+SSIM+VGG16 percettiva · cosine warmup scheduler · early stopping · inferenza full-resolution a finestra scorrevole.<br>Metriche: <strong>PSNR</strong> e <strong>SSIM</strong>. Progetto di gruppo di 4 persone.',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Image-Enhancement',
-		image: '/assets/projects/imageEnhancement.webp'
+		image: '/assets/projects/imageEnhancement.webp',
+		aiCover: true
 	},
 	{
 		title: 'Q-uper Mario',
@@ -248,7 +253,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Progetto di Reinforcement Learning che applica Q-learning a un ambiente custom di Super Mario Bros costruito con OpenAI Gym.<br><strong>Ambiente:</strong> mondo di Mario 2D a griglia con ostacoli, nemici e power-up; stato rappresentato come vettore di caratteristiche di tile ed entità vicine.<br><strong>Struttura di reward:</strong> +100 per completamento livello, +10 per raccolta monete, -50 per danno subito, -1 per step temporale per incentivare l'efficienza.<br><strong>Risultati:</strong> l'agente addestrato impara a navigare nei livelli, evitare nemici e raccogliere ricompense — raggiungendo un completamento costante del livello dopo ~10K episodi.<br>Codice strutturato modularmente per facilitare esperimenti con diversi algoritmi RL e iperparametri.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Q-uper_Mario',
-		image: '/assets/projects/q-uper-mario.webp'
+		image: '/assets/projects/q-uper-mario.webp',
+		aiCover: true
 	},
 	{
 		title: 'Videogame Semantic Search',
@@ -268,7 +274,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Approccio neurale end-to-end alla risoluzione del Sudoku in due fasi.<br><strong>Fase 1 — Generazione dati:</strong> un classico <strong>risolutore backtracking</strong> basato sulla propagazione di vincoli genera grandi dataset etichettati di puzzle (dati → soluzioni).<br><strong>Fase 2 — Risolutore neurale:</strong> una <strong>rete PyTorch</strong> viene addestrata esclusivamente su esempi per predire la soluzione completa 9×9 da una griglia parziale, apprendendo implicitamente le regole del Sudoku.<br>Lavoro in corso: raffinamento dell'architettura, manipolazione della griglia basata su NumPy e framework di valutazione sistematica che misura accuratezza a livello di cifra e di puzzle completo.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Neural-Sudoku',
-		image: '/assets/projects/sudoku.webp'
+		image: '/assets/projects/sudoku.webp',
+		aiCover: true
 	},
 	{
 		title: 'Little Language Model',
@@ -278,7 +285,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			'<strong>Transformer in stile GPT</strong> implementato da zero in PyTorch e addestrato sulla <strong>Divina Commedia di Dante Alighieri</strong> — il modello risultante si chiama <strong>DanteGPT</strong>.<br><strong>Architettura:</strong> 6 layer · 8 attention head · 512 embedding dim · tokenizzatore a livello di carattere · positional encoding · layer normalisation.<br><strong>Training:</strong> ottimizzatore AdamW · sampling controllato dalla temperatura · 10% del corpus per validazione.<br>Dato un verso iniziale — es. <em>"Nel mezzo del cammin di nostra vita"</em> — il modello genera continuamente testo italiano che imita lo stile della terza rima dantesca.<br>Implementazione basata su <em>"Attention is All You Need"</em> (Vaswani et al., 2017).',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Little_Language_Model',
-		image: '/assets/projects/dante.webp'
+		image: '/assets/projects/dante.webp',
+		aiCover: true
 	},
 	{
 		title: 'OmniBot V2',
@@ -288,7 +296,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Evoluzione di OmniBot — ricostruito attorno a un'architettura <strong>LangGraph RAG basata su grafi</strong> chiamata <strong>GraphOfThoughts</strong>.<br><strong>Cosa è cambiato vs V1:</strong><ul><li>Knowledge graph costruito e navigato al momento della query per un recupero contestuale più ricco</li><li>Output <strong>Text-to-Speech</strong>: il bot ora vocalizza le sue risposte in tempo reale</li><li><strong>Pipeline multi-processo</strong>: generazione di testo LLM e rendering audio TTS eseguiti in parallelo per minore latenza</li><li>Completamente personalizzabile: strategia di retrieval, stile di risposta e voce TTS tutti configurabili</li></ul>Porta i tuoi dati (nessun dataset incluso). Costruito in collaborazione con Drake9098.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/OmniBot-V2',
-		image: '/assets/projects/omnibot.webp'
+		image: '/assets/projects/omnibot.webp',
+		aiCover: true
 	},
 	{
 		title: 'Kagi ML Dev Challenge',
@@ -303,7 +312,8 @@ export const projects: Project[] = [
 			type: 'youtube',
 			icon: 'fab fa-youtube'
 		},
-		image: '/assets/projects/kagi.webp'
+		image: '/assets/projects/kagi.webp',
+		aiCover: true
 	},
 	{
 		title: 'VulnerabilityBot',
@@ -313,7 +323,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Sistema client/server locale per <strong>Q&amp;A di cybersecurity assistito da AI</strong> — costruito con Drake9098.<br><strong>Architettura a tre livelli:</strong><ul><li>🖥️ <strong>Frontend Streamlit</strong> — sottomissione query tramite input testuale o upload file; navigazione delle risposte nella vista DB</li><li>⚙️ <strong>Backend asincrono Quart + Uvicorn</strong> — riceve le query, le distribuisce all'AI, salva i risultati in SQLite</li><li>🤖 <strong>Agente LLM LangChain</strong> — cerca nel database delle vulnerabilità e formatta risposte strutturate</li></ul>Il numero di query AI concorrenti è configurabile tramite <code>config.yaml</code> (default: 3).<br>Utile per il triage rapido di dataset CVE e l'esplorazione di panorami di vulnerabilità.",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/VulnerabilityBot',
-		image: '/assets/projects/vulnerability.webp'
+		image: '/assets/projects/vulnerability.webp',
+		aiCover: true
 	},
 	{
 		title: 'Celebrity ResNet18',
@@ -323,7 +334,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			'Progetto universitario di <strong>Data Mining</strong>: riconoscimento facciale di celebrità tramite deep transfer learning.<br><strong>Pipeline:</strong><ul><li>Dataset: immagini etichetatte di volti di celebrità, split stratificato train/val/test</li><li>Modello: <strong>ResNet18</strong> pre-addestrato su ImageNet — testa del classificatore sostituita e sottoposta a fine-tuning</li><li>Augmentation: crop casuale, flip orizzontale, colour jitter, normalizzazione</li><li>Training: <strong>SGD con momentum</strong>, step LR decay, cross-entropy loss</li></ul>Dimostra come il transfer learning riduca drasticamente i requisiti di dati per la classificazione visiva — elevata accuratezza top-1 con un dataset compatto.',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Celebrity-ResNet18',
-		image: '/assets/projects/celebrity.webp'
+		image: '/assets/projects/celebrity.webp',
+		aiCover: true
 	},
 	{
 		title: 'Sales Store Forecasting',
@@ -333,7 +345,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			"Competizione Kaggle: <strong>Store Sales — Time Series Forecasting</strong>.<br>Obiettivo: predire le vendite giornaliere per <strong>54 negozi × 33 famiglie di prodotti</strong> in Ecuador usando 4+ anni di dati storici di transazioni di Corporación Favorita.<br><strong>Approccio:</strong><ul><li>EDA: decomposizione stagionale, analisi dell'impatto di festività e prezzo del petrolio</li><li>Feature engineering: lag features, medie mobili, encoding ciclici delle date</li><li>Modelli: ensemble di regressori ML classici</li><li>Metrica di valutazione: <strong>RMSLE</strong> (Root Mean Squared Log Error)</li></ul>",
 		githubUrl: 'https://github.com/GiuseppeBellamacina/Sales-Store-Time-Series-Forecasting',
-		image: '/assets/projects/sales.webp'
+		image: '/assets/projects/sales.webp',
+		aiCover: true
 	},
 	{
 		title: 'Steganography WebApp',
@@ -348,7 +361,8 @@ export const projects: Project[] = [
 			type: 'demo',
 			icon: 'fas fa-external-link-alt'
 		},
-		image: '/assets/projects/stegapp.webp'
+		image: '/assets/projects/stegapp.webp',
+		aiCover: true
 	},
 	{
 		title: 'SpazzApp',
@@ -363,7 +377,8 @@ export const projects: Project[] = [
 			type: 'demo',
 			icon: 'fas fa-external-link-alt'
 		},
-		image: '/assets/projects/spazzapp.webp'
+		image: '/assets/projects/spazzapp.webp',
+		aiCover: true
 	},
 	{
 		title: 'Neuron Shell',
@@ -384,7 +399,8 @@ export const projects: Project[] = [
 		descriptionIt:
 			'Mini-progetto che implementa un <strong>query ranker</strong> usando <strong>TF-IDF</strong> e <strong>cosine similarity</strong> sia in <strong>C++</strong> che in <strong>Python</strong>, con benchmark comparativo.<br><strong>Features:</strong><ul><li>Calcolo TF-IDF su un set di documenti</li><li>Ranking tramite similarità coseno rispetto a una query</li><li>Script di benchmark per confrontare le performance tra C++ e Python</li></ul><strong>Risultati benchmark:</strong> 3.3M documenti → <strong>C++</strong>: 35.8s, <strong>Python</strong>: 560.9s (speedup 15.6x).',
 		githubUrl: 'https://github.com/GiuseppeBellamacina/fast-query-ranker',
-		image: '/assets/projects/ranker.webp'
+		image: '/assets/projects/ranker.webp',
+		aiCover: true
 	}
 ];
 
