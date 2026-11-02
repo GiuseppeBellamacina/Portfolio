@@ -180,7 +180,7 @@
 			return;
 		}
 		speakerEngine()?.setExpression(face);
-		if (muted || !visible) return;
+		if (muted || powerOff || !visible) return;
 		lastSayAt = performance.now();
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
@@ -317,6 +317,11 @@
 	function baseAnchor() {
 		// A scene is directing it (leaving the stage, taking its place)
 		if (sceneGoal) return sceneGoal;
+		// Powered off and dropped: it stays where it fell, even on a phone
+		if (powerOff && placed) {
+			const pb = bounds();
+			return { x: placed.fx * pb.width, y: placed.fy * pb.height };
+		}
 		// Phones: in the strip under the navbar, always (after a drag it goes back there)
 		if (strip) return dock;
 		const b = bounds();
@@ -465,7 +470,14 @@
 			}
 			if (hit > 500) onImpact(hit);
 			restMs = isResting(body, bounds()) ? restMs + dtMs : 0;
-			if (restMs > 700) {
+			if (restMs > 700 && powerOff) {
+				// Powered off it can't fly back: it stays where it fell, lifeless
+				const b = bounds();
+				placed = { fx: body.x / b.width, fy: body.y / b.height };
+				body.vx = body.vy = body.spin = 0;
+				mode = 'docked';
+				playful = false;
+			} else if (restMs > 700) {
 				mode = 'returning';
 				shout = null;
 				playful = false;
@@ -585,7 +597,7 @@
 			traveling = true;
 			quietMs = 0;
 			queued = null;
-			if (!muted) {
+			if (!muted && !powerOff) {
 				engine?.setAngry(true);
 				rant();
 			}
@@ -593,7 +605,7 @@
 		const now = performance.now();
 		lastDrag = now;
 		// Keeps grumbling while it is carried around (heard whenever it slows down)
-		if (!muted && now - lastRant > 3200) rant();
+		if (!muted && !powerOff && now - lastRant > 3200) rant();
 		samples.push({ x: e.clientX, y: e.clientY, t: now });
 		while (samples.length > 2 && now - samples[0].t > 90) samples.shift();
 		const first = samples[0];
@@ -601,7 +613,7 @@
 		body.vx = (e.clientX - first.x) / span;
 		body.vy = (e.clientY - first.y) / span;
 		// Shaken about fast, it screams like when it is thrown; calmer again, the scream stops
-		if (!muted) {
+		if (!muted && !powerOff) {
 			const v = Math.hypot(body.vx, body.vy);
 			if (v > THROW_SPEED && !shout) shout = plain(pick(shoutLines[get(lang)]));
 			else if (v < THROW_SPEED * 0.35) shout = null;
@@ -620,6 +632,14 @@
 		}
 		dragging = false;
 		engine?.setAngry(false);
+		shout = null;
+		if (powerOff) {
+			// Let go of while powered off: no throw, it just drops to the floor
+			body.vx = body.vy = body.spin = 0;
+			restMs = 0;
+			mode = 'flying';
+			return;
+		}
 		const MAX = 4500;
 		const speed = Math.hypot(body.vx, body.vy);
 		if (speed > MAX) {
@@ -659,8 +679,14 @@
 
 	function onTap() {
 		engine?.bump(0.35);
+		if (idleOff) {
+			wakeUp();
+			sayRaw(unmuteLine[get(lang)], 'shy');
+			return;
+		}
 		if (muted) {
 			muted = false;
+			placed = null;
 			setGag('none');
 			store(MUTE_KEY, null);
 			sayRaw(unmuteLine[get(lang)], 'shy');
@@ -714,11 +740,21 @@
 	const IDLE_MS = 30000; // no interaction for this long
 	const IDLE_GAP_MS = 45000; // and at most one such line per this
 	const DOZE_MS = 75000; // no interaction for this long and it dozes off
+	const OFF_MS = 120000; // and this long it powers off, like when it is muted
 	let lastActivity = performance.now();
 	let lastIdleLine = -IDLE_GAP_MS;
 	let dozing = false;
+	// Powered off by being left alone (not saved: the next visit starts awake)
+	let idleOff = false;
 
-	// Any sign of life: remember it, and wake up if it was dozing
+	function wakeUp() {
+		idleOff = false;
+		placed = null;
+		setGag('none');
+		engine?.setExpression('wow');
+	}
+
+	// Any sign of life: remember it, and wake up if it was dozing (a bot switched off needs a tap)
 	function touch(now = performance.now()) {
 		lastActivity = now;
 		if (!dozing) return;
@@ -743,6 +779,16 @@
 			swapping
 		)
 			return;
+		if (!idleOff && now - lastActivity > OFF_MS) {
+			idleOff = true;
+			dozing = false;
+			speaking = false;
+			clearInterval(typeTimer);
+			shout = null;
+			setGag('off');
+			return;
+		}
+		if (idleOff) return;
 		if (!dozing && now - lastActivity > DOZE_MS) {
 			dozing = true;
 			engine?.setExpression('sleepy');
@@ -946,6 +992,14 @@
 	let cardRetry: ReturnType<typeof setTimeout> | undefined;
 	let lastSayAt = 0;
 
+	// A click on a card: a line about it, whether or not it has already been commented
+	function onExperienceClick(e: Event) {
+		const lines = experienceLines[get(lang)][(e as CustomEvent<number>).detail];
+		if (!lines || !visible || muted || mode !== 'docked' || swapping) return;
+		seenCards.add((e as CustomEvent<number>).detail);
+		sayRaw(pick(lines), 'wink');
+	}
+
 	function onExperienceCard(e: Event) {
 		pendingCard = (e as CustomEvent<number>).detail;
 		tryCardComment();
@@ -967,7 +1021,7 @@
 			swapping ||
 			riding ||
 			scrollSpeed >= SLOW_SCROLL ||
-			performance.now() - lastSayAt < 4500;
+			performance.now() - lastSayAt < 2000;
 		if (busy) {
 			cardRetry = setTimeout(tryCardComment, 1200);
 			return;
@@ -1403,6 +1457,7 @@
 		window.addEventListener('back-to-top', onBackToTop);
 		window.addEventListener('mascot-konami', triggerKonami);
 		window.addEventListener('experience-card', onExperienceCard);
+		window.addEventListener('experience-click', onExperienceClick);
 		glanceTimer = setInterval(onGlance, 7000);
 		window.addEventListener('mascot-set', onMascotSet);
 		window.addEventListener('keydown', onKey);
@@ -1432,6 +1487,7 @@
 			window.removeEventListener('back-to-top', onBackToTop);
 			window.removeEventListener('mascot-konami', triggerKonami);
 			window.removeEventListener('experience-card', onExperienceCard);
+			window.removeEventListener('experience-click', onExperienceClick);
 			clearInterval(glanceTimer);
 			clearTimeout(cardRetry);
 			clearTimeout(rideTimer);

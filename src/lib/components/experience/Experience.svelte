@@ -198,7 +198,12 @@
 							<i class={item.icon}></i>
 						</div>
 					</div>
-					<div class="tl-card">
+					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+					<div
+						class="tl-card"
+						onclick={() =>
+							window.dispatchEvent(new CustomEvent('experience-click', { detail: index }))}
+					>
 						<div class="tl-card-glow"></div>
 						<div class="tl-date-row">
 							<span class="tl-date">{item.date}</span>
