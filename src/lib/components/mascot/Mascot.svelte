@@ -486,6 +486,7 @@
 		flee: boolean;
 	} | null = null;
 	let restUntil = 0;
+	let evadeEndedAt = 0;
 
 	function startEvade(flee: boolean) {
 		const now = performance.now();
@@ -506,6 +507,7 @@
 			const flee = evade.flee;
 			evade = null;
 			dodgeGoal = null;
+			evadeEndedAt = now;
 			// Worn out from running: a rest, so it can't be chased forever
 			restUntil = now + 25000;
 			if (flee && !powerOff && !muted) sayRaw(pick(dodgeLines[get(lang)].calm), 'tired');
@@ -777,7 +779,10 @@
 			return;
 		}
 		const now = performance.now();
-		tapStreak = now - lastTap < 2500 ? tapStreak + 1 : 1;
+		// The streak also survives the chase: while it dodges or runs, and for a few seconds after, the 2.5 s
+		// between taps isn't counted (else the later milestones would be out of reach on desktop)
+		const chasing = evade !== null || now - evadeEndedAt < 6000;
+		tapStreak = chasing || now - lastTap < 2500 ? tapStreak + 1 : 1;
 		lastTap = now;
 		totalTaps++;
 		// Too many in a row: first it dodges, and if it goes on, it runs from the cursor for a while
