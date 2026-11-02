@@ -419,6 +419,7 @@
 				shoutY += my;
 			}
 			shoutEl.style.transform = `translate3d(${shoutX}px, ${shoutY}px, 0)`;
+			shoutEl.style.visibility = 'visible';
 			// The wobble follows the mascot too: quick while it flies, a slow sway as it settles
 			const share = riding ? 0.12 : Math.min(1, Math.hypot(body.vx, body.vy) / 1500);
 			shoutPhase += dt * (3 + 22 * share);
