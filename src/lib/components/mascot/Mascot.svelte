@@ -26,6 +26,7 @@
 		triviaLines,
 		streakLines,
 		annoyedLines,
+		dodgeLines,
 		backTabLines,
 		konamiLines,
 		introLines,
@@ -334,6 +335,8 @@
 	function baseAnchor() {
 		// A scene is directing it (leaving the stage, taking its place)
 		if (sceneGoal) return sceneGoal;
+		// Dodging the cursor
+		if (dodgeGoal && !strip) return dodgeGoal;
 		// Powered off and dropped: it stays where it fell, even on a phone
 		if (powerOff && placed) {
 			const pb = bounds();
@@ -471,9 +474,70 @@
 		}
 	}
 
+	// ── Dodging: tapped too often in a row, it tries to get out of the way; worn out, it keeps
+	// away from the cursor for a while (desktop only: on a phone it has to stay in its strip) ──
+	let pointerAt: { x: number; y: number } | null = null;
+	let dodgeGoal: { x: number; y: number } | null = null;
+	let evade: {
+		until: number;
+		reach: number;
+		hopEvery: number;
+		nextHop: number;
+		flee: boolean;
+	} | null = null;
+	let restUntil = 0;
+
+	function startEvade(flee: boolean) {
+		const now = performance.now();
+		evade = {
+			until: now + (flee ? 9000 : 5000),
+			reach: flee ? 300 : 170,
+			hopEvery: flee ? 450 : 800,
+			nextHop: 0,
+			flee
+		};
+		const l = dodgeLines[get(lang)];
+		sayRaw(pick(flee ? l.flee : l.hop), 'worried');
+	}
+
+	function updateEvade(now: number) {
+		if (!evade) return;
+		if (powerOff || muted || strip || now > evade.until) {
+			const flee = evade.flee;
+			evade = null;
+			dodgeGoal = null;
+			// Worn out from running: a rest, so it can't be chased forever
+			restUntil = now + 25000;
+			if (flee && !powerOff && !muted) sayRaw(pick(dodgeLines[get(lang)].calm), 'tired');
+			return;
+		}
+		if (!pointerAt || mode !== 'docked' || dragging || now < evade.nextHop) return;
+		const dx = body.x - pointerAt.x;
+		const dy = body.y - pointerAt.y;
+		const d = Math.hypot(dx, dy);
+		if (d > evade.reach) return;
+		const b = bounds();
+		let ang = d > 1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
+		const jump = size * (1.2 + Math.random() * 0.8);
+		// Away from the cursor, a little to the side; cornered, it tries the other directions
+		let goal = { x: body.x, y: body.y };
+		for (let i = 0; i < 6; i++) {
+			const a = ang + (Math.random() - 0.5) * 0.9 + (i % 2 ? Math.PI * (i / 6) : 0);
+			const x = Math.max(radius, Math.min(b.width - radius, body.x + Math.cos(a) * jump));
+			const y = Math.max(b.top + radius, Math.min(b.height - radius, body.y + Math.sin(a) * jump));
+			goal = { x, y };
+			if (Math.hypot(x - pointerAt.x, y - pointerAt.y) > d + jump * 0.4) break;
+		}
+		dodgeGoal = { x: goal.x, y: goal.y };
+		evade.nextHop = now + evade.hopEvery;
+		engine?.bump(0.45);
+		engine?.setExpression('worried');
+	}
+
 	let raf = 0;
 	let last = 0;
 	function frame(time: number) {
+		updateEvade(performance.now());
 		const prev = last || time - 16;
 		const dtMs = Math.min(time - prev, 50);
 		last = time;
@@ -716,6 +780,16 @@
 		tapStreak = now - lastTap < 2500 ? tapStreak + 1 : 1;
 		lastTap = now;
 		totalTaps++;
+		// Too many in a row: first it dodges, and if it goes on, it runs from the cursor for a while
+		if (
+			!strip &&
+			!powerOff &&
+			tapStreak >= 4 &&
+			(evade ? !evade.flee && tapStreak >= 7 : now > restUntil)
+		) {
+			startEvade(tapStreak >= 7);
+			return;
+		}
 		const l = get(lang);
 		const streakVariants = streakLines[l][tapStreak];
 		if (streakVariants) {
@@ -898,6 +972,7 @@
 
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
+		if (e.pointerType === 'mouse') pointerAt = { x: e.clientX, y: e.clientY };
 		if (!powerOff) engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
 		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
 		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
