@@ -188,7 +188,7 @@ Interactive terminal backed by a modular command registry, including navigation,
 - **Behaviour** (`Mascot.svelte`): docks next to each section and comments on it, on the project you open, on the experience cards and on the skills; can be carried and thrown (it screams, complains on impact, and gets angry if you tap or shake it too much); falls asleep when idle; rocket ride (or lift) from the back-to-top button; swaps with the other bot with a little show.
 - **Muting**: the × mutes it with a random gag (tape over the mouth, a crossed-out speaker, or powered off: it falls on its side, the propeller stops and it ignores the cursor).
 - **Konami code** (↑↑↓↓←→←→BA): a jump, or a DJ scene with two helmeted bots and a voxel synth.
-- **Lines** (`mascotData.ts`, Italian and English): every choice among several options (lines, faces, scenes, gags) comes from a shuffle bag; taps and quiet spells weigh each source (its own lines, curiosities and pop culture, ideas, the current section, the season, the other bot) and discourage lines already said, in memory only until the page is refreshed.
+- **Lines** (`mascotData.ts`, Italian and English): events have shuffle-bag sets. What it says on a tap or in a quiet spell is chosen by `chatter.ts`: sources compete (its own lines, curiosities and pop culture, ideas, the current section, the season, the other bot); a line already said is strongly discouraged and recovers slowly, a small exhausted set sits out its turn, the source and the topic of the last lines count less, and a section's own lines gain weight the longer you stay in it. The memory lasts until the page is refreshed. It always opens with the same introduction as the guide.
 
 ## 🌟 Performance Optimizations
 
