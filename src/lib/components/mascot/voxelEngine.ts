@@ -402,7 +402,8 @@ export function createVoxelMascot(
 				);
 			mesh!.setColorAt(i, color);
 			baseColor[i] = (baseColor[i] ?? new Color()).copy(color);
-			shimmerable[i] = !lit.has(i) && v.role !== 'dark';
+			// Hats and accessories (fixed colour) keep theirs
+			shimmerable[i] = !lit.has(i) && v.role !== 'dark' && !v.color;
 		});
 		if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 	}
