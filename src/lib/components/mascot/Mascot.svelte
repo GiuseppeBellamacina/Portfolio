@@ -176,6 +176,7 @@
 	let speaker: 'main' | 'guest' = 'main';
 	const speakerEngine = () => (speaker === 'guest' ? guestEngine : engine);
 
+	const devLog: string[] = [];
 	function say(line: string, face: Expression = 'normal') {
 		if (traveling) {
 			queued = { line, face };
@@ -183,6 +184,7 @@
 		}
 		speakerEngine()?.setExpression(face);
 		if (muted || powerOff || !visible) return;
+		if (import.meta.env.DEV) devLog.push(line);
 		lastSayAt = performance.now();
 		clearInterval(typeTimer);
 		clearTimeout(hideTimer);
@@ -474,83 +476,137 @@
 		}
 	}
 
-	// ── Dodging: tapped too often in a row, it tries to get out of the way; worn out, it keeps
-	// away from the cursor for a while (desktop only: on a phone it has to stay in its strip) ──
+	// ── Dodging: tapped too often in a row in a row, it tries to get out of the way; chased on, it
+	// is worn out and runs from the cursor for a while (desktop only: on a phone it stays in its
+	// strip). A small state machine: calm → dodge → flee → calm (after a rest) ──
+	const DODGE_AT = 12; // taps in a row
+	const FLEE_AFTER_HOPS = 5;
 	let pointerAt: { x: number; y: number } | null = null;
 	let dodgeGoal: { x: number; y: number } | null = null;
-	let evade: {
+	type Evade = {
 		until: number;
+		hardEnd: number;
 		reach: number;
 		hopEvery: number;
 		nextHop: number;
 		flee: boolean;
 		hops: number;
 		lastSay: number;
-	} | null = null;
+	};
+	let evade: Evade | null = null;
 	let restUntil = 0;
 	let evadeEndedAt = 0;
 
-	function startEvade(flee: boolean) {
+	// A line from a set, never the one just said: the chooser remembers what it said
+	function sayFresh(id: string, lines: readonly string[], face: Expression = 'normal') {
+		const c = chooser.choose([{ id, lines, weight: 1, face }]);
+		if (c) sayRaw(c.raw, c.face);
+	}
+
+	// While it jumps about it can't use the speech bubble (that waits for it to stand still):
+	// the lines are shouted, floating along with it, and fade after a moment
+	let shoutTimer: ReturnType<typeof setTimeout> | undefined;
+	function shoutFresh(id: string, lines: readonly string[], face: Expression) {
+		const c = chooser.choose([{ id, lines, weight: 1, face }]);
+		if (!c || muted || powerOff) return;
+		const line = parseLine(c.raw, face);
+		// The old bubble would sit there with stale text: it goes
+		speaking = false;
+		clearInterval(typeTimer);
+		clearTimeout(hideTimer);
+		engine?.setTalking(false);
+		engine?.setExpression(line.face);
+		shout = plain(fill(line.text));
+		if (import.meta.env.DEV) devLog.push(shout);
+		clearTimeout(shoutTimer);
+		shoutTimer = setTimeout(() => {
+			if (!riding && mode !== 'flying') shout = null;
+		}, 2300);
+	}
+
+	function startEvade() {
 		const now = performance.now();
 		evade = {
-			until: now + (flee ? 9000 : 5000),
-			reach: flee ? 300 : 170,
-			hopEvery: flee ? 450 : 800,
+			until: now + 5000,
+			hardEnd: now + 30000,
+			reach: 170,
+			hopEvery: 800,
 			nextHop: 0,
-			flee,
+			flee: false,
 			hops: 0,
 			lastSay: now
 		};
-		const l = dodgeLines[get(lang)];
-		sayRaw(pick(flee ? l.flee : l.hop), 'worried');
+		shoutFresh('hop', dodgeLines[get(lang)].hop, 'worried');
+	}
+
+	function endEvade(now: number) {
+		const flee = evade?.flee ?? false;
+		evade = null;
+		dodgeGoal = null;
+		evadeEndedAt = now;
+		// A fresh start: it has run, the count of taps begins again
+		tapStreak = 0;
+		// After a run it is worn out and forgives for a while: no new dodging, no new anger
+		restUntil = flee ? now + 20000 : 0;
+		if (flee && !powerOff && !muted) sayFresh('calm', dodgeLines[get(lang)].calm, 'tired');
+	}
+
+	// The spot to jump to: the one furthest from the cursor among a dozen around the bot, at least a
+	// good leap away; cornered, that is across the screen, past the cursor
+	function dodgeSpot(from: { x: number; y: number }, away: number) {
+		const b = bounds();
+		const px = pointerAt!.x;
+		const py = pointerAt!.y;
+		let best = { x: from.x, y: from.y };
+		let bestScore = -1;
+		for (let i = 0; i < 14; i++) {
+			const a = i === 0 ? away : away + (Math.random() - 0.5) * Math.PI * 1.8;
+			const jump = size * (1.2 + Math.random() * 1);
+			const x = Math.max(radius, Math.min(b.width - radius, from.x + Math.cos(a) * jump));
+			const y = Math.max(b.top + radius, Math.min(b.height - radius, from.y + Math.sin(a) * jump));
+			if (Math.hypot(x - from.x, y - from.y) < size * 0.8) continue;
+			const score = Math.hypot(x - px, y - py);
+			if (score > bestScore) {
+				bestScore = score;
+				best = { x, y };
+			}
+		}
+		// Nothing far enough (a tiny window): the middle of the screen
+		if (bestScore < 0) best = { x: b.width / 2, y: (b.top + b.height) / 2 };
+		return best;
 	}
 
 	function updateEvade(now: number) {
 		if (!evade) return;
-		if (powerOff || muted || strip || now > evade.until) {
-			const flee = evade.flee;
-			evade = null;
-			dodgeGoal = null;
-			evadeEndedAt = now;
-			// A rest after, so it can't be chased forever: short after a dodge, longer after a run
-			restUntil = now + (flee ? 20000 : 8000);
-			if (flee && !powerOff && !muted) sayRaw(pick(dodgeLines[get(lang)].calm), 'tired');
+		if (powerOff || muted || strip || now > evade.until || now > evade.hardEnd) {
+			endEvade(now);
 			return;
 		}
 		if (!pointerAt || mode !== 'docked' || dragging || now < evade.nextHop) return;
-		const dx = body.x - pointerAt.x;
-		const dy = body.y - pointerAt.y;
-		const d = Math.hypot(dx, dy);
+		const d = Math.hypot(body.x - pointerAt.x, body.y - pointerAt.y);
 		if (d > evade.reach) return;
-		const b = bounds();
-		let ang = d > 1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
-		const jump = size * (1.2 + Math.random() * 0.8);
-		// Away from the cursor, a little to the side; cornered, it tries the other directions
-		let goal = { x: body.x, y: body.y };
-		for (let i = 0; i < 6; i++) {
-			const a = ang + (Math.random() - 0.5) * 0.9 + (i % 2 ? Math.PI * (i / 6) : 0);
-			const x = Math.max(radius, Math.min(b.width - radius, body.x + Math.cos(a) * jump));
-			const y = Math.max(b.top + radius, Math.min(b.height - radius, body.y + Math.sin(a) * jump));
-			goal = { x, y };
-			if (Math.hypot(x - pointerAt.x, y - pointerAt.y) > d + jump * 0.4) break;
-		}
-		dodgeGoal = { x: goal.x, y: goal.y };
+		const away =
+			d > 1 ? Math.atan2(body.y - pointerAt.y, body.x - pointerAt.x) : Math.random() * 6.3;
+		dodgeGoal = dodgeSpot({ x: body.x, y: body.y }, away);
 		evade.nextHop = now + evade.hopEvery;
 		evade.hops++;
+		// Chased, the dodge lasts: every hop buys a few more seconds
+		evade.until = Math.max(evade.until, now + (evade.flee ? 4000 : 3000));
 		engine?.bump(0.45);
-		engine?.setExpression('worried');
 		const l = dodgeLines[get(lang)];
 		// Chased a few times: it is worn out and runs for real
-		if (!evade.flee && evade.hops >= 5) {
+		if (!evade.flee && evade.hops >= FLEE_AFTER_HOPS) {
 			evade.flee = true;
 			evade.reach = 300;
 			evade.hopEvery = 450;
 			evade.until = now + 9000;
+			// A run is short even if it is chased all along: at most 12 s
+			evade.hardEnd = Math.min(evade.hardEnd, now + 12000);
 			evade.lastSay = now;
-			sayRaw(pick(l.flee), 'angry');
-		} else if (now - evade.lastSay > 2800) {
+			shoutFresh('flee', l.flee, 'angry');
+		} else if (now - evade.lastSay > 2300) {
 			evade.lastSay = now;
-			sayRaw(pick(evade.flee ? l.flee : l.hop), 'worried');
+			shoutFresh(evade.flee ? 'flee' : 'hop', evade.flee ? l.flee : l.hop, 'worried');
 		}
 	}
 
@@ -778,6 +834,17 @@
 	// Taps in a row (each within 2.5 s of the last) end in a line of their own
 	let tapStreak = 0;
 	let calmTimer: ReturnType<typeof setTimeout> | undefined;
+	let fuming = false;
+	// Red and sparky, and it stays so for a few seconds after the last provocation
+	function fume() {
+		fuming = true;
+		engine?.setAngry(true);
+		clearTimeout(calmTimer);
+		calmTimer = setTimeout(() => {
+			fuming = false;
+			if (!dragging) engine?.setAngry(false);
+		}, 3600);
+	}
 	let lastTap = 0;
 	let totalTaps = 0;
 
@@ -801,32 +868,33 @@
 		// between taps isn't counted (else the later milestones would be out of reach on desktop)
 		const chasing = evade !== null || now - evadeEndedAt < 6000;
 		tapStreak = chasing || now - lastTap < 2500 ? tapStreak + 1 : 1;
+		// Just after a run it is too tired to be cross: the escalation starts again from the bottom
+		if (now < restUntil) tapStreak = Math.min(tapStreak, 4);
 		lastTap = now;
 		totalTaps++;
-		// Ten in a row: it dodges, and if it is chased on, it runs from the cursor for a while
-		if (!strip && !powerOff && tapStreak >= 10 && !evade && now > restUntil) {
-			startEvade(false);
+		// Twelve in a row: it tries to get out of the way
+		if (!strip && !powerOff && tapStreak >= DODGE_AT && !evade && now > restUntil) {
+			startEvade();
 			return;
 		}
 		const l = get(lang);
 		const streakVariants = streakLines[l][tapStreak];
 		if (streakVariants) {
-			const streak = pick(streakVariants);
-			if (streak.anger) {
-				// Red and sparky for a few seconds, then it cools down on its own
-				engine?.setAngry(true);
-				clearTimeout(calmTimer);
-				calmTimer = setTimeout(() => {
-					if (!dragging) engine?.setAngry(false);
-				}, 3600);
-			}
+			// Never the variant it said last time it got here
+			const c = chooser.choose([
+				{ id: `streak${tapStreak}`, lines: streakVariants, weight: 1, face: 'angry' }
+			]);
+			const streak = streakVariants.find((v) => v.text === c?.raw) ?? pick(streakVariants);
+			if (streak.anger) fume();
 			say(streak.text, streak.face);
 			if (tapStreak >= 14) tapStreak = 0;
 			return;
 		}
-		// Between milestones, past the fifth tap, it has had enough
+		// Between milestones, past the fifth tap, it has had enough; from the eighth on it stays
+		// angry for as long as the taps keep coming
 		if (tapStreak > 5) {
-			sayRaw(pick(own().annoyed ?? annoyedLines[l]), 'angry');
+			if (tapStreak >= 8) fume();
+			sayFresh('annoyed', own().annoyed ?? annoyedLines[l], 'angry');
 			return;
 		}
 		const s = season();
@@ -1545,6 +1613,30 @@
 		const line = introLines[get(lang)];
 		chooser.note(line.text, 'intro');
 		say(fill(line.text), line.face);
+	}
+
+	// Dev only (stripped from the build): lets the browser tests read and set the state
+	if (import.meta.env.DEV && typeof window !== 'undefined') {
+		(window as unknown as Record<string, unknown>).__turi = {
+			log: () => devLog.slice(),
+			state: () => ({
+				tapStreak,
+				evade: evade && { flee: evade.flee, hops: evade.hops },
+				rest: Math.max(0, Math.round(restUntil - performance.now())),
+				fuming,
+				mode,
+				x: Math.round(body.x),
+				y: Math.round(body.y),
+				size,
+				powerOff
+			}),
+			teleport: (x: number, y: number) => {
+				placed = { fx: x / innerWidth, fy: y / innerHeight };
+				body.x = x;
+				body.y = y;
+				body.vx = body.vy = 0;
+			}
+		};
 	}
 
 	onMount(() => {
