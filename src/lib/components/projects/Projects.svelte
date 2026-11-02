@@ -307,8 +307,28 @@
 			.trim();
 	}
 
-	// ─── All projects: mosaic, highlights first and twice as wide ──────────────
-	let mosaic = $derived([...projects].sort((a, b) => (b.importance ?? 1) - (a.importance ?? 1)));
+	// ─── All projects: an irregular mosaic ─────────────────────────────────────
+	// Three sizes: the highlights are large, the projects with a screenshot or a hand-made cover
+	// are medium, the ones with a generated cover stay small. The projects are mixed, each size
+	// spread evenly through the grid. Made once, the first time the grid is shown, so it stays
+	// put afterwards (and the prerendered page, which has no grid, never differs from the client).
+	type Tile = { project: Project; size: 's' | 'm' | 'l' };
+	let mosaicCache: Tile[] | null = null;
+	function buildMosaic(): Tile[] {
+		const size = (p: Project): Tile['size'] => (p.importance === 3 ? 'l' : p.aiCover ? 's' : 'm');
+		const bySize = new Map<Tile['size'], Project[]>();
+		for (const p of projects) bySize.set(size(p), [...(bySize.get(size(p)) ?? []), p]);
+		// Shuffle each size, then interleave them in proportion: the k-th of n gets key (k + r) / n
+		const tiles: { tile: Tile; key: number }[] = [];
+		for (const [s, group] of bySize) {
+			const shuffled = [...group].sort(() => Math.random() - 0.5);
+			shuffled.forEach((p, k) =>
+				tiles.push({ tile: { project: p, size: s }, key: (k + Math.random()) / group.length })
+			);
+		}
+		return tiles.sort((a, b) => a.key - b.key).map((t) => t.tile);
+	}
+	let mosaic = $derived.by(() => (viewMode === 'grid' ? (mosaicCache ??= buildMosaic()) : []));
 
 	// ─── Expand state (grid view) ───────────────────────────────────────────────
 	// Store the index so the panel reacts to language changes via $derived
@@ -544,11 +564,11 @@
 			</button>
 		</div>
 	{:else}
-		<!-- All projects: uniform mosaic; only the highlights are wider -->
+		<!-- All projects: an irregular mosaic, the highlights are the biggest tiles -->
 		<div class="grid-container">
-			{#each mosaic as project}
+			{#each mosaic as { project, size }}
 				<button
-					class="pcard"
+					class="pcard size-{size}"
 					class:is-featured={project.importance === 3}
 					onclick={() => onGridCardClick(project)}
 				>
