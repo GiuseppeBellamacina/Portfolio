@@ -78,6 +78,31 @@ const GAG_FACES: Record<Exclude<Gag, 'none'>, string[]> = {
 	off: ['.......', '.......', '.......', '.......', '.......']
 };
 
+// Shimmer by mood: events per second, lightness shift, hue shift (swing: either way)
+const SHIMMER: Partial<
+	Record<Expression, { rate: number; dl: number; dh: number; swing?: boolean }>
+> & {
+	normal: { rate: number; dl: number; dh: number; swing?: boolean };
+} = {
+	normal: { rate: 2.5, dl: 0.06, dh: 0.01 },
+	happy: { rate: 5, dl: 0.09, dh: 0.02 },
+	love: { rate: 6, dl: 0.08, dh: 0.05 },
+	star: { rate: 7, dl: 0.12, dh: 0.03 },
+	wow: { rate: 6, dl: 0.1, dh: 0 },
+	wink: { rate: 4, dl: 0.08, dh: 0.02 },
+	talk: { rate: 3, dl: 0.06, dh: 0.01 },
+	smug: { rate: 3, dl: 0.06, dh: 0.02 },
+	shy: { rate: 3, dl: 0.07, dh: 0.06 },
+	think: { rate: 2.5, dl: 0.05, dh: -0.01 },
+	sad: { rate: 1.5, dl: -0.07, dh: -0.03 },
+	tear: { rate: 1.5, dl: -0.08, dh: -0.04 },
+	worried: { rate: 3, dl: -0.05, dh: -0.02 },
+	tired: { rate: 1, dl: -0.06, dh: -0.01 },
+	sleepy: { rate: 0.7, dl: -0.07, dh: -0.02 },
+	angry: { rate: 7, dl: 0.06, dh: -0.04 },
+	dizzy: { rate: 8, dl: 0.08, dh: 0.06, swing: true }
+};
+
 const PARTICLES = 110;
 
 // Rocket voxels, rows from the nose (touching the bot) downwards; [dy, radius², colour]
@@ -157,6 +182,14 @@ export function createVoxelMascot(
 	let tearMs = 0;
 	let tearDrop = false;
 	let blinking = false;
+
+	// Shimmer: now and then a few voxels (never many at once) drift a little in shade and come
+	// back; how often, which way and how much depends on the mood
+	const baseColor: Color[] = [];
+	const shimmerable: boolean[] = [];
+	const shimmering = new Map<number, { age: number; dur: number; dl: number; dh: number }>();
+	let shimmerMs = 800;
+	const shimmerTmp = new Color();
 	let time = 0;
 	let yaw = 0;
 	let pitch = 0;
@@ -192,6 +225,9 @@ export function createVoxelMascot(
 			body.remove(mesh);
 			mesh.dispose();
 		}
+		shimmering.clear();
+		baseColor.length = 0;
+		shimmerable.length = 0;
 		if (tape) {
 			body.remove(tape);
 			tape.dispose();
@@ -364,7 +400,53 @@ export function createVoxelMascot(
 					(hash3(v.x, v.y, v.z) - 0.5) * (v.role === 'dark' ? 0.04 : v.color ? 0.06 : 0.14)
 				);
 			mesh!.setColorAt(i, color);
+			baseColor[i] = (baseColor[i] ?? new Color()).copy(color);
+			shimmerable[i] = !lit.has(i) && v.role !== 'dark';
 		});
+		if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+	}
+
+	function tickShimmer(dtMs: number) {
+		if (!mesh || !baseColor.length) return;
+		// Not when it is still by choice (powered off, reduced motion): put everything back
+		const calm = reducedMotion || gag === 'off';
+		if (calm && shimmering.size) {
+			for (const i of shimmering.keys()) mesh.setColorAt(i, baseColor[i]);
+			shimmering.clear();
+			if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+		}
+		if (calm) return;
+		const m = SHIMMER[anger > 0.3 ? 'angry' : expression] ?? SHIMMER.normal;
+		shimmerMs -= dtMs;
+		if (shimmerMs <= 0) {
+			shimmerMs = (1000 / m.rate) * (0.5 + Math.random());
+			const max = Math.ceil(baseColor.length * 0.05);
+			for (let n = 0, add = 1 + (Math.random() < 0.4 ? 1 : 0); n < 8 && add > 0; n++) {
+				const i = Math.floor(Math.random() * baseColor.length);
+				if (!shimmerable[i] || shimmering.has(i) || shimmering.size >= max) continue;
+				add--;
+				const slow =
+					expression === 'sleepy' || expression === 'tired' ? 1.6 : anger > 0.3 ? 0.6 : 1;
+				shimmering.set(i, {
+					age: 0,
+					dur: (700 + Math.random() * 800) * slow,
+					dl: m.dl * (0.6 + Math.random() * 0.8),
+					dh: m.dh * (m.swing ? (Math.random() < 0.5 ? -1 : 1) : 1) * (0.6 + Math.random() * 0.8)
+				});
+			}
+		}
+		if (!shimmering.size) return;
+		for (const [i, sh] of shimmering) {
+			sh.age += dtMs;
+			if (sh.age >= sh.dur) {
+				mesh.setColorAt(i, baseColor[i]);
+				shimmering.delete(i);
+				continue;
+			}
+			const env = Math.sin((Math.PI * sh.age) / sh.dur);
+			shimmerTmp.copy(baseColor[i]).offsetHSL(sh.dh * env, 0, sh.dl * env);
+			mesh.setColorAt(i, shimmerTmp);
+		}
 		if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 	}
 
@@ -595,6 +677,7 @@ export function createVoxelMascot(
 			const stretch = Math.min(speed / 4000, 0.12);
 			root.scale.set(1 + sq - stretch * 0.5, 1 - sq + stretch, 1);
 
+			tickShimmer(dtMs);
 			tickSpin(dt, motion);
 			tickSparks(dt, motion);
 			renderer.render(scene, camera);
