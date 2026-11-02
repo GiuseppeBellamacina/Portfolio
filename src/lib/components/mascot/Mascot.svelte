@@ -634,18 +634,20 @@
 		dragging = false;
 		engine?.setAngry(false);
 		shout = null;
-		if (powerOff) {
-			// Let go of while powered off: no throw, it just drops to the floor
-			body.vx = body.vy = body.spin = 0;
-			restMs = 0;
-			mode = 'flying';
-			return;
-		}
 		const MAX = 4500;
 		const speed = Math.hypot(body.vx, body.vy);
 		if (speed > MAX) {
 			body.vx *= MAX / speed;
 			body.vy *= MAX / speed;
+		}
+		if (powerOff) {
+			// Powered off it is a lifeless object: thrown, it tumbles and bounces like a ragdoll
+			// (no scream, no complaints, no waking up) and stays where it ends up
+			body.spin = (body.vx / radius) * 0.35;
+			hits = 0;
+			restMs = 0;
+			mode = 'flying';
+			return;
 		}
 		if (strip && !reducedMotion && speed < THROW_SPEED) {
 			// Carried, not thrown: on a phone it never stays over the page, it goes back to the strip
