@@ -891,17 +891,26 @@ export const dodgeLines: Lines<{ hop: string[]; flee: string[]; calm: string[] }
 			'worried|**Eh no!** Stavolta non mi prendi.',
 			'smug|Troppo lento. **Riprova**.',
 			'wink|Ahah, **mancato**!',
-			'worried|Ti ho visto arrivare. Non toccarmi più.'
+			'worried|Ti ho visto arrivare. Non toccarmi più.',
+			'smug|Mancato di nuovo. Ho **riflessi** da bot.',
+			'worried|Ehi! Le **mani a posto**.',
+			'wink|Non sono così **facile**, eh.',
+			'smug|Bella mira. **Peccato** per l’ostacolo: io.'
 		],
 		flee: [
 			'angry|Ok, **basta**. Ora me ne sto alla larga da te.',
 			'tired|Mi hai **stancato**. Sto lontano dal cursore per un po’.',
-			'worried|Se non la smetti **scappo davvero**.'
+			'worried|Se non la smetti **scappo davvero**.',
+			'angry|**Via**! Non ti avvicinare più!',
+			'worried|Ho il **fiatone**… e tu **ancora**?',
+			'angry|Giuro che **mi nascondo** dietro il terminale.'
 		],
 		calm: [
 			'tired|Uff… mi sono **stancato di scappare**. Facciamo pace?',
 			'happy|Va bene, **tregua**. Ma piano.',
-			'sleepy|Ho il fiatone. Se vuoi tocca, ma con **gentilezza**.'
+			'sleepy|Ho il fiatone. Se vuoi tocca, ma con **gentilezza**.',
+			'shy|Ok, **scusa**. Mi sono un po’ innervosito.',
+			'happy|Pace fatta. **Ma ricordati di me**: sono delicato.'
 		]
 	},
 	en: {
@@ -909,17 +918,26 @@ export const dodgeLines: Lines<{ hop: string[]; flee: string[]; calm: string[] }
 			'worried|**Oh no!** You won’t catch me this time.',
 			'smug|Too slow. **Try again**.',
 			'wink|Haha, **missed**!',
-			'worried|I saw you coming. Don’t touch me again.'
+			'worried|I saw you coming. Don’t touch me again.',
+			'smug|Missed again. I have **bot reflexes**.',
+			'worried|Hey! **Hands off**.',
+			'wink|I’m not that **easy**, you know.',
+			'smug|Nice aim. **Pity** about the obstacle: me.'
 		],
 		flee: [
 			'angry|Ok, **enough**. I’m keeping away from you now.',
 			'tired|You **wore me out**. I’m staying away from the cursor for a while.',
-			'worried|If you don’t stop I’ll **really run**.'
+			'worried|If you don’t stop I’ll **really run**.',
+			'angry|**Away**! Don’t come near me again!',
+			'worried|I’m **out of breath**… and you’re **still** at it?',
+			'angry|I swear I’ll **hide** behind the terminal.'
 		],
 		calm: [
 			'tired|Phew… I’m **tired of running**. Truce?',
 			'happy|Fine, **truce**. But gently.',
-			'sleepy|I’m out of breath. Tap if you like, but **gently**.'
+			'sleepy|I’m out of breath. Tap if you like, but **gently**.',
+			'shy|Ok, **sorry**. I got a bit worked up.',
+			'happy|Peace. **But remember me**: I’m delicate.'
 		]
 	}
 };

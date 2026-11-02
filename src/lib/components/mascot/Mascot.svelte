@@ -484,6 +484,8 @@
 		hopEvery: number;
 		nextHop: number;
 		flee: boolean;
+		hops: number;
+		lastSay: number;
 	} | null = null;
 	let restUntil = 0;
 	let evadeEndedAt = 0;
@@ -495,7 +497,9 @@
 			reach: flee ? 300 : 170,
 			hopEvery: flee ? 450 : 800,
 			nextHop: 0,
-			flee
+			flee,
+			hops: 0,
+			lastSay: now
 		};
 		const l = dodgeLines[get(lang)];
 		sayRaw(pick(flee ? l.flee : l.hop), 'worried');
@@ -508,8 +512,8 @@
 			evade = null;
 			dodgeGoal = null;
 			evadeEndedAt = now;
-			// Worn out from running: a rest, so it can't be chased forever
-			restUntil = now + 25000;
+			// A rest after, so it can't be chased forever: short after a dodge, longer after a run
+			restUntil = now + (flee ? 20000 : 8000);
 			if (flee && !powerOff && !muted) sayRaw(pick(dodgeLines[get(lang)].calm), 'tired');
 			return;
 		}
@@ -532,8 +536,22 @@
 		}
 		dodgeGoal = { x: goal.x, y: goal.y };
 		evade.nextHop = now + evade.hopEvery;
+		evade.hops++;
 		engine?.bump(0.45);
 		engine?.setExpression('worried');
+		const l = dodgeLines[get(lang)];
+		// Chased a few times: it is worn out and runs for real
+		if (!evade.flee && evade.hops >= 5) {
+			evade.flee = true;
+			evade.reach = 300;
+			evade.hopEvery = 450;
+			evade.until = now + 9000;
+			evade.lastSay = now;
+			sayRaw(pick(l.flee), 'angry');
+		} else if (now - evade.lastSay > 2800) {
+			evade.lastSay = now;
+			sayRaw(pick(evade.flee ? l.flee : l.hop), 'worried');
+		}
 	}
 
 	let raf = 0;
@@ -785,14 +803,9 @@
 		tapStreak = chasing || now - lastTap < 2500 ? tapStreak + 1 : 1;
 		lastTap = now;
 		totalTaps++;
-		// Too many in a row: first it dodges, and if it goes on, it runs from the cursor for a while
-		if (
-			!strip &&
-			!powerOff &&
-			tapStreak >= 4 &&
-			(evade ? !evade.flee && tapStreak >= 7 : now > restUntil)
-		) {
-			startEvade(tapStreak >= 7);
+		// Ten in a row: it dodges, and if it is chased on, it runs from the cursor for a while
+		if (!strip && !powerOff && tapStreak >= 10 && !evade && now > restUntil) {
+			startEvade(false);
 			return;
 		}
 		const l = get(lang);
