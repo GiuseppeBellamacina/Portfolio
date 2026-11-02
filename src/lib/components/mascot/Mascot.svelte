@@ -5,6 +5,7 @@
 	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from '$lib/components/skills/skillsData';
 	import { projects } from '$lib/components/projects/projectsData';
+	import { createChooser, type Source } from './chatter';
 	import { CHARACTER_IDS, type CharacterId, type Expression, type ModelId } from './characters';
 	import { step, isResting, type Body, type Bounds } from './physics';
 	import {
@@ -27,6 +28,7 @@
 		annoyedLines,
 		backTabLines,
 		konamiLines,
+		introLines,
 		konamiHints,
 		sceneLines,
 		pick,
@@ -111,33 +113,19 @@
 	const SYNTH_LEDS: Expression[] = ['happy', 'wow', 'dizzy', 'star', 'love', 'angry', 'tired'];
 	const GLANCES: Expression[] = ['wink', 'think', 'happy', 'smug', 'shy', 'worried'];
 
-	// Chatter on a tap or in a quiet spell: every line of every source competes, each source
-	// keeps its total weight whatever its size, and a line already said this visit (memory
-	// only, a refresh forgets it) is four times less likely for each time it was said
-	const said = new Map<string, number>();
-	let lastChatter = '';
-	type Source = { lines: readonly (string | Line)[]; weight: number; face: Expression };
+	// What it says on its own (taps, quiet spells) comes from chatter.ts: sources compete, lines
+	// already said are strongly discouraged, a small exhausted set sits out, topics vary
+	const chooser = createChooser();
+	let sectionSince = performance.now();
 	function chatter(sources: Source[]) {
-		const items: { raw: string; face: Expression; w: number }[] = [];
-		for (const src of sources) {
-			if (!src.lines.length) continue;
-			for (const l of src.lines) {
-				const raw = typeof l === 'string' ? l : l.text;
-				// A source with few lines (the hero has 3) counts for less, or those lines would
-				// come back every few taps; and the line just said is out for the next one
-				const small = Math.min(1, src.lines.length / 6);
-				const w =
-					raw === lastChatter
-						? 0
-						: ((src.weight * small) / src.lines.length) * 0.25 ** (said.get(raw) ?? 0);
-				items.push({ raw, face: typeof l === 'string' ? src.face : l.face, w });
-			}
-		}
-		let r = Math.random() * items.reduce((a, i) => a + i.w, 0);
-		const it = items.find((i) => (r -= i.w) <= 0) ?? items[items.length - 1];
-		said.set(it.raw, (said.get(it.raw) ?? 0) + 1);
-		lastChatter = it.raw;
-		sayRaw(it.raw, it.face);
+		// The longer it stays in a section, the more that section's own lines are wanted
+		const dwell = Math.min(1, (performance.now() - sectionSince) / 60000);
+		const c = chooser.choose(
+			sources.map((s) => (s.id === 'section' ? { ...s, boost: 1 + dwell } : s))
+		);
+		if (!c) return;
+		if (c.source === 'section') sectionSince = performance.now();
+		sayRaw(c.raw, c.face);
 	}
 
 	// The Arancino has its own voice (Catanese): its sets, when it is the one on stage
@@ -163,7 +151,8 @@
 	// Section lines come from a shuffle bag too, so coming back to a section doesn't repeat itself
 	const sectionLine = (id: SectionId): Line => {
 		const line = pick(sectionLines[get(lang)][id]);
-		said.set(line.text, (said.get(line.text) ?? 0) + 1);
+		chooser.note(line.text, 'section');
+		sectionSince = performance.now();
 		return line;
 	};
 
@@ -737,14 +726,19 @@
 		}
 		// Its own lines, curiosities and ideas anywhere; the section's lines for where it is
 		chatter([
-			{ lines: clickLines[l], weight: 3, face: 'happy' },
-			{ lines: triviaLines[l], weight: 5, face: 'wink' },
-			{ lines: ideaLines[l], weight: 2, face: 'tired' },
-			{ lines: sectionLines[l][section], weight: 3, face: 'happy' },
-			{ lines: konamiHints[l], weight: 1.2, face: 'wink' },
-			{ lines: friendLines[l][character], weight: 1, face: 'smug' },
-			{ lines: own().click ?? [], weight: 14, face: 'happy' },
-			{ lines: s ? seasonLines[l][s] : [], weight: 2, face: s === 'night' ? 'sleepy' : 'happy' }
+			{ id: 'click', lines: clickLines[l], weight: 3, face: 'happy' },
+			{ id: 'trivia', lines: triviaLines[l], weight: 5, face: 'wink' },
+			{ id: 'idea', lines: ideaLines[l], weight: 2, face: 'tired' },
+			{ id: 'section', lines: sectionLines[l][section], weight: 3, face: 'happy' },
+			{ id: 'hints', lines: konamiHints[l], weight: 1.2, face: 'wink' },
+			{ id: 'friend', lines: friendLines[l][character], weight: 1, face: 'smug' },
+			{ id: 'own', lines: own().click ?? [], weight: 14, face: 'happy' },
+			{
+				id: 'season',
+				lines: s ? seasonLines[l][s] : [],
+				weight: 2,
+				face: s === 'night' ? 'sleepy' : 'happy'
+			}
 		]);
 	}
 
@@ -812,12 +806,12 @@
 		lastIdleLine = now;
 		const l = get(lang);
 		chatter([
-			{ lines: triviaLines[l], weight: 5, face: 'wink' },
-			{ lines: ideaLines[l], weight: 2, face: 'tired' },
-			{ lines: idleLines[l], weight: 3, face: 'wink' },
-			{ lines: sectionLines[l][section], weight: 3, face: 'wink' },
-			{ lines: konamiHints[l], weight: 1.5, face: 'wink' },
-			{ lines: own().idle ?? [], weight: 8, face: 'wink' }
+			{ id: 'trivia', lines: triviaLines[l], weight: 5, face: 'wink' },
+			{ id: 'idea', lines: ideaLines[l], weight: 2, face: 'tired' },
+			{ id: 'idle', lines: idleLines[l], weight: 3, face: 'wink' },
+			{ id: 'section', lines: sectionLines[l][section], weight: 3, face: 'wink' },
+			{ id: 'hints', lines: konamiHints[l], weight: 1.5, face: 'wink' },
+			{ id: 'own', lines: own().idle ?? [], weight: 8, face: 'wink' }
 		]);
 	}
 
@@ -1435,8 +1429,9 @@
 	function greet() {
 		if (greeted) return;
 		greeted = true;
-		const s = season();
-		const line = s ? parseLine(pick(seasonLines[get(lang)][s]), 'happy') : sectionLine(section);
+		// Always the same first words, whatever the season: who it is, and that it is the guide
+		const line = introLines[get(lang)];
+		chooser.note(line.text, 'intro');
 		say(fill(line.text), line.face);
 	}
 

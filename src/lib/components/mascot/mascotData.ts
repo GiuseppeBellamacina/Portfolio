@@ -68,13 +68,18 @@ export function parseLine(raw: string, fallback: Expression = 'normal'): Line {
 // unkind to the visitor.
 
 // A few options per section, so coming back to one doesn't repeat itself
+// The first thing it says when the site opens, whatever the season or the section
+export const introLines: Lines<Line> = {
+	it: {
+		text: 'Ciao! **Sono {name}**, il bot di Giuseppe. Scorri pure, ti faccio da guida.',
+		face: 'happy'
+	},
+	en: { text: "Hi! **I'm {name}**, Giuseppe's bot. Scroll on, I'll be your guide.", face: 'happy' }
+};
+
 export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 	it: {
 		home: [
-			{
-				text: 'Ciao! **Sono {name}**, il bot di Giuseppe. Scorri pure, ti faccio da guida.',
-				face: 'happy'
-			},
 			{ text: 'Bentornato in cima. La galassia la muovi tu, col **cursore**.', face: 'wink' },
 			{
 				text: 'Giuseppe ha detto che il sito era **finito**. Ha mentito, ma con stile.',
@@ -150,7 +155,6 @@ export const sectionLines: Lines<Record<SectionId, Line[]>> = {
 	},
 	en: {
 		home: [
-			{ text: "Hi! **I'm {name}**, Giuseppe's bot. Scroll on, I'll be your guide.", face: 'happy' },
 			{ text: 'Back at the top. You can stir the galaxy with **your cursor**.', face: 'wink' },
 			{
 				text: 'Giuseppe said the site was **finished**. He lied, but with style.',
