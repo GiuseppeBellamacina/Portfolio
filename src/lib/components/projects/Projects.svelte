@@ -313,6 +313,30 @@
 	// spread evenly through the grid. Made once, the first time the grid is shown, so it stays
 	// put afterwards (and the prerendered page, which has no grid, never differs from the client).
 	type Tile = { project: Project; size: 's' | 'm' | 'l' };
+	// Where the big and the medium tiles should go, first to last; a project not listed goes
+	// anywhere, the small ones are always mixed freely
+	const ORDER: Record<'l' | 'm', string[]> = {
+		l: [
+			'Translatio',
+			'omniboard',
+			'The Legend of Turi',
+			'Neuro-Symbolic T2G',
+			'profile-forge',
+			'PitWall AI',
+			'Warehouse Swarm Intelligence System',
+			'Guardian',
+			'Neuron Shell'
+		],
+		m: [
+			'Babbol',
+			'Videogame Semantic Search',
+			'CVRP Solver',
+			'Render Multi-Service Manager',
+			'TunneLLM',
+			'ATLAS',
+			'Let It Flyppen'
+		]
+	};
 	let mosaicCache: Tile[] | null = null;
 	function buildMosaic(): Tile[] {
 		const size = (p: Project): Tile['size'] => (p.importance === 3 ? 'l' : p.aiCover ? 's' : 'm');
@@ -321,9 +345,18 @@
 		// Shuffle each size, then interleave them in proportion: the k-th of n gets key (k + r) / n
 		const tiles: { tile: Tile; key: number }[] = [];
 		for (const [s, group] of bySize) {
-			const shuffled = [...group].sort(() => Math.random() - 0.5);
-			shuffled.forEach((p, k) =>
-				tiles.push({ tile: { project: p, size: s }, key: (k + Math.random()) / group.length })
+			let ordered = [...group].sort(() => Math.random() - 0.5);
+			if (s !== 's') {
+				// The wanted order first; the unlisted ones are dropped in at random places
+				const wanted = ORDER[s];
+				const listed = wanted.flatMap((t) => group.filter((p) => p.title === t));
+				ordered = listed;
+				for (const p of group.filter((p) => !wanted.includes(p.title)))
+					ordered.splice(Math.floor(Math.random() * (ordered.length + 1)), 0, p);
+			}
+			// k + at most 0.8 keeps the order inside a size; the sizes still interleave
+			ordered.forEach((p, k) =>
+				tiles.push({ tile: { project: p, size: s }, key: (k + Math.random() * 0.8) / group.length })
 			);
 		}
 		return tiles.sort((a, b) => a.key - b.key).map((t) => t.tile);
