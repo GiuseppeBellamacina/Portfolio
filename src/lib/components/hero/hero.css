@@ -45,7 +45,10 @@
 	width: 100%;
 	max-width: 720px;
 	margin: 0 auto;
-	padding: 0 1.5rem 90px;
+	/* The vertical room follows the screen's height: on a 1080p laptop at 125% scaling the viewport
+	   is only ~750px tall, and a fixed 90px here (and 8rem above the photo) pushed the social
+	   icons off the first screen */
+	padding: 0 1.5rem clamp(24px, 7svh, 90px);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -452,9 +455,9 @@
 	justify-content: center;
 	align-items: center;
 	margin: 0 auto;
-	margin-top: 8rem;
-	width: 240px;
-	height: 240px;
+	margin-top: clamp(1.5rem, 13svh, 8rem);
+	width: clamp(150px, 25svh, 240px);
+	height: clamp(150px, 25svh, 240px);
 	flex-shrink: 0;
 }
 

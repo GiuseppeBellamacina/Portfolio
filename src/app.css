@@ -1025,3 +1025,33 @@ button:focus:not(:focus-visible) {
 		scroll-padding-top: var(--turi-strip, 0px);
 	}
 }
+
+/* ── Text selection: it follows the theme ──
+   Day themes are dark, so the highlight is the theme colour, translucent, with light text; the
+   night themes are black and white, so the selection is inverted (solid colour, dark text).
+   -webkit-text-fill-color too, or the gradient headings (transparent fill) would vanish. */
+::selection {
+	background: rgba(var(--primary-rgb), 0.4);
+	color: #fff;
+	-webkit-text-fill-color: #fff;
+	text-shadow: none;
+}
+body.tod-night ::selection {
+	background: rgb(var(--primary-rgb));
+	color: #07090f;
+	-webkit-text-fill-color: #07090f;
+}
+/* the terminal is green, like its prompt */
+.terminal ::selection {
+	background: color-mix(in srgb, var(--neon-green) 45%, transparent);
+}
+body.tod-night .terminal ::selection {
+	background: var(--neon-green);
+}
+/* the mascot's speech is dark text on a light card */
+.mascot-bubble ::selection,
+.mascot-say ::selection {
+	background: rgba(var(--primary-rgb), 0.3);
+	color: #1e1b4b;
+	-webkit-text-fill-color: #1e1b4b;
+}
