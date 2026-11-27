@@ -107,7 +107,11 @@ export async function initGpgpuParticles(
 		let centreY = heroH / 2;
 		if (photo) {
 			const pr = photo.getBoundingClientRect();
-			centreY = pr.top + pr.height / 2 - interactionTarget.getBoundingClientRect().top;
+			// The photo slides up into place during the entrance (a translate): anchor to where it
+			// rests, so the galaxy doesn't jump when the animation ends
+			const tr = getComputedStyle(photo).transform;
+			const slide = tr === 'none' ? 0 : new DOMMatrixReadOnly(tr).f;
+			centreY = pr.top + pr.height / 2 - slide - interactionTarget.getBoundingClientRect().top;
 		}
 		camera.setViewOffset(W, fullH, 0, ext + heroH / 2 - centreY, W, H);
 		camera.updateProjectionMatrix();
