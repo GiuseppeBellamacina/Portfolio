@@ -127,10 +127,10 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
   var vel = 0.0;
   if (!onScreen) {
     let diff = p.xy - cam.mouse;
-    let md = length(diff);
+    let md = length(vec3f(diff, p.z)); // 3D: stars high above or below the disc are not under the cursor
     vel = smoothstep(cam.ring + 0.4 * SCALE, 0.0, md) * cam.hover;
-    if (md > 0.0001) {
-      p = vec3f(p.xy + diff / md * vel * 0.3 * SCALE, p.z);
+    if (length(diff) > 0.0001) {
+      p = vec3f(p.xy + diff / length(diff) * vel * 0.3 * SCALE, p.z);
     }
     p.z += vel * 0.15 * SCALE;
   }
