@@ -57,7 +57,61 @@
 			:root {
 				color-scheme: dark;
 			}
+			/* Start-up curtain: hides the English prerender until the app has hydrated in the right
+			   language (see src/lib/boot.ts); opening it sets data-ready on <html> */
+			#boot {
+				position: fixed;
+				inset: 0;
+				z-index: 2147483000;
+				display: grid;
+				place-items: center;
+				background: var(--bg-dark, #07090f);
+				transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+			html[data-ready] #boot {
+				opacity: 0;
+				pointer-events: none;
+			}
+			/* A ring that shows up only if the wait is long enough to notice */
+			#boot i {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				border: 2px solid rgba(var(--primary-rgb, 139, 92, 246), 0.2);
+				border-top-color: rgba(var(--primary-rgb, 139, 92, 246), 0.9);
+				opacity: 0;
+				animation:
+					boot-spin 0.9s linear infinite,
+					boot-in 0.4s ease 0.8s forwards;
+			}
+			@keyframes boot-spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+			@keyframes boot-in {
+				to {
+					opacity: 1;
+				}
+			}
 		</style>
+		<noscript>
+			<style>
+				#boot {
+					display: none;
+				}
+				.hero-stagger {
+					opacity: 1 !important;
+					transform: none !important;
+					filter: none !important;
+				}
+				.hero-canvas,
+				.navbar {
+					opacity: 1 !important;
+					transform: none !important;
+				}
+			</style>
+		</noscript>
 		<meta
 			name="description"
 			content="Giuseppe Bellamacina — AI Engineer specialised in LLM-based systems, multi-agent architectures, and Deep Learning models. Working on AI deployments for healthcare and defence organisations."
@@ -159,6 +213,7 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<div id="boot" aria-hidden="true"><i></i></div>
 		<script>
 			// Everything in this block runs before first paint so there is never a
 			// "default look, then it switches" flash — for the season or the
@@ -203,6 +258,13 @@
 				var h = d.getHours() + d.getMinutes() / 60;
 				var mode = h >= noon - halfDay && h < noon + halfDay ? 'day' : 'night';
 				document.body.classList.add('tod-' + mode);
+
+				// WebGPU browsers get the vgpu galaxy, which has its own canvas shape (see hero.css)
+				if (navigator.gpu) document.documentElement.setAttribute('data-gpu', '');
+				// If the app never boots (broken chunk, blocked script) the page opens anyway
+				setTimeout(function () {
+					document.documentElement.setAttribute('data-ready', '');
+				}, 5000);
 			})();
 		</script>
 		<div style="display: contents">%sveltekit.body%</div>

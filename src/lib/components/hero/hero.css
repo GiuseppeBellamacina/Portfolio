@@ -28,6 +28,24 @@
 	pointer-events: none;
 	animation: heroGlow 12s ease-in-out infinite;
 }
+/* The glow joins the entrance: dark until the page opens, then it fades in with the galaxy */
+html:not([data-ready]) .hero::before {
+	animation: none;
+	opacity: 0;
+}
+html[data-ready] .hero::before {
+	animation:
+		heroGlowIn 1.8s ease both,
+		heroGlow 12s ease-in-out 1.8s infinite;
+}
+@keyframes heroGlowIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 
 @keyframes heroGlow {
 	0%,
@@ -431,6 +449,12 @@
 	z-index: 0;
 	pointer-events: none;
 	overflow: visible;
+	/* The galaxy and its backdrop arrive together, first, when the page opens */
+	opacity: 0;
+	transition: opacity 1.8s ease 0.05s;
+}
+html[data-ready] .hero-canvas {
+	opacity: 1;
 }
 
 /* ── Mouse-following spotlight ── */
@@ -556,15 +580,16 @@
 		transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
 		filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* Critical hero elements: visible via CSS animation (no JS dependency for LCP) */
-.hero-stagger:not(.s4):not(.s5) {
-	animation: heroLcpReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* The reveal starts when the page opens (html[data-ready], see src/lib/boot.ts), after the
+   background has begun to fade in: photo, then name, then subtitle */
+html[data-ready] .hero-stagger:not(.s4):not(.s5) {
+	animation: heroLcpReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--stagger-delay, 0.3s) both;
 }
 .hero-stagger.s2 {
-	animation-delay: 0.1s;
+	--stagger-delay: 0.42s;
 }
 .hero-stagger.s3 {
-	animation-delay: 0.2s;
+	--stagger-delay: 0.54s;
 }
 @keyframes heroLcpReveal {
 	from {
@@ -585,10 +610,10 @@
 	filter: blur(0);
 }
 .hero-stagger.s4 {
-	transition-delay: 0.45s;
+	transition-delay: 0.75s;
 }
 .hero-stagger.s5 {
-	transition-delay: 0.6s;
+	transition-delay: 0.9s;
 }
 
 /* ── Typing prefix ── */
@@ -691,9 +716,9 @@
 }
 
 /* vgpu galaxy: the canvas keeps the old overhang below the hero (see .hero-canvas) and fades out
-   inside About, so there is no hard edge between the two sections */
-.hero-canvas.vgpu-on {
-	background: none;
+   inside About, so there is no hard edge between the two sections. Set from the start on WebGPU
+   browsers (not when the galaxy shows up) so nothing changes shape while it fades in. */
+html[data-gpu] .hero-canvas {
 	-webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
 	mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
 }

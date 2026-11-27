@@ -5,6 +5,7 @@
 	import { currentSeason } from '$lib/stores/seasonStore';
 	import type { Season } from '$lib/stores/seasonStore';
 	import { t, lang } from '$lib/i18n';
+	import { bootTask, whenBooted } from '$lib/boot';
 	import { getBaseTexts, getSeasonalGreetings } from './heroData';
 	import { startTypingEffect } from './typingEffect';
 	import { downloadCV, type CvDownloadState } from '$lib/cvDownload';
@@ -132,18 +133,31 @@
 	}
 
 	onMount(() => {
-		const cancelTyping = startTypingEffect(getTexts, (text) => (typingText = text));
+		let cancelTyping = () => {};
+		let typingTimer: ReturnType<typeof setTimeout> | undefined;
 		scheduleGlitch();
 
-		const mountedRaf = requestAnimationFrame(() => (mounted = true));
+		// The page opens when the language is settled and the photo and galaxy are ready (boot.ts);
+		// then the text lands, and only after that does the subtitle start typing
+		const photo = heroSection.querySelector<HTMLImageElement>('.profile-image');
+		if (photo) bootTask(photo.decode(), 1200);
+		void whenBooted().then(() => {
+			if (destroyed) return;
+			mounted = true;
+			typingTimer = setTimeout(() => {
+				cancelTyping = startTypingEffect(getTexts, (text) => (typingText = text));
+			}, 0);
+		});
 		window.addEventListener('scroll', invalidateHeroRect, { passive: true });
 		window.addEventListener('resize', invalidateHeroRect);
 
 		/* ── GPGPU particles: deferred init with unmount-race guards ── */
 		let gpgpuCleanup: (() => void) | undefined;
 		let idleTimeout: number | undefined;
-		let idleHandle: number | undefined;
 		let destroyed = false;
+		// The opening waits for the galaxy (up to 1.6s); a device that skips it doesn't hold anything
+		let galaxyDone: () => void = () => {};
+		bootTask(new Promise<void>((resolve) => (galaxyDone = resolve)), 1600);
 
 		const initGpgpu = async () => {
 			const { initGalaxy } = await import('./galaxy');
@@ -177,19 +191,15 @@
 			((nav.deviceMemory ?? 8) < 4 ||
 				(nav.hardwareConcurrency ?? 8) < 4 ||
 				nav.connection?.saveData === true);
-		if (!weak) {
-			// Small delay so the galaxy appears promptly without blocking the TBT window;
-			// the system itself fades in gradually once initialized. Phones wait longer, so
-			// nothing competes with the first paint.
+		if (weak) {
+			galaxyDone();
+		} else {
+			// Starts straight away, hidden behind the curtain: it is part of the opening, which
+			// fades it in together with its backdrop. Phones get a short head start for the first
+			// paint.
 			idleTimeout = setTimeout(
-				() => {
-					if ('requestIdleCallback' in window) {
-						idleHandle = requestIdleCallback(initGpgpu);
-					} else {
-						initGpgpu();
-					}
-				},
-				touch ? 2000 : 600
+				() => void initGpgpu().finally(galaxyDone),
+				touch ? 300 : 0
 			) as unknown as number;
 		}
 
@@ -197,14 +207,11 @@
 			destroyed = true;
 			cancelTyping();
 			clearTimeout(glitchTimeout);
-			cancelAnimationFrame(mountedRaf);
+			clearTimeout(typingTimer);
 			if (spotlightRaf !== undefined) cancelAnimationFrame(spotlightRaf);
 			window.removeEventListener('scroll', invalidateHeroRect);
 			window.removeEventListener('resize', invalidateHeroRect);
 			if (idleTimeout !== undefined) clearTimeout(idleTimeout);
-			if (idleHandle !== undefined && 'cancelIdleCallback' in window) {
-				cancelIdleCallback(idleHandle);
-			}
 			gpgpuCleanup?.();
 		};
 	});

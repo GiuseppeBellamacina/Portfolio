@@ -10,7 +10,14 @@
 	padding: 1rem 0;
 	box-shadow: 0 1px 0 rgba(var(--primary-rgb), 0.06);
 	overflow: hidden;
-	transition: background 0.3s ease;
+	transition:
+		background 0.3s ease,
+		opacity 0.8s ease 0.35s,
+		transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s;
+}
+html:not([data-ready]) .navbar {
+	opacity: 0;
+	transform: translateY(-14px);
 }
 
 /* Canvas-based matrix rain overlay */

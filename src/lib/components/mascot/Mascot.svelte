@@ -2,6 +2,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { lang, t } from '$lib/i18n';
+	import { whenBooted } from '$lib/boot';
 	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from '$lib/components/skills/skillsData';
 	import { projects } from '$lib/components/projects/projectsData';
@@ -1652,13 +1653,20 @@
 		// Fly in from the right edge (on a phone, straight into the strip)
 		body.x = strip ? dock.x : innerWidth + size;
 		body.y = strip ? -size : innerHeight * anchors.home.y;
-		// The strip has room for words before three.js is there: it doesn't stay blank
-		if (strip && visible) setTimeout(greet, 700);
-
-		// Load three.js only once the page has settled, so it never competes with first paint
-		const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1200));
-		// Saved as off: three.js loads only if the terminal brings the mascot back
-		if (visible) idle(() => void start(character), { timeout: 3000 });
+		// Turi arrives last: once the page has opened and the hero has settled (see boot.ts).
+		// three.js loads only then, so it never competes with the opening either.
+		let arrival: ReturnType<typeof setTimeout> | undefined;
+		void whenBooted().then(() => {
+			// Fetch three.js while the hero is still arriving, so Turi enters on time
+			if (visible) void import('./voxelEngine').catch(() => {});
+			arrival = setTimeout(() => {
+				if (cancelled) return;
+				// The strip has room for words before three.js is there: it doesn't stay blank
+				if (strip && visible) setTimeout(greet, 400);
+				// Saved as off: three.js loads only if the terminal brings the mascot back
+				if (visible) void start(character);
+			}, 1500);
+		});
 
 		window.addEventListener('resize', onResize);
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
@@ -1677,6 +1685,7 @@
 		document.addEventListener('visibilitychange', onVisibility);
 		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
+			clearTimeout(arrival);
 			cancelled = true;
 			clearTimeout(resizeTimer);
 			window.removeEventListener('resize', onResize);

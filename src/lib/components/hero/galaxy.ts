@@ -36,7 +36,7 @@ export async function initGalaxy(
 	const canvas = document.createElement('canvas');
 	canvas.setAttribute('aria-hidden', 'true');
 	canvas.style.cssText =
-		'position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 0.8s ease;pointer-events:none';
+		'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none';
 	container.prepend(canvas);
 
 	const light = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
@@ -91,6 +91,5 @@ export async function initGalaxy(
 	}
 	if (disposed) return;
 	container.classList.add('vgpu-on');
-	canvas.style.opacity = '1';
 	return dispose;
 }
