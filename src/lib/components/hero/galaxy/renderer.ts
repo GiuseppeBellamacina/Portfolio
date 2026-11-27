@@ -129,7 +129,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter, on
 		spin: time * SPIN_RATE,
 		// Fewer stars are compensated only partly: a full compensation burns the dense core
 		gain: 0.22 * Math.pow(REF_STARS / stars, 0.6),
-		core: light ? 0.3 : 1,
+		core: light ? 0.3 : 0.55,
 		wide: light ? 1.4 : 1,
 		hover,
 		mouse: mouseWorld,
