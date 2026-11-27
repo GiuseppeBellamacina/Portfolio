@@ -47,9 +47,13 @@ export async function initGalaxy(
 		const c = canvas.getBoundingClientRect();
 		if (!photo || c.width === 0 || c.height === 0) return [0, 0, 1];
 		const p = photo.getBoundingClientRect();
+		// The photo slides up into place during the entrance (a translate): measure where it will
+		// rest, not where it is, so the galaxy doesn't shift when the animation ends
+		const tr = getComputedStyle(photo).transform;
+		const m = tr === 'none' ? new DOMMatrixReadOnly() : new DOMMatrixReadOnly(tr);
 		return [
-			((p.left + p.width / 2 - c.left) / c.width) * 2 - 1,
-			1 - ((p.top + p.height / 2 - c.top) / c.height) * 2,
+			((p.left + p.width / 2 - m.e - c.left) / c.width) * 2 - 1,
+			1 - ((p.top + p.height / 2 - m.f - c.top) / c.height) * 2,
 			Math.min(1, (hero.offsetHeight || c.height) / c.height)
 		];
 	};
