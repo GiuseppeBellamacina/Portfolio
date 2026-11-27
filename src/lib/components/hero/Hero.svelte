@@ -146,10 +146,10 @@
 		let destroyed = false;
 
 		const initGpgpu = async () => {
-			const { initBlackHole } = await import('./blackHole');
+			const { initGalaxy } = await import('./galaxy');
 			// Too late (component unmounted): init never ran, nothing to clean.
 			if (destroyed || !document.contains(heroContainer)) return;
-			gpgpuCleanup = await initBlackHole(heroContainer, {
+			gpgpuCleanup = await initGalaxy(heroContainer, heroSection, {
 				// A phone that can't run it gives it up: the CSS background comes back
 				onAbort: () => {
 					heroContainer.classList.remove('galaxy-on', 'bh-on');
