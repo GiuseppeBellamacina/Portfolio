@@ -17,6 +17,7 @@ struct Cam {
   hover: f32,
   mouse: vec2f,
   ring: f32,
+  core: f32, // bulge brightness: 1 on desktop, lower on phones where the core is just a few pixels
 }
 struct Pal {
   c: array<vec4f, 12>,
@@ -104,12 +105,13 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
     p = vec3f(r * cos(phi), r * sin(phi), z);
     lum = pow(e.x, 3.0);
     if (inArm) { lum = lum * 1.4; }
+    lum = lum * mix(cam.core, 1.0, smoothstep(0.0, 0.35, r)); // tame the pile-up at the centre
   } else if (pop < 0.92) {
     // Bulge: flattened spheroid
     let g = vec3f(gauss(b), gauss(c), gauss(d));
     let q = g * 0.12 * vec3f(1.0, 1.0, 0.75) * (0.5 + 1.5 * e.x * e.x);
     p = vec3f(q.x * cos(cam.spin) - q.y * sin(cam.spin), q.x * sin(cam.spin) + q.y * cos(cam.spin), q.z);
-    lum = pow(e.y, 4.0) * 0.8;
+    lum = pow(e.y, 4.0) * 0.8 * cam.core;
   } else if (pop < 0.96) {
     // Halo: sparse and dim
     let dir = normalize(vec3f(gauss(b), gauss(c), gauss(d)) + vec3f(0.0001));
