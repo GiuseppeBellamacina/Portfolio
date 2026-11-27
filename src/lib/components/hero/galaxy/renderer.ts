@@ -17,6 +17,11 @@ const SCALE = GALAXY_R / 8;
 const DIST = 7.9 * SCALE; // the original's camera distance, in the same units
 const SPIN_RATE = 0.05; // rad/s of the spiral pattern
 const REF_STARS = 350_000;
+// Star counts, richest first: the renderer steps down when frames come too slowly
+const LEVELS_DESKTOP = [350_000, 180_000, 90_000];
+const LEVELS_LIGHT = [90_000, 45_000];
+const SLOW_FRAME_MS = 26; // median presented frame above this (< ~38 fps): drop a level
+const GIVE_UP_FRAME_MS = 50; // ...and above this at the lowest level: give up (< 20 fps)
 const MIN_FRAME_INTERVAL_MS = 1000 / 60 - 2;
 const CLEAR: readonly [number, number, number, number] = [0, 0, 0, 1];
 
@@ -27,6 +32,8 @@ interface Options {
 	interaction: HTMLElement;
 	/** Centre of the galaxy on the canvas, in NDC (x right, y up) */
 	getCenter: () => readonly [number, number];
+	/** Called once when even the lowest star count can't hold ~20 fps */
+	onSlow: () => void;
 }
 
 interface Level {
@@ -39,8 +46,15 @@ interface Targets {
 	levels: Level[];
 }
 
-export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: Options) {
-	const stars = light ? 90_000 : REF_STARS;
+export function createGalaxyRenderer({ canvas, light, interaction, getCenter, onSlow }: Options) {
+	const levels = light ? LEVELS_LIGHT : LEVELS_DESKTOP;
+	let level = 0;
+	let stars = levels[0]!;
+	// Phones frame the disc from further away (the original's zoom of 1.6 on a radius of 6 vs 8)
+	const dist = light ? DIST * 1.6 * (8 / 6) : DIST;
+	const gaps: number[] = [];
+	let warm = 0;
+	let gaveUp = false;
 	let disposed = false;
 	let api: VgpuApi | undefined;
 	let gpu: Gpu | undefined;
@@ -93,8 +107,8 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: 
 		const sy = mouseNdc[1] - center[1];
 		const c = Math.cos(TILT);
 		const s = Math.sin(TILT);
-		const oy = s * DIST;
-		const oz = c * DIST;
+		const oy = s * dist;
+		const oz = c * dist;
 		const dy = c * sy - s * FOCAL;
 		const dz = -s * sy - c * FOCAL;
 		const t = -oz / dz;
@@ -107,7 +121,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: 
 		time,
 		tilt: TILT,
 		roll: 0,
-		dist: DIST,
+		dist,
 		focal: FOCAL,
 		spin: time * SPIN_RATE,
 		gain: 0.22 * (REF_STARS / stars),
@@ -203,6 +217,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: 
 		const tick = (now: number) => {
 			if (stopped) return;
 			if (lastPresented === undefined || now - lastPresented >= MIN_FRAME_INTERVAL_MS) {
+				if (lastPresented !== undefined) watchFrameRate(now - lastPresented);
 				lastPresented = now;
 				try {
 					vgpu.frame(g, renderFrame);
@@ -240,7 +255,9 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: 
 		const cam = camUniforms();
 		starsDraw.set({ cam });
 		post.set({ cam });
-		frame.pass({ target: targets.stars, clear: CLEAR }, (p) => p.draw(starsDraw!));
+		frame.pass({ target: targets.stars, clear: CLEAR }, (p) =>
+			p.draw(starsDraw!, { instances: stars })
+		);
 		frame.pass({ target: targets.scene, clear: CLEAR }, (p) => p.draw(post!));
 		for (const s of steps) frame.pass({ target: s.dst(), clear: CLEAR }, (p) => p.draw(s.fx));
 		frame.pass({ target: surface, clear: CLEAR }, (p) => p.draw(composite!));
@@ -265,6 +282,25 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: 
 	const scheduleResize = () => {
 		if (!resizeFrame) resizeFrame = requestAnimationFrame(applyResize);
 	};
+
+	// Median of the presented frame gaps over ~60 frames (after a warm-up): step down, then give up
+	function watchFrameRate(gap: number) {
+		if (gaveUp || gap > 500) return; // a stall (tab switch, scroll jank) says nothing
+		if (++warm <= 30) return;
+		gaps.push(gap);
+		if (gaps.length < 60) return;
+		const median = gaps.sort((a, b) => a - b)[30]!;
+		gaps.length = 0;
+		warm = 0;
+		if (median > SLOW_FRAME_MS && level < levels.length - 1) {
+			stars = levels[++level]!;
+		} else if (median > GIVE_UP_FRAME_MS) {
+			gaveUp = true;
+			loop?.stop();
+			loop = undefined;
+			onSlow();
+		}
+	}
 
 	function dispose() {
 		if (disposed) return;

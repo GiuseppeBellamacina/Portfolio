@@ -1,13 +1,36 @@
 // vgpu galaxy for the Hero: same view as the original three.js galaxy (disc seen at ~55 degrees),
-// its centre locked to the centre of the profile photo. Returns a cleanup, or undefined when
-// WebGPU is unavailable / the user prefers reduced motion.
+// its centre locked to the centre of the profile photo.
+// Anywhere vgpu can't run it (no WebGPU, init failure, or too slow even at the lowest star count)
+// the original three.js galaxy takes over, so no visitor loses the effect.
+// Returns a cleanup, or undefined when nothing is running (reduced motion, or both backends gave up).
 export async function initGalaxy(
 	container: HTMLElement,
 	hero: HTMLElement,
 	options: { onAbort?: () => void } = {}
 ): Promise<(() => void) | undefined> {
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-	if (!('gpu' in navigator)) return;
+
+	let disposed = false;
+	let threeCleanup: (() => void) | undefined;
+	let vgpuCleanup: (() => void) | undefined;
+
+	const useThree = async () => {
+		const { initGpgpuParticles } = await import('./gpgpuParticles');
+		if (disposed) return;
+		const cleanup = await initGpgpuParticles(container, hero, options);
+		if (disposed) cleanup?.();
+		else threeCleanup = cleanup;
+	};
+	const dispose = () => {
+		disposed = true;
+		vgpuCleanup?.();
+		threeCleanup?.();
+	};
+
+	if (!('gpu' in navigator)) {
+		await useThree();
+		return threeCleanup ? dispose : undefined;
+	}
 
 	const { createGalaxyRenderer } = await import('./galaxy/renderer');
 	const canvas = document.createElement('canvas');
@@ -29,27 +52,43 @@ export async function initGalaxy(
 		];
 	};
 
-	const renderer = createGalaxyRenderer({ canvas, light, interaction: hero, getCenter });
+	// Too slow even at the lowest star count: hand over to the three.js galaxy
+	const onSlow = async () => {
+		vgpuCleanup?.();
+		await useThree();
+		if (!disposed && !threeCleanup) options.onAbort?.();
+	};
+
+	const renderer = createGalaxyRenderer({
+		canvas,
+		light,
+		interaction: hero,
+		getCenter,
+		onSlow: () => void onSlow()
+	});
 	// The entrance animation moves the photo a little: frame again once it has settled
 	const reframe = () => renderer.reframe();
 	const timers = [setTimeout(reframe, 400), setTimeout(reframe, 1500)];
 	window.addEventListener('resize', reframe);
-	let disposed = false;
-	const cleanup = () => {
-		disposed = true;
+	vgpuCleanup = () => {
 		timers.forEach(clearTimeout);
 		window.removeEventListener('resize', reframe);
 		renderer.dispose();
 		canvas.remove();
+		container.classList.remove('vgpu-on');
+		vgpuCleanup = undefined;
 	};
+
 	try {
 		await renderer.ready;
 	} catch {
-		// The renderer already disposed itself; hand the CSS background back
-		cleanup();
-		options.onAbort?.();
-		return;
+		// The renderer already disposed itself
+		vgpuCleanup?.();
+		await useThree();
+		return threeCleanup ? dispose : undefined;
 	}
-	if (!disposed) canvas.style.opacity = '1';
-	return cleanup;
+	if (disposed) return;
+	container.classList.add('vgpu-on');
+	canvas.style.opacity = '1';
+	return dispose;
 }

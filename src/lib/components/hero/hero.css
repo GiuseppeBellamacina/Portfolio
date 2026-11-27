@@ -691,7 +691,7 @@
 }
 
 /* Black hole canvas: fills the hero only and fades into About instead of overhanging it */
-.hero-canvas.bh-on {
+.hero-canvas.vgpu-on {
 	inset: 0;
 	background: #000;
 	-webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);

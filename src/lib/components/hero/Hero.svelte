@@ -152,7 +152,7 @@
 			gpgpuCleanup = await initGalaxy(heroContainer, heroSection, {
 				// A phone that can't run it gives it up: the CSS background comes back
 				onAbort: () => {
-					heroContainer.classList.remove('galaxy-on', 'bh-on');
+					heroContainer.classList.remove('galaxy-on');
 					gpgpuCleanup = undefined;
 				}
 			});
@@ -161,7 +161,7 @@
 				gpgpuCleanup?.();
 				gpgpuCleanup = undefined;
 			} else if (gpgpuCleanup) {
-				heroContainer.classList.add('galaxy-on', 'bh-on');
+				heroContainer.classList.add('galaxy-on');
 			}
 		};
 

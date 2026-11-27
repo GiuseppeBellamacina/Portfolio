@@ -157,7 +157,7 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
       clip = vec4f(v.x * s / aspect + cam.center.x, v.y * s + cam.center.y, 0.5, 1.0);
       depthScale = clamp(cam.dist / depth, 0.6, 3.0);
       // nearer stars read brighter, farther ones dimmer (the original's depth cueing)
-      depthDim = clamp(1.0 + (7.9 - depth / SCALE) * 0.045, 0.55, 1.35);
+      depthDim = clamp(1.0 + (1.0 - depth / cam.dist) * 7.9 * 0.045, 0.55, 1.35);
     }
   }
 
