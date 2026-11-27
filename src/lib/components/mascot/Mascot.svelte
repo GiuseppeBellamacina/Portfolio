@@ -2,6 +2,7 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { lang, t } from '$lib/i18n';
+	import { whenBooted } from '$lib/boot';
 	import type { Translations } from '$lib/i18n';
 	import { skillCategories } from '$lib/components/skills/skillsData';
 	import { projects } from '$lib/components/projects/projectsData';
@@ -1057,12 +1058,29 @@
 		mode = 'flying';
 	}
 
+	// The engine turns by distance / 500 px, so a bot docked at the right edge, with only a few pixels
+	// to the cursor's right and a thousand to its left, could hardly look right. Measure each side
+	// against the room the cursor has on that side (at least 60px), and the full turn is reachable
+	// at the screen edge in both directions.
+	function lookReach(delta: number, pos: number, size: number): number {
+		const room = Math.max(60, Math.min(500, delta > 0 ? size - pos : pos));
+		return (delta * 500) / room;
+	}
+
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
 		if (e.pointerType === 'mouse') pointerAt = { x: e.clientX, y: e.clientY };
-		if (!powerOff) engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
+		if (!powerOff) {
+			engine?.lookAt(
+				lookReach(e.clientX - body.x, body.x, innerWidth),
+				lookReach(e.clientY - body.y, body.y, innerHeight)
+			);
+		}
 		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
-		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
+		guestEngine?.lookAt(
+			lookReach(e.clientX - guest.x, guest.x, innerWidth),
+			lookReach(e.clientY - guest.y, guest.y, innerHeight)
+		);
 		synthEngine?.lookAt(e.clientX - synthAt.x, 250 + (e.clientY - synthAt.y) * 0.5);
 	}
 
@@ -1652,13 +1670,20 @@
 		// Fly in from the right edge (on a phone, straight into the strip)
 		body.x = strip ? dock.x : innerWidth + size;
 		body.y = strip ? -size : innerHeight * anchors.home.y;
-		// The strip has room for words before three.js is there: it doesn't stay blank
-		if (strip && visible) setTimeout(greet, 700);
-
-		// Load three.js only once the page has settled, so it never competes with first paint
-		const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1200));
-		// Saved as off: three.js loads only if the terminal brings the mascot back
-		if (visible) idle(() => void start(character), { timeout: 3000 });
+		// Turi arrives last: once the page has opened and the hero has settled (see boot.ts).
+		// three.js loads only then, so it never competes with the opening either.
+		let arrival: ReturnType<typeof setTimeout> | undefined;
+		void whenBooted().then(() => {
+			// Fetch three.js while the hero is still arriving, so Turi enters on time
+			if (visible) void import('./voxelEngine').catch(() => {});
+			arrival = setTimeout(() => {
+				if (cancelled) return;
+				// The strip has room for words before three.js is there: it doesn't stay blank
+				if (strip && visible) setTimeout(greet, 400);
+				// Saved as off: three.js loads only if the terminal brings the mascot back
+				if (visible) void start(character);
+			}, 1500);
+		});
 
 		window.addEventListener('resize', onResize);
 		window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
@@ -1677,6 +1702,7 @@
 		document.addEventListener('visibilitychange', onVisibility);
 		idleTimer = setInterval(onIdleCheck, 4000);
 		return () => {
+			clearTimeout(arrival);
 			cancelled = true;
 			clearTimeout(resizeTimer);
 			window.removeEventListener('resize', onResize);
