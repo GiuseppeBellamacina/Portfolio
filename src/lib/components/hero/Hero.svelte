@@ -146,13 +146,13 @@
 		let destroyed = false;
 
 		const initGpgpu = async () => {
-			const { initGpgpuParticles } = await import('./gpgpuParticles');
+			const { initBlackHole } = await import('./blackHole');
 			// Too late (component unmounted): init never ran, nothing to clean.
 			if (destroyed || !document.contains(heroContainer)) return;
-			gpgpuCleanup = await initGpgpuParticles(heroContainer, heroSection, {
+			gpgpuCleanup = await initBlackHole(heroContainer, {
 				// A phone that can't run it gives it up: the CSS background comes back
 				onAbort: () => {
-					heroContainer.classList.remove('galaxy-on');
+					heroContainer.classList.remove('galaxy-on', 'bh-on');
 					gpgpuCleanup = undefined;
 				}
 			});
@@ -161,7 +161,7 @@
 				gpgpuCleanup?.();
 				gpgpuCleanup = undefined;
 			} else if (gpgpuCleanup) {
-				heroContainer.classList.add('galaxy-on');
+				heroContainer.classList.add('galaxy-on', 'bh-on');
 			}
 		};
 
