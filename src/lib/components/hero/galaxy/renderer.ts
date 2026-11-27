@@ -30,8 +30,8 @@ interface Options {
 	light: boolean;
 	/** Element the cursor is tracked on (the Hero) */
 	interaction: HTMLElement;
-	/** Centre of the galaxy on the canvas, in NDC (x right, y up) */
-	getCenter: () => readonly [number, number];
+	/** Centre of the galaxy on the canvas in NDC (x right, y up), and the zoom for a canvas taller than the hero */
+	getCenter: () => readonly [number, number, number];
 	/** Called once when even the lowest star count can't hold ~20 fps */
 	onSlow: () => void;
 }
@@ -71,7 +71,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter, on
 	let visible = !document.hidden;
 	let intersecting = true;
 	let started = false;
-	let center: readonly [number, number] = [0, 0];
+	let center: readonly [number, number, number] = [0, 0, 1];
 	let time = 0;
 	let lastAt: number | undefined;
 	let resizeFrame = 0;
@@ -109,20 +109,21 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter, on
 		const s = Math.sin(TILT);
 		const oy = s * dist;
 		const oz = c * dist;
-		const dy = c * sy - s * FOCAL;
-		const dz = -s * sy - c * FOCAL;
+		const focal = FOCAL * center[2];
+		const dy = c * sy - s * focal;
+		const dz = -s * sy - c * focal;
 		const t = -oz / dz;
 		return t > 0 ? [sx * t, oy + dy * t] : undefined;
 	}
 
 	const camUniforms = () => ({
 		res: surface!.size,
-		center,
+		center: [center[0], center[1]],
 		time,
 		tilt: TILT,
 		roll: 0,
 		dist,
-		focal: FOCAL,
+		focal: FOCAL * center[2],
 		spin: time * SPIN_RATE,
 		gain: 0.22 * (REF_STARS / stars),
 		hover,

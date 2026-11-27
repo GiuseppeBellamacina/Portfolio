@@ -40,15 +40,17 @@ export async function initGalaxy(
 	container.prepend(canvas);
 
 	const light = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
-	// Photo centre relative to the canvas, as NDC
-	const getCenter = (): [number, number] => {
+	// Photo centre relative to the canvas, as NDC, plus the zoom that keeps the galaxy the size it
+	// would have on a hero-sized canvas (the canvas hangs below the hero, like the old one did)
+	const getCenter = (): [number, number, number] => {
 		const photo = hero.querySelector('.profile-container');
 		const c = canvas.getBoundingClientRect();
-		if (!photo || c.width === 0 || c.height === 0) return [0, 0];
+		if (!photo || c.width === 0 || c.height === 0) return [0, 0, 1];
 		const p = photo.getBoundingClientRect();
 		return [
 			((p.left + p.width / 2 - c.left) / c.width) * 2 - 1,
-			1 - ((p.top + p.height / 2 - c.top) / c.height) * 2
+			1 - ((p.top + p.height / 2 - c.top) / c.height) * 2,
+			Math.min(1, (hero.offsetHeight || c.height) / c.height)
 		];
 	};
 

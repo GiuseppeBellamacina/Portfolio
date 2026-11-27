@@ -690,10 +690,10 @@
 	}
 }
 
-/* Black hole canvas: fills the hero only and fades into About instead of overhanging it */
+/* vgpu galaxy: the canvas keeps the old overhang below the hero (see .hero-canvas) and fades out
+   inside About, so there is no hard edge between the two sections */
 .hero-canvas.vgpu-on {
-	inset: 0;
-	background: #000;
-	-webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
-	mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+	background: none;
+	-webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+	mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
 }
