@@ -192,9 +192,12 @@ export function createVoxelMascot(
 	let shimmerMs = 800;
 	const shimmerTmp = new Color();
 	let time = 0;
-	let yaw = 0;
+	// The camera sits to the right of the axis (see above): facing it, not the axis, is "straight".
+	// Turns are measured from there, so the cursor on either side shows the same angle.
+	const camYaw = Math.atan2(camera.position.x, camera.position.z);
+	let yaw = camYaw;
 	let pitch = 0;
-	let targetYaw = 0;
+	let targetYaw = camYaw;
 	let targetPitch = 0;
 	let squash = 0;
 	let spawnBudget = 0;
@@ -591,7 +594,7 @@ export function createVoxelMascot(
 		},
 		lookAt(dx, dy) {
 			const clamp = (v: number) => Math.max(-1, Math.min(1, v));
-			targetYaw = clamp(dx / 500) * 0.6;
+			targetYaw = camYaw + clamp(dx / 500) * 0.6;
 			targetPitch = clamp(dy / 500) * 0.35;
 		},
 		bump(strength) {

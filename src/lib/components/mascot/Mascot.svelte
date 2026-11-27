@@ -1058,12 +1058,29 @@
 		mode = 'flying';
 	}
 
+	// The engine turns by distance / 500 px, so a bot docked at the right edge, with only a few pixels
+	// to the cursor's right and a thousand to its left, could hardly look right. Measure each side
+	// against the room the cursor has on that side (at least 60px), and the full turn is reachable
+	// at the screen edge in both directions.
+	function lookReach(delta: number, pos: number, size: number): number {
+		const room = Math.max(60, Math.min(500, delta > 0 ? size - pos : pos));
+		return (delta * 500) / room;
+	}
+
 	function onWindowPointerMove(e: PointerEvent) {
 		touch();
 		if (e.pointerType === 'mouse') pointerAt = { x: e.clientX, y: e.clientY };
-		if (!powerOff) engine?.lookAt(e.clientX - body.x, e.clientY - body.y);
+		if (!powerOff) {
+			engine?.lookAt(
+				lookReach(e.clientX - body.x, body.x, innerWidth),
+				lookReach(e.clientY - body.y, body.y, innerHeight)
+			);
+		}
 		// In a scene everyone on stage follows the pointer; the synth keeps its tilt from above
-		guestEngine?.lookAt(e.clientX - guest.x, e.clientY - guest.y);
+		guestEngine?.lookAt(
+			lookReach(e.clientX - guest.x, guest.x, innerWidth),
+			lookReach(e.clientY - guest.y, guest.y, innerHeight)
+		);
 		synthEngine?.lookAt(e.clientX - synthAt.x, 250 + (e.clientY - synthAt.y) * 0.5);
 	}
 
