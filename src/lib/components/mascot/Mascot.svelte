@@ -279,9 +279,10 @@
 
 	// The page reads these two to leave room for the strip (hero padding, scroll offsets, panels)
 	function updateStripVars() {
-		navBottom = Math.round(
-			document.querySelector('.navbar')?.getBoundingClientRect().bottom ?? NAV_H
-		);
+		// Layout position, not getBoundingClientRect: the navbar starts slid up by its entrance
+		// transform, which would put the strip too high once it settles
+		const nav = document.querySelector<HTMLElement>('.navbar');
+		navBottom = nav ? nav.offsetTop + nav.offsetHeight : NAV_H;
 		const h = strip && visible ? stripHeight() : 0;
 		const root = document.documentElement.style;
 		root.setProperty('--turi-nav', `${navBottom}px`);
