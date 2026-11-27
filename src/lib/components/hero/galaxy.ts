@@ -29,7 +29,7 @@ export async function initGalaxy(
 		];
 	};
 
-	const renderer = createGalaxyRenderer({ canvas, light, getCenter });
+	const renderer = createGalaxyRenderer({ canvas, light, interaction: hero, getCenter });
 	// The entrance animation moves the photo a little: frame again once it has settled
 	const reframe = () => renderer.reframe();
 	const timers = [setTimeout(reframe, 400), setTimeout(reframe, 1500)];

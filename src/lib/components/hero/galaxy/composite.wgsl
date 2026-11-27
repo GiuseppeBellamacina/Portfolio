@@ -1,6 +1,7 @@
 // Combine bloom levels, tone map and convert to display output (colour preserved).
 struct Composite {
   params: vec4f,
+  space: vec4f,
 }
 
 @group(0) @binding(0) var<uniform> composite: Composite;
@@ -23,5 +24,7 @@ fn aces(x: vec3f) -> vec3f {
   var color = aces((sceneColor + bloom * composite.params.x) * composite.params.y);
   let vignette = 1.0 - smoothstep(0.6, 1.2, length(uv - vec2f(0.5)) * 1.6);
   color *= mix(0.8, 1.0, vignette);
-  return vec4f(pow(color, vec3f(1.0 / 2.2)), 1.0);
+  // the page's own background colour, screened under the galaxy so the canvas blends into the Hero
+  let lit = pow(color, vec3f(1.0 / 2.2));
+  return vec4f(lit + composite.space.rgb * (vec3f(1.0) - lit), 1.0);
 }

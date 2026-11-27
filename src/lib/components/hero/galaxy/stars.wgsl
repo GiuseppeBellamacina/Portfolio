@@ -1,5 +1,7 @@
 // Procedural stars: every instance derives its population, position, colour and brightness
 // from its index and the time. No buffers, no compute pass.
+// Same behaviour as the original three.js galaxy: rigid slow rotation, per-star "breathing",
+// 12-stop theme palette from the centre to the rim, and a cursor ring that pushes stars out.
 import { pcg3d, unitFloat } from "@vgpu/wgsl-std/hash";
 
 struct Cam {
@@ -12,11 +14,21 @@ struct Cam {
   focal: f32,
   spin: f32,
   gain: f32,
+  hover: f32,
+  mouse: vec2f,
+  ring: f32,
+}
+struct Pal {
+  c: array<vec4f, 12>,
+  space: vec4f,
 }
 @group(0) @binding(0) var<uniform> cam: Cam;
+@group(0) @binding(1) var<uniform> pal: Pal;
 
 const PI: f32 = 3.14159265;
 const ARMS: f32 = 3.0;
+const GALAXY_R: f32 = 1.5; // the original's radius of 8, scaled down
+const SCALE: f32 = 0.1875; // GALAXY_R / 8: converts the original's distances
 
 struct Out {
   @builtin(position) position: vec4f,
@@ -37,6 +49,16 @@ fn gauss(u: vec3f) -> f32 {
 // logarithmic spiral
 fn armPhase(r: f32) -> f32 {
   return 2.2 * log(sqrt(r * r + 0.0196) / 0.14);
+}
+
+// The original 12-stop gradient: centre -> rim, the core takes the soft c5 tint instead of white
+fn pcol(dist: f32) -> vec3f {
+  var e = array<f32, 12>(0.0, 0.05, 0.1, 0.17, 0.25, 0.34, 0.44, 0.54, 0.64, 0.74, 0.86, 1.0);
+  var col = pal.c[0].rgb;
+  for (var i = 1; i < 12; i++) {
+    col = mix(col, pal.c[i].rgb, smoothstep(e[i - 1], e[i], dist));
+  }
+  return mix(pal.c[4].rgb, col, smoothstep(0.0, 0.3, dist));
 }
 
 fn rot(tilt: f32, roll: f32) -> mat3x3f {
@@ -61,62 +83,69 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
   let e = rnd(ii, 4u);
 
   var p = vec3f(0.0);
-  var col = vec3f(1.0);
   var lum = 0.1;
+  var tint = 0.0; // 0: palette by radius, 1: field star (near white)
   var onScreen = false;
   var ndc = vec2f(0.0);
 
   let pop = a.x;
   if (pop < 0.76) {
-    // Exponential disk, truncated at 1.5, with 3 log-spiral arms
-    let rd = 0.42;
-    let r = -rd * log(1.0 - a.y * (1.0 - exp(-1.5 / rd)));
+    // Exponential disk, truncated at the rim, with 3 log-spiral arms
+    let rd = 0.45;
+    let r = -rd * log(1.0 - a.y * (1.0 - exp(-GALAXY_R / rd)));
     let inArm = a.z < 0.72;
     var phi = 0.0;
-    var young = 0.25;
     if (inArm) {
       phi = armPhase(r) + floor(b.x * ARMS) * 2.0 * PI / ARMS + gauss(c) * 0.22 + cam.spin;
-      young = 0.8;
     } else {
-      // inter-arm stars rotate differentially: inner ones faster
-      phi = b.y * 2.0 * PI + cam.spin * (0.5 + 0.9 / (1.0 + 3.0 * r));
+      phi = b.y * 2.0 * PI + cam.spin;
     }
     let z = gauss(d) * (0.015 + 0.03 * r);
     p = vec3f(r * cos(phi), r * sin(phi), z);
-    young = clamp(young + r * 0.15 + (b.z - 0.5) * 0.4, 0.0, 1.0);
-    col = mix(vec3f(1.0, 0.82, 0.58), vec3f(0.62, 0.76, 1.0), young);
     lum = pow(e.x, 3.0);
-    if (inArm && e.y < 0.025) {
-      // HII region: a rare pink-red knot
-      col = vec3f(1.0, 0.32, 0.5);
-      lum = 0.5 + 0.5 * e.z;
-    }
+    if (inArm) { lum = lum * 1.4; }
   } else if (pop < 0.92) {
-    // Bulge: old, warm, flattened, a little faster than the disk
+    // Bulge: flattened spheroid
     let g = vec3f(gauss(b), gauss(c), gauss(d));
     let q = g * 0.12 * vec3f(1.0, 1.0, 0.75) * (0.5 + 1.5 * e.x * e.x);
-    let ang = cam.spin * 1.3;
-    p = vec3f(q.x * cos(ang) - q.y * sin(ang), q.x * sin(ang) + q.y * cos(ang), q.z);
-    col = vec3f(1.0, 0.76, 0.44);
+    p = vec3f(q.x * cos(cam.spin) - q.y * sin(cam.spin), q.x * sin(cam.spin) + q.y * cos(cam.spin), q.z);
     lum = pow(e.y, 4.0) * 0.8;
   } else if (pop < 0.96) {
-    // Halo: sparse, dim, old
+    // Halo: sparse and dim
     let dir = normalize(vec3f(gauss(b), gauss(c), gauss(d)) + vec3f(0.0001));
     p = dir * (0.4 + e.x) * vec3f(1.0, 1.0, 0.7);
-    col = vec3f(1.0, 0.85, 0.65);
     lum = pow(e.y, 4.0) * 0.5;
   } else {
-    // Foreground field stars, placed straight on the screen
+    // Field stars of the surrounding space, placed straight on the screen
     onScreen = true;
     ndc = vec2f(b.x * 2.0 - 1.0, b.y * 2.0 - 1.0);
-    col = mix(vec3f(0.8, 0.85, 1.0), vec3f(1.0, 0.9, 0.75), c.x);
+    tint = 1.0;
     lum = pow(d.x, 8.0) * 0.5;
   }
 
+  // Cursor ring, in the galaxy frame: stars near it are pushed outwards, lifted and flared
+  var vel = 0.0;
+  if (!onScreen) {
+    let diff = p.xy - cam.mouse;
+    let md = length(diff);
+    vel = smoothstep(cam.ring + 0.4 * SCALE, 0.0, md) * cam.hover;
+    if (md > 0.0001) {
+      p = vec3f(p.xy + diff / md * vel * 0.3 * SCALE, p.z);
+    }
+    p.z += vel * 0.15 * SCALE;
+  }
+
+  // Each star breathes on its own cycle
+  let lifeEnd = 3.0 + sin(b.y * 100.0) * 1.5;
+  let lifeTime = (b.x * 100.0 + cam.time * 0.5) % lifeEnd;
+  let anim = smoothstep(0.01, 0.5, lifeTime) - smoothstep(0.5, 1.0, lifeTime / lifeEnd);
+  let breath = 0.3 + 0.7 * anim;
+
   var out: Out;
   out.q = corners[vi];
-  out.color = col * (0.15 + lum) * cam.gain;
   var clip = vec4f(2.0, 2.0, 0.5, 1.0); // off-screen unless it projects in front of the camera
+  var depthScale = 1.0;
+  var depthDim = 1.0;
   if (onScreen) {
     clip = vec4f(ndc, 0.5, 1.0);
   } else {
@@ -126,9 +155,17 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
       let aspect = cam.res.x / cam.res.y;
       let s = cam.focal / depth;
       clip = vec4f(v.x * s / aspect + cam.center.x, v.y * s + cam.center.y, 0.5, 1.0);
+      depthScale = clamp(cam.dist / depth, 0.6, 3.0);
+      // nearer stars read brighter, farther ones dimmer (the original's depth cueing)
+      depthDim = clamp(1.0 + (7.9 - depth / SCALE) * 0.045, 0.55, 1.35);
     }
   }
-  let sizePx = mix(1.0, 2.6, sqrt(lum));
+
+  var col = pcol(length(p.xy) / GALAXY_R);
+  col = mix(col, mix(vec3f(1.0), pal.c[2].rgb, 0.5), tint);
+  col = (col + vec3f(vel * 0.4)) * depthDim;
+  out.color = col * (0.15 + lum) * cam.gain * breath * (1.0 + vel * 2.0);
+  let sizePx = max(mix(1.0, 2.6, sqrt(lum)) * depthScale * (0.6 + 0.4 * breath + vel * 1.2), 0.8);
   out.position = vec4f(clip.xy + corners[vi] * sizePx * 2.0 / cam.res, clip.z, clip.w);
   return out;
 }

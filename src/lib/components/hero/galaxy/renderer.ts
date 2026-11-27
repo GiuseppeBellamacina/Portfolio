@@ -9,9 +9,12 @@ import starsWgsl from './stars.wgsl';
 type VgpuApi = typeof import('vgpu');
 
 // The original three.js galaxy was seen from (0, -6.5, 4.5): ~55 degrees off the disc normal
-const TILT = 0.965;
-const DIST = 2.2;
-const FOCAL = 3.3; // the original's 45deg fov (2.414), zoomed so the disc fills the hero like it did
+// (the camera sits on the -y side, so the disc's far edge is its +y one: a negative tilt)
+const TILT = -0.965;
+const FOCAL = 2.414; // 1 / tan(22.5deg): the original's 45deg vertical fov
+const GALAXY_R = 1.5; // the original's radius of 8, scaled down
+const SCALE = GALAXY_R / 8;
+const DIST = 7.9 * SCALE; // the original's camera distance, in the same units
 const SPIN_RATE = 0.05; // rad/s of the spiral pattern
 const REF_STARS = 350_000;
 const MIN_FRAME_INTERVAL_MS = 1000 / 60 - 2;
@@ -20,6 +23,8 @@ const CLEAR: readonly [number, number, number, number] = [0, 0, 0, 1];
 interface Options {
 	canvas: HTMLCanvasElement;
 	light: boolean;
+	/** Element the cursor is tracked on (the Hero) */
+	interaction: HTMLElement;
 	/** Centre of the galaxy on the canvas, in NDC (x right, y up) */
 	getCenter: () => readonly [number, number];
 }
@@ -34,7 +39,7 @@ interface Targets {
 	levels: Level[];
 }
 
-export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
+export function createGalaxyRenderer({ canvas, light, interaction, getCenter }: Options) {
 	const stars = light ? 90_000 : REF_STARS;
 	let disposed = false;
 	let api: VgpuApi | undefined;
@@ -56,37 +61,69 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 	let time = 0;
 	let lastAt: number | undefined;
 	let resizeFrame = 0;
-	let px = 0;
-	let py = 0;
-	let tiltOff = 0;
-	let rollOff = 0;
+	// Cursor ring (desktop only, as in the original): the pointer in the hero's NDC, eased
+	let mouseOver = false;
+	let mouseNdc: [number, number] = [0, 0];
+	let hover = 0;
+	let mouseWorld: [number, number] = [0, 0];
+	let palette = readPalette();
+	let paletteObserver: MutationObserver | undefined;
 
-	const onPointer = (e: PointerEvent) => {
-		if (e.pointerType !== 'mouse') return;
-		px = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
-		py = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
+	const onMove = (e: MouseEvent) => {
+		const r = canvas.getBoundingClientRect();
+		if (r.width === 0 || r.height === 0) return;
+		mouseNdc = [
+			((e.clientX - r.left) / r.width) * 2 - 1,
+			-(((e.clientY - r.top) / r.height) * 2 - 1)
+		];
+		mouseOver = true;
 	};
-	const recenterPointer = () => {
-		px = 0;
-		py = 0;
+	const onLeave = () => {
+		mouseOver = false;
 	};
 	const onVisibility = () => {
-		if (document.hidden) recenterPointer();
 		visible = !document.hidden;
 		reconcile();
 	};
+
+	// Pointer ray -> galaxy plane (the inverse of the shaders' projection, roll = 0)
+	function pointerOnPlane(): [number, number] | undefined {
+		const [w, h] = surface!.size;
+		const sx = (mouseNdc[0] - center[0]) * (w / h);
+		const sy = mouseNdc[1] - center[1];
+		const c = Math.cos(TILT);
+		const s = Math.sin(TILT);
+		const oy = s * DIST;
+		const oz = c * DIST;
+		const dy = c * sy - s * FOCAL;
+		const dz = -s * sy - c * FOCAL;
+		const t = -oz / dz;
+		return t > 0 ? [sx * t, oy + dy * t] : undefined;
+	}
 
 	const camUniforms = () => ({
 		res: surface!.size,
 		center,
 		time,
-		tilt: TILT + tiltOff,
-		roll: rollOff,
+		tilt: TILT,
+		roll: 0,
 		dist: DIST,
 		focal: FOCAL,
 		spin: time * SPIN_RATE,
-		gain: 0.22 * (REF_STARS / stars)
+		gain: 0.22 * (REF_STARS / stars),
+		hover,
+		mouse: mouseWorld,
+		ring: (0.5 + Math.sin(time) * 0.1) * SCALE
 	});
+
+	// The theme colours live in CSS variables (season, day/night, terminal palettes)
+	function applyPalette() {
+		palette = readPalette();
+		const pal = { c: palette.colors, space: palette.space };
+		starsDraw?.set({ pal });
+		post?.set({ pal });
+		composite?.set({ composite: { space: palette.display } });
+	}
 
 	function createTargets(vgpu: VgpuApi, g: Gpu, size: readonly [number, number]): Targets {
 		const [w, h] = [Math.max(1, Math.floor(size[0])), Math.max(1, Math.floor(size[1]))];
@@ -116,7 +153,9 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 		if (!targets || !post || !composite || !sampler || !surface) return;
 		const t = targets;
 		center = getCenter();
-		post.set({ stars: color(t.stars), linearSampler: sampler });
+		const pal = { c: palette.colors, space: palette.space };
+		post.set({ stars: color(t.stars), linearSampler: sampler, pal });
+		starsDraw?.set({ pal });
 		const threshold = 0.8;
 		const knee = 0.5;
 		const radius = 1.5 * (Math.min(Math.max(window.devicePixelRatio, 1), 2) / 2);
@@ -141,7 +180,7 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 			bloomMedium: color(t.levels[1]!.a),
 			bloomFar: color(t.levels[2]!.a),
 			linearSampler: sampler,
-			composite: { params: [0.8, 1.0, 0, 0] }
+			composite: { params: [0.8, 1.0, 0, 0], space: palette.display }
 		});
 	}
 
@@ -188,10 +227,16 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 		const dt = lastAt === undefined ? 0 : Math.min((now - lastAt) / 1000, 0.1);
 		lastAt = now;
 		time += dt;
-		// Mouse parallax: the disc leans a little towards the cursor, eased
-		const k = 1 - Math.exp(-dt / 0.35);
-		tiltOff += (py * 0.07 - tiltOff) * k;
-		rollOff += (px * 0.1 - rollOff) * k;
+		hover += ((mouseOver ? 1 : 0) - hover) * Math.min(1, dt * 3);
+		const hit = mouseOver && !light ? pointerOnPlane() : undefined;
+		if (hit) {
+			// Snap when the ring (re)appears, ease while it follows the cursor
+			const k = hover < 0.05 ? 1 : 1 - Math.exp(-dt / 0.1);
+			mouseWorld = [
+				mouseWorld[0] + (hit[0] - mouseWorld[0]) * k,
+				mouseWorld[1] + (hit[1] - mouseWorld[1]) * k
+			];
+		}
 		const cam = camUniforms();
 		starsDraw.set({ cam });
 		post.set({ cam });
@@ -228,8 +273,9 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 		if (resizeFrame) cancelAnimationFrame(resizeFrame);
 		observer?.disconnect();
 		intersection?.disconnect();
-		window.removeEventListener('pointermove', onPointer);
-		window.removeEventListener('blur', recenterPointer);
+		interaction.removeEventListener('mousemove', onMove);
+		interaction.removeEventListener('mouseleave', onLeave);
+		paletteObserver?.disconnect();
 		document.removeEventListener('visibilitychange', onVisibility);
 		destroyTargets(targets);
 		gpu?.dispose();
@@ -286,8 +332,21 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 		if (disposed) return;
 		observer = new ResizeObserver(scheduleResize);
 		observer.observe(canvas);
-		window.addEventListener('pointermove', onPointer, { passive: true });
-		window.addEventListener('blur', recenterPointer);
+		if (!light) {
+			interaction.addEventListener('mousemove', onMove);
+			interaction.addEventListener('mouseleave', onLeave);
+		}
+		let lastKey = '';
+		paletteObserver = new MutationObserver(() => {
+			const key = document.body.className + '|' + (document.body.getAttribute('style') ?? '');
+			if (key === lastKey) return;
+			lastKey = key;
+			applyPalette();
+		});
+		paletteObserver.observe(document.body, {
+			attributes: true,
+			attributeFilter: ['class', 'style']
+		});
 		document.addEventListener('visibilitychange', onVisibility);
 		intersection = new IntersectionObserver(
 			(entries) => {
@@ -316,4 +375,44 @@ export function createGalaxyRenderer({ canvas, light, getCenter }: Options) {
 			center = getCenter();
 		}
 	};
+}
+
+const DEFAULT_PALETTE = [
+	'#ffffff',
+	'#f5f0ff',
+	'#ede4ff',
+	'#ddd0ff',
+	'#c4b5fd',
+	'#a78bfa',
+	'#8b5cf6',
+	'#7c3aed',
+	'#7e5cdb',
+	'#8a7ace',
+	'#9d9ad4',
+	'#b8b8e0'
+];
+
+/** Reads --galaxy-c1..c12 and --bg-dark; the browser resolves the colours, so any CSS syntax works */
+function readPalette() {
+	const probe = document.createElement('span');
+	probe.style.display = 'none';
+	document.body.appendChild(probe);
+	const style = getComputedStyle(document.body);
+	const rgb = (value: string, fallback: string): [number, number, number] => {
+		probe.style.color = '';
+		probe.style.color = value.trim() || fallback;
+		const resolved = getComputedStyle(probe).color;
+		const m = resolved.match(/[\d.]+/g);
+		if (!m || m.length < 3) return rgb(fallback, '#ffffff');
+		const k = resolved.startsWith('color(') ? 1 : 1 / 255;
+		return [Number(m[0]) * k, Number(m[1]) * k, Number(m[2]) * k];
+	};
+	// The pipeline works in linear light and gamma-encodes at the end
+	const linear = (c: [number, number, number]) => [c[0] ** 2.2, c[1] ** 2.2, c[2] ** 2.2, 1];
+	const colors = DEFAULT_PALETTE.map((fallback, i) =>
+		linear(rgb(style.getPropertyValue(`--galaxy-c${i + 1}`), fallback))
+	);
+	const display = [...rgb(style.getPropertyValue('--bg-dark'), '#07090f'), 1];
+	probe.remove();
+	return { colors, space: [0, 0, 0, 1], display };
 }
