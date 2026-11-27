@@ -119,7 +119,7 @@ fn armOffset(theta: f32) -> f32 {
     let edge = smoothstep(1.55, 1.1, r);
 
     // the cursor ring also brightens the gas under it
-    let flare = 1.0 + 1.5 * smoothstep(cam.ring + 0.4 * SCALE, 0.0, length(hit.xy - cam.mouse)) * cam.hover;
+    let flare = 1.0 + 0.25 * smoothstep(cam.ring + 0.4 * SCALE, 0.0, length(hit.xy - cam.mouse)) * cam.hover;
     let glow = exp(-r / 0.45) * edge * (0.25 + 0.75 * arm) * (0.6 + 0.8 * n) * sqrt(path);
     disk = pcol(r / GALAXY_R) * glow * 0.16 * flare;
     tau = 2.4 * smoothstep(0.02, 0.2, r) * exp(-r / 0.55) * (0.3 + 0.9 * lane) * (0.45 + 1.1 * n) * edge * path;

@@ -163,9 +163,9 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
 
   var col = pcol(length(p.xy) / GALAXY_R);
   col = mix(col, mix(vec3f(1.0), pal.c[2].rgb, 0.5), tint);
-  col = (col + vec3f(vel * 0.4)) * depthDim;
-  out.color = col * (0.15 + lum) * cam.gain * breath * (1.0 + vel * 2.0);
-  let sizePx = max(mix(1.0, 2.6, sqrt(lum)) * depthScale * (0.6 + 0.4 * breath + vel * 1.2), 0.8);
+  col = (col + vec3f(vel * 0.1)) * depthDim;
+  out.color = col * (0.15 + lum) * cam.gain * breath * (1.0 + vel * 0.5);
+  let sizePx = max(mix(1.0, 2.6, sqrt(lum)) * depthScale * (0.6 + 0.4 * breath + vel * 0.3), 0.8);
   out.position = vec4f(clip.xy + corners[vi] * sizePx * 2.0 / cam.res, clip.z, clip.w);
   return out;
 }
