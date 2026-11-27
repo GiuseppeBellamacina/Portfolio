@@ -17,6 +17,7 @@ struct Cam {
   mouse: vec2f,
   ring: f32,
   core: f32, // bulge brightness: 1 on desktop, lower on phones where the core is just a few pixels
+  wide: f32, // arm width / openness: 1 on desktop, larger on phones to fill a portrait screen
 }
 struct Pal {
   c: array<vec4f, 12>,
@@ -33,7 +34,8 @@ const GALAXY_R: f32 = 1.5;
 const SCALE: f32 = 0.1875;
 
 fn armPhase(r: f32) -> f32 {
-  return 2.2 * log(sqrt(r * r + 0.0196) / 0.14);
+  // wider arms are also more open (less wound)
+  return 2.2 / (1.0 + 0.25 * (cam.wide - 1.0)) * log(sqrt(r * r + 0.0196) / 0.14);
 }
 
 fn pcol(dist: f32) -> vec3f {
@@ -110,9 +112,9 @@ fn armOffset(theta: f32) -> f32 {
     let phi = atan2(hit.y, hit.x);
     let theta = phi - armPhase(r) - cam.spin;
     let m = armOffset(theta);
-    let arm = exp(-m * m / (2.0 * 0.26 * 0.26));
+    let arm = exp(-m * m / (2.0 * 0.26 * 0.26 * cam.wide * cam.wide));
     let ml = armOffset(theta - 0.14); // dust lanes trail the stars
-    let lane = exp(-ml * ml / (2.0 * 0.18 * 0.18));
+    let lane = exp(-ml * ml / (2.0 * 0.18 * 0.18 * cam.wide * cam.wide));
     let nang = phi - cam.spin;
     let q = vec2f(r * cos(nang), r * sin(nang)) * 6.0;
     let n = fbm(q);

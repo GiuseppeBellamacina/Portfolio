@@ -11,6 +11,8 @@ type VgpuApi = typeof import('vgpu');
 // The original three.js galaxy was seen from (0, -6.5, 4.5): ~55 degrees off the disc normal
 // (the camera sits on the -y side, so the disc's far edge is its +y one: a negative tilt)
 const TILT = -0.965;
+// Phones see the disc a bit more face-on, so it fills a portrait screen top to bottom
+const PHONE_TILT = -0.75;
 const FOCAL = 2.414; // 1 / tan(22.5deg): the original's 45deg vertical fov
 const GALAXY_R = 1.5; // the original's radius of 8, scaled down
 const SCALE = GALAXY_R / 8;
@@ -120,7 +122,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter, on
 		res: surface!.size,
 		center: [center[0], center[1]],
 		time,
-		tilt: TILT,
+		tilt: light ? PHONE_TILT : TILT,
 		roll: 0,
 		dist,
 		focal: FOCAL * center[2],
@@ -128,6 +130,7 @@ export function createGalaxyRenderer({ canvas, light, interaction, getCenter, on
 		// Fewer stars are compensated only partly: a full compensation burns the dense core
 		gain: 0.22 * Math.pow(REF_STARS / stars, 0.6),
 		core: light ? 0.3 : 1,
+		wide: light ? 1.4 : 1,
 		hover,
 		mouse: mouseWorld,
 		ring: (0.5 + Math.sin(time) * 0.1) * SCALE

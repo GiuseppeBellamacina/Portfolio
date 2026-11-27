@@ -18,6 +18,7 @@ struct Cam {
   mouse: vec2f,
   ring: f32,
   core: f32, // bulge brightness: 1 on desktop, lower on phones where the core is just a few pixels
+  wide: f32, // arm width / openness: 1 on desktop, larger on phones to fill a portrait screen
 }
 struct Pal {
   c: array<vec4f, 12>,
@@ -49,7 +50,8 @@ fn gauss(u: vec3f) -> f32 {
 
 // logarithmic spiral
 fn armPhase(r: f32) -> f32 {
-  return 2.2 * log(sqrt(r * r + 0.0196) / 0.14);
+  // wider arms are also more open (less wound)
+  return 2.2 / (1.0 + 0.25 * (cam.wide - 1.0)) * log(sqrt(r * r + 0.0196) / 0.14);
 }
 
 // The original 12-stop gradient: centre -> rim, the core takes the soft c5 tint instead of white
@@ -92,12 +94,12 @@ fn rot(tilt: f32, roll: f32) -> mat3x3f {
   let pop = a.x;
   if (pop < 0.76) {
     // Exponential disk, truncated at the rim, with 3 log-spiral arms
-    let rd = 0.45;
+    let rd = 0.45 * (1.0 + 0.3 * (cam.wide - 1.0));
     let r = -rd * log(1.0 - a.y * (1.0 - exp(-GALAXY_R / rd)));
     let inArm = a.z < 0.72;
     var phi = 0.0;
     if (inArm) {
-      phi = armPhase(r) + floor(b.x * ARMS) * 2.0 * PI / ARMS + gauss(c) * 0.22 + cam.spin;
+      phi = armPhase(r) + floor(b.x * ARMS) * 2.0 * PI / ARMS + gauss(c) * 0.22 * cam.wide + cam.spin;
     } else {
       phi = b.y * 2.0 * PI + cam.spin;
     }
